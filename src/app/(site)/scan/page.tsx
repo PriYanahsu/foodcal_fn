@@ -1,9 +1,6 @@
-import React from 'react'
+import React from 'react';
+import { FoodScanPage } from '@/features/food-scan';
 
-export const Sacn = () => {
-  return (
-    <div>
-      
-    </div>
-  )
+export default function ScanPage() {
+  return <FoodScanPage />;
 }
