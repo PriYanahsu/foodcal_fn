@@ -43,23 +43,24 @@ export const CameraInput: React.FC<CameraInputProps> = ({
           if (file) onImageSelect(file);
         }}
       />
+      <div className="flex gap-3">
+        <Button onClick={() => fileInputRef.current?.click()}>
+          Upload Food Image
+        </Button>
 
-      <Button onClick={() => fileInputRef.current?.click()}>
-        Upload Food Image
-      </Button>
+        <Button onClick={openCamera}>
+          Open Camera
+        </Button>
+      </div>
 
-      <Button onClick={openCamera}>
-        Open Camera
-      </Button>
-
-      {isOpen && (
-        <CameraOverlay
-          onCapture={handleCapture}
-          onClose={closeCamera}
-          videoRef={videoRef}
-          canvasRef={canvasRef}
-        />
-      )}
+        {isOpen && (
+          <CameraOverlay
+            onCapture={handleCapture}
+            onClose={closeCamera}
+            videoRef={videoRef}
+            canvasRef={canvasRef}
+          />
+        )}
     </>
   );
 };
