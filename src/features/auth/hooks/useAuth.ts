@@ -1,0 +1,68 @@
+'use client';
+import { useState } from 'react';
+import { login as loginApi, signup as signupApi } from '../services/auth.api';
+import { LoginCredentials, SignupCredentials } from '../types';
+
+export const useAuth = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const login = async (credentials: LoginCredentials) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await loginApi(credentials);
+      if (response.success && response.token) {
+        // Store token in localStorage or cookie
+        localStorage.setItem('authToken', response.token);
+        if (response.user) {
+          localStorage.setItem('user', JSON.stringify(response.user));
+        }
+        return { success: true };
+      } else {
+        setError(response.error || 'Login failed');
+        return { success: false, error: response.error };
+      }
+    } catch (err) {
+      const errorMessage = 'An unexpected error occurred';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const signup = async (credentials: SignupCredentials) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await signupApi(credentials);
+      if (response.success && response.token) {
+        // Store token in localStorage or cookie
+        localStorage.setItem('authToken', response.token);
+        if (response.user) {
+          localStorage.setItem('user', JSON.stringify(response.user));
+        }
+        return { success: true };
+      } else {
+        setError(response.error || 'Signup failed');
+        return { success: false, error: response.error };
+      }
+    } catch (err) {
+      const errorMessage = 'An unexpected error occurred';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return {
+    login,
+    signup,
+    isLoading,
+    error,
+  };
+};

@@ -3,4 +3,5 @@ export const ROUTES = {
   SCAN: '/scan',
   PROFILE: '/profile',
   HISTORY: '/history',
+  LOGIN: '/login',
 } as const;
