@@ -1,5 +1,7 @@
-import React, { useRef, ChangeEvent } from 'react';
-import { Button } from '@/components/ui/Button';
+import React, { useRef, ChangeEvent } from "react";
+import { Button } from "@/components/ui/Button";
+import { useOpenCamera } from "../hooks/useOpenCamera";
+import { CameraOverlay } from "./CameraOverlay";
 
 interface CameraInputProps {
   onImageSelect: (file: File) => void;
@@ -12,37 +14,52 @@ export const CameraInput: React.FC<CameraInputProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.type.startsWith('image/')) {
+  const {
+    isOpen,
+    openCamera,
+    closeCamera,
+    captureImage,
+    videoRef,
+    canvasRef,
+  } = useOpenCamera();
+
+  const handleCapture = () => {
+    const file = captureImage();
+    if (file) {
       onImageSelect(file);
+      closeCamera();
     }
   };
 
-  const handleClick = () => {
-    fileInputRef.current?.click();
-  };
-
   return (
-    <div className="w-full">
+    <>
       <input
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        onChange={handleFileChange}
         className="hidden"
-        disabled={isLoading}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) onImageSelect(file);
+        }}
       />
-      <Button
-        onClick={handleClick}
-        isLoading={isLoading}
-        disabled={isLoading}
-        className="w-full"
-        variant="primary"
-        size="lg"
-      >
-        {isLoading ? 'Processing...' : 'Upload Food Image'}
+
+      <Button onClick={() => fileInputRef.current?.click()}>
+        Upload Food Image
       </Button>
-    </div>
+
+      <Button onClick={openCamera}>
+        Open Camera
+      </Button>
+
+      {isOpen && (
+        <CameraOverlay
+          onCapture={handleCapture}
+          onClose={closeCamera}
+          videoRef={videoRef}
+          canvasRef={canvasRef}
+        />
+      )}
+    </>
   );
 };
