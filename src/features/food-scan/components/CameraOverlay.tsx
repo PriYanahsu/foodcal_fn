@@ -18,7 +18,8 @@ export const CameraOverlay = ({
     <div className="fixed inset-0 z-50 bg-black flex flex-col">
       <video
         ref={videoRef}
-        className="flex-1 object-cover"
+        className="h-150 w-full"
+        autoPlay
         playsInline
         muted
       />

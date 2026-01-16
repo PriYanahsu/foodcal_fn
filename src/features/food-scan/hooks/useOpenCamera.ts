@@ -1,33 +1,34 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 
 export const useOpenCamera = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const streamRef = useRef<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
 
-  const openCamera = useCallback(async () => {
+  const openCamera = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: "environment" },
     });
-
     streamRef.current = stream;
-
-    if (videoRef.current) {
-      videoRef.current.srcObject = stream;
-      await videoRef.current.play();
-    }
-
     setIsOpen(true);
-  }, []);
+  };
 
-  const closeCamera = useCallback(() => {
+  // 🔥 KEY FIX: attach stream AFTER video mounts
+  useEffect(() => {
+    if (isOpen && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+      videoRef.current.play();
+    }
+  }, [isOpen]);
+
+  const closeCamera = () => {
     streamRef.current?.getTracks().forEach(track => track.stop());
     streamRef.current = null;
     setIsOpen(false);
-  }, []);
+  };
 
-  const captureImage = useCallback((): File | null => {
+  const captureImage = (): File | null => {
     if (!videoRef.current || !canvasRef.current) return null;
 
     const video = videoRef.current;
@@ -41,16 +42,12 @@ export const useOpenCamera = () => {
 
     ctx.drawImage(video, 0, 0);
 
-    const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
-
-    const file = new File(
-      [dataURLtoBlob(dataUrl)],
+    return new File(
+      [dataURLtoBlob(canvas.toDataURL("image/jpeg", 0.9))],
       "captured.jpg",
       { type: "image/jpeg" }
     );
-
-    return file;
-  }, []);
+  };
 
   return {
     isOpen,
@@ -63,12 +60,14 @@ export const useOpenCamera = () => {
 };
 
 function dataURLtoBlob(dataUrl: string) {
-  const arr = dataUrl.split(",");
-  const mime = arr[0].match(/:(.*?);/)![1];
-  const bstr = atob(arr[1]);
-  let n = bstr.length;
-  const u8arr = new Uint8Array(n);
+  const [meta, content] = dataUrl.split(",");
+  const mime = meta.match(/:(.*?);/)![1];
+  const binary = atob(content);
+  const arr = new Uint8Array(binary.length);
 
-  while (n--) u8arr[n] = bstr.charCodeAt(n);
-  return new Blob([u8arr], { type: mime });
+  for (let i = 0; i < binary.length; i++) {
+    arr[i] = binary.charCodeAt(i);
+  }
+
+  return new Blob([arr], { type: mime });
 }
