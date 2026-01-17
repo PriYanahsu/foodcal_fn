@@ -6,7 +6,7 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
   try {
     const { email, password } = credentials;
     const { data, error: loginError } = await supabase.auth.signInWithPassword({
-      email, 
+      email,
       password
     });
 
@@ -44,7 +44,7 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
 export const signup = async (credentials: SignupCredentials): Promise<AuthResponse> => {
   try {
     const { confirmPassword, name, email, password } = credentials;
-    
+
     const { data, error: signupError } = await supabase.auth.signUp({
       email: email,
       password: password,
@@ -101,5 +101,18 @@ export const signup = async (credentials: SignupCredentials): Promise<AuthRespon
       success: false,
       error: error.message || 'Signup failed. Please try again.',
     };
+  }
+};
+
+
+export const logout = async (): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Logout failed' };
   }
 };

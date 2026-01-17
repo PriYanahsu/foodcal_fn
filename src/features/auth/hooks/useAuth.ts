@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { login as loginApi, signup as signupApi } from '../services/auth.api';
+import { login as loginApi, signup as signupApi, logout as logoutApi } from '../services/auth.api';
 import { LoginCredentials, SignupCredentials } from '../types';
 
 export const useAuth = () => {
@@ -14,13 +14,7 @@ export const useAuth = () => {
     try {
       const response = await loginApi(credentials);
       if (response.success && response.token) {
-        // Store token in localStorage or cookie
-        localStorage.setItem('authToken', response.token);
-        console.log("token", response.token);
-        if (response.user) {
-          localStorage.setItem('user', JSON.stringify(response.user));
-          console.log("user", JSON.stringify(response.user));
-        }
+        // Token is handled by cookie via supabase client
         return { success: true };
       } else {
         setError(response.error || 'Login failed');
@@ -42,13 +36,7 @@ export const useAuth = () => {
     try {
       const response = await signupApi(credentials);
       if (response.success) {
-        // Store token if available (may not be if email confirmation is required)
-        if (response.token) {
-          localStorage.setItem('authToken', response.token);
-        }
-        if (response.user) {
-          localStorage.setItem('user', JSON.stringify(response.user));
-        }
+        // Token is handled by cookie via supabase client
         // Show info message if email confirmation is required
         if (response.error && response.error.includes('email')) {
           // This is actually an info message, not an error
@@ -68,9 +56,23 @@ export const useAuth = () => {
     }
   };
 
+  const logout = async () => {
+    setIsLoading(true);
+    try {
+      await logoutApi();
+      // Clear any local state if needed (though cookies handle mostly everything)
+      return { success: true };
+    } catch (error) {
+      return { success: false };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     login,
     signup,
+    logout,
     isLoading,
     error,
   };

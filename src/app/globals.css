@@ -1,20 +1,42 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Dark Theme Base */
+  --background: #0d1117;
+  --foreground: #e6edf3;
+
+  /* Vibrant Accents */
+  --primary: #00ff88;
+  /* Neon Green */
+  --primary-hover: #00cc6a;
+  --secondary: #bd34fe;
+  /* Electric Purple */
+  --accent: #2f81f7;
+  /* Bright Blue */
+
+  /* Cards / Surfaces */
+  --card-bg: #161b22;
+  --card-border: #30363d;
+
+  /* Text */
+  --text-muted: #8b949e;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer components {
+
+
+  .btn-primary {
+    @apply bg-[var(--primary)] text-black font-bold py-3 px-6 rounded-xl hover:bg-[var(--primary-hover)] transition-all duration-300 transform hover:scale-[1.02] shadow-[0_0_15px_#00ff884d];
+  }
+
+  .btn-secondary {
+    @apply bg-[var(--card-bg)] text-[var(--foreground)] border border-[var(--card-border)] py-3 px-6 rounded-xl hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all duration-300;
   }
 }
