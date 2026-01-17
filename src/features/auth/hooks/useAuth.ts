@@ -16,8 +16,10 @@ export const useAuth = () => {
       if (response.success && response.token) {
         // Store token in localStorage or cookie
         localStorage.setItem('authToken', response.token);
+        console.log("token", response.token);
         if (response.user) {
           localStorage.setItem('user', JSON.stringify(response.user));
+          console.log("user", JSON.stringify(response.user));
         }
         return { success: true };
       } else {
@@ -39,13 +41,20 @@ export const useAuth = () => {
 
     try {
       const response = await signupApi(credentials);
-      if (response.success && response.token) {
-        // Store token in localStorage or cookie
-        localStorage.setItem('authToken', response.token);
+      if (response.success) {
+        // Store token if available (may not be if email confirmation is required)
+        if (response.token) {
+          localStorage.setItem('authToken', response.token);
+        }
         if (response.user) {
           localStorage.setItem('user', JSON.stringify(response.user));
         }
-        return { success: true };
+        // Show info message if email confirmation is required
+        if (response.error && response.error.includes('email')) {
+          // This is actually an info message, not an error
+          setError(response.error);
+        }
+        return { success: true, message: response.error };
       } else {
         setError(response.error || 'Signup failed');
         return { success: false, error: response.error };
