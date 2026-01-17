@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
 import './globals.css';
 import { Sidebar } from '@/components/layout/Sidebar';
+
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'FoodCal - AI Nutrition Tracker',
@@ -14,7 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-[var(--background)] text-[var(--foreground)] min-h-screen flex">
+      <body className={`${inter.className} bg-[var(--background)] text-[var(--foreground)] min-h-screen flex`}>
         {/* Sidebar is fixed, so we add margin on desktop */}
         <Sidebar />
 
