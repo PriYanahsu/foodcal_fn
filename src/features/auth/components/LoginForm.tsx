@@ -37,13 +37,13 @@ export const LoginForm: React.FC = () => {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-600">{error}</p>
+        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+          <p className="text-sm text-red-400">{error}</p>
         </div>
       )}
       {validationError && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-600">{validationError}</p>
+        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+          <p className="text-sm text-red-400">{validationError}</p>
         </div>
       )}
 
