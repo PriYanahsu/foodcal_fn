@@ -9,7 +9,9 @@ import { ROUTES } from '@/constants/routes';
 
 export const SignupForm: React.FC = () => {
   const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [gender, setGender] = useState('Male'); // Default
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -20,7 +22,8 @@ export const SignupForm: React.FC = () => {
     e.preventDefault();
     setValidationError(null);
 
-    if (!name || !email || !password || !confirmPassword) {
+    // Basic validation
+    if (!name || !username || !email || !password || !confirmPassword) {
       setValidationError('Please fill in all fields');
       return;
     }
@@ -40,7 +43,15 @@ export const SignupForm: React.FC = () => {
       return;
     }
 
-    const result = await signup({ name, email, password, confirmPassword });
+    const result = await signup({
+      name,
+      username,
+      email,
+      gender,
+      password,
+      confirmPassword
+    });
+
     if (result.success) {
       router.push(ROUTES.HOME);
     }
@@ -67,6 +78,28 @@ export const SignupForm: React.FC = () => {
         placeholder="Enter your full name"
         required
       />
+
+      <Input
+        type="text"
+        label="Username"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        placeholder="Choose a username"
+        required
+      />
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-[var(--text-secondary)]">Gender</label>
+        <select
+          value={gender}
+          onChange={(e) => setGender(e.target.value)}
+          className="w-full px-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all"
+        >
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
 
       <Input
         type="email"

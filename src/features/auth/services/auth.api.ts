@@ -3,7 +3,25 @@ import { supabase } from '@/lib/supabaseClient';
 
 export const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
   try {
-    const { email, password } = credentials;
+    let { email, password } = credentials;
+
+    // Check if input is username (no @)
+    if (!email.includes('@')) {
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('username', email)
+        .single();
+
+      if (profileError || !profile) {
+        return {
+          success: false,
+          error: 'Username not found.',
+        };
+      }
+      email = profile.email;
+    }
+
     const { data, error: loginError } = await supabase.auth.signInWithPassword({
       email,
       password
@@ -21,7 +39,7 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
         success: true,
         user: {
           id: data.user?.id || '',
-          name: data.user?.user_metadata?.name || '',
+          name: data.user?.user_metadata?.full_name || '',
           email: data.user?.email || email,
         },
         token: data.session.access_token,
@@ -42,14 +60,16 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
 
 export const signup = async (credentials: SignupCredentials): Promise<AuthResponse> => {
   try {
-    const { name, email, password } = credentials;
+    const { name, username, email, gender, password } = credentials;
 
     const { data, error: signupError } = await supabase.auth.signUp({
       email: email,
       password: password,
       options: {
         data: {
-          name: name,
+          full_name: name,
+          username: username,
+          gender: gender,
         },
       },
     });
