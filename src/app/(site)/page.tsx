@@ -1,35 +1,25 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import { ROUTES } from '@/constants/routes';
 import { StatCard } from '@/components/dashboard/StatCard';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useDailyStats } from '@/features/dashboard/hooks/useDailyStats';
 
-export default async function Dashboard() {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies: { getAll: () => cookieStore.getAll(), setAll: () => { } } }
-  );
+export default function Dashboard() {
+  const { user } = useAuth();
+  const { stats, recentLogs, loading } = useDailyStats();
 
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
 
-  // Mock Data for Display - In real app, fetch from DB
-  const dailyStats = {
-    calories: { current: 1250, target: 2200, unit: 'kcal' },
-    protein: { current: 85, target: 150, unit: 'g' },
-    carbs: { current: 120, target: 250, unit: 'g' },
-    fats: { current: 45, target: 70, unit: 'g' },
+  // Goals (could be editable in future, hardcoded for now)
+  const goals = {
+    calories: 2200,
+    protein: 150,
+    carbs: 250,
+    fats: 70,
   };
-
-  const recentScans = [
-    { id: 1, name: 'Avocado Toast', calories: 350, time: '08:30 AM', image: '🥑' },
-    { id: 2, name: 'Grilled Chicken Salad', calories: 420, time: '01:15 PM', image: '🥗' },
-    { id: 3, name: 'Protein Shake', calories: 180, time: '04:00 PM', image: '🥤' },
-  ];
 
   return (
     <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-10">
@@ -41,7 +31,7 @@ export default async function Dashboard() {
             Hello, <span className="text-[var(--primary)]">{userName}</span> 👋
           </h1>
           <p className="text-[var(--text-muted)] text-lg">
-            You're on track! Keep up the momentum.
+            {loading ? 'Loading your stats...' : "You're on track! Keep up the momentum."}
           </p>
         </div>
         <Link href={ROUTES.SCAN}>
@@ -56,35 +46,35 @@ export default async function Dashboard() {
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           label="Calories"
-          value={dailyStats.calories.current}
-          unit={`/ ${dailyStats.calories.target} kcal`}
+          value={Math.round(stats.calories)}
+          unit={`/ ${goals.calories} kcal`}
           icon="🔥"
           color="#ff4757"
-          progress={(dailyStats.calories.current / dailyStats.calories.target) * 100}
+          progress={Math.min((stats.calories / goals.calories) * 100, 100)}
         />
         <StatCard
           label="Protein"
-          value={dailyStats.protein.current}
-          unit={`/ ${dailyStats.protein.target} g`}
+          value={Math.round(stats.protein)}
+          unit={`/ ${goals.protein} g`}
           icon="🥩"
           color="#00ff88"
-          progress={(dailyStats.protein.current / dailyStats.protein.target) * 100}
+          progress={Math.min((stats.protein / goals.protein) * 100, 100)}
         />
         <StatCard
           label="Carbs"
-          value={dailyStats.carbs.current}
-          unit={`/ ${dailyStats.carbs.target} g`}
+          value={Math.round(stats.carbs)}
+          unit={`/ ${goals.carbs} g`}
           icon="🍞"
           color="#2f81f7"
-          progress={(dailyStats.carbs.current / dailyStats.carbs.target) * 100}
+          progress={Math.min((stats.carbs / goals.carbs) * 100, 100)}
         />
         <StatCard
           label="Fats"
-          value={dailyStats.fats.current}
-          unit={`/ ${dailyStats.fats.target} g`}
+          value={Math.round(stats.fats)}
+          unit={`/ ${goals.fats} g`}
           icon="🥑"
           color="#bd34fe"
-          progress={(dailyStats.fats.current / dailyStats.fats.target) * 100}
+          progress={Math.min((stats.fats / goals.fats) * 100, 100)}
         />
       </section>
 
@@ -99,19 +89,28 @@ export default async function Dashboard() {
           </div>
 
           <div className="space-y-4">
-            {recentScans.map((scan) => (
-              <div key={scan.id} className="bg-[var(--card-bg)]/80 backdrop-blur-md border border-[var(--card-border)] rounded-2xl shadow-xl p-4 flex items-center justify-between hover:bg-white/5 transition-colors cursor-pointer">
+            {recentLogs.length === 0 && !loading && (
+              <div className="text-[var(--text-muted)] py-8 text-center bg-[var(--card-bg)]/50 rounded-2xl border border-[var(--card-border)] border-dashed">
+                No meals logged today yet.
+              </div>
+            )}
+
+            {recentLogs.map((log) => (
+              <div key={log.id} className="bg-[var(--card-bg)]/80 backdrop-blur-md border border-[var(--card-border)] rounded-2xl shadow-xl p-4 flex items-center justify-between hover:bg-white/5 transition-colors cursor-pointer">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-gray-800 flex items-center justify-center text-2xl">
-                    {scan.image}
+                    {/* Simple fallback icon based on meal type or generic */}
+                    🍽️
                   </div>
                   <div>
-                    <h3 className="font-semibold">{scan.name}</h3>
-                    <p className="text-sm text-[var(--text-muted)]">{scan.time}</p>
+                    <h3 className="font-semibold">{log.food_name}</h3>
+                    <p className="text-sm text-[var(--text-muted)]">
+                      {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="block font-bold text-[var(--primary)]">+{scan.calories}</span>
+                  <span className="block font-bold text-[var(--primary)]">+{Math.round(log.calories)}</span>
                   <span className="text-xs text-[var(--text-muted)]">kcal</span>
                 </div>
               </div>

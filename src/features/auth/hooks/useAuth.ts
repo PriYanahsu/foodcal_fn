@@ -1,11 +1,29 @@
 'use client';
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { login as loginApi, signup as signupApi, logout as logoutApi } from '../services/auth.api';
 import { LoginCredentials, SignupCredentials } from '../types';
+import { supabase } from '@/lib/supabaseClient';
+import { User } from '@supabase/supabase-js';
 
 export const useAuth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const login = async (credentials: LoginCredentials) => {
     setIsLoading(true);
@@ -70,6 +88,7 @@ export const useAuth = () => {
   };
 
   return {
+    user,
     login,
     signup,
     logout,

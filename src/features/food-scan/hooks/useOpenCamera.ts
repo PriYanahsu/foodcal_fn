@@ -27,7 +27,14 @@ export const useOpenCamera = () => {
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play().catch(e => {
+            // Ignore AbortError which happens if the user switches camera quickly
+            if (e.name !== 'AbortError') {
+              console.error("Error playing video:", e);
+            }
+          });
+        };
       }
 
       setError(null);

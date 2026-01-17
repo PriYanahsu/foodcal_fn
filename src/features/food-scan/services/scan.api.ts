@@ -1,0 +1,34 @@
+import axios from 'axios';
+
+export interface NutritionData {
+    food_name: string;
+    calories: number;
+    protein: number;
+    carbs: number;
+    fats: number;
+    confidence: number;
+    analysis_notes?: string;
+}
+
+export const analyzeFoodImage = async (imageFile: File): Promise<NutritionData> => {
+    try {
+        // Convert file to base64
+        const base64Image = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(imageFile);
+        });
+
+        const response = await axios.post<{ data: NutritionData }>('/api/analyze-food', {
+            image: base64Image,
+        });
+
+        return response.data.data;
+    } catch (error: any) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || 'Failed to analyze food');
+        }
+        throw error;
+    }
+};
