@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
 
 export async function POST(req: Request) {
+    if (!process.env.OPENAI_API_KEY) {
+        throw new Error('OPENAI_API_KEY missing');
+    }
+
+    const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+    });
+
     try {
         const { image } = await req.json();
 
