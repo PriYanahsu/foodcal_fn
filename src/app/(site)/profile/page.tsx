@@ -121,6 +121,7 @@ export default function ProfilePage() {
             <AvatarUpload
               uid={user?.id || ''}
               url={profile.avatar_url ?? null}
+              isEditing={true}
               onUpload={(url) => {
                 setProfile(prev => ({ ...prev, avatar_url: url }));
                 supabase.from('profiles').update({ avatar_url: url }).eq('id', user?.id).then();

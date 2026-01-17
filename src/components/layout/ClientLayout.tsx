@@ -15,8 +15,15 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             {!isAuthPage && <Sidebar />}
 
             <main
-                className={`flex-1 transition-all duration-300 w-full ${!isAuthPage ? 'md:ml-64' : ''}`}
+                className={`flex-1 transition-all duration-300 w-full relative ${!isAuthPage ? "pt-14" : ""} md:pt-0 ${!isAuthPage ? 'md:ml-64' : ''}`}
             >
+                {/* Mobile Brand Header (Global) */}
+                <div className="md:hidden absolute top-6 left-6 flex items-center gap-3 z-50">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)]"></div>
+                    <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
+                        FoodCal
+                    </h1>
+                </div>
                 {children}
             </main>
         </div>
