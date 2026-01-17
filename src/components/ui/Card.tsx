@@ -12,7 +12,7 @@ export const Card: React.FC<CardProps> = ({
   title,
 }) => {
   return (
-    <div className={`bg-white rounded-lg shadow-md p-6 ${className}`}>
+    <div className={`bg-[var(--card-bg)] rounded-lg shadow-md p-6 ${className}`}>
       {title && (
         <h3 className="text-xl font-semibold mb-4 text-gray-800">{title}</h3>
       )}
