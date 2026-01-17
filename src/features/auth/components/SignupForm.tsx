@@ -20,7 +20,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
   const { signup, isLoading, error } = useAuth();
-  // const router = useRouter(); // Not needed for signup flow update
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -57,9 +57,34 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
     });
 
     if (result.success) {
-      onSuccess();
+      setSuccess(true);
+      // Wait for 2 seconds then switch to login
+      setTimeout(() => {
+        onSuccess();
+      }, 2000);
     }
   };
+
+  if (success) {
+    return (
+      <div className="text-center py-8">
+        <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg className="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h3 className="text-xl font-bold text-white mb-2">Account Created!</h3>
+        <p className="text-[var(--text-muted)] mb-6">
+          Your account has been successfully created.
+          <br />
+          Redirecting to login...
+        </p>
+        <Button onClick={onSuccess} variant="primary" className="w-full">
+          Sign In Now
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
