@@ -19,6 +19,8 @@ interface ProfileData {
   goal: string;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default function ProfilePage() {
   const { user, logout } = useAuth();
   const [loading, setLoading] = useState(true);
