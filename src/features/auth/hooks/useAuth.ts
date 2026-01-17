@@ -56,7 +56,9 @@ export const useAuth = () => {
       const response = await signupApi(credentials);
       if (response.success) {
         // Token is handled by cookie via supabase client
-        // Show info message if email confirmation is required
+        // Force logout to ensure manual login flow
+        await supabase.auth.signOut();
+
         if (response.error && response.error.includes('email')) {
           // This is actually an info message, not an error
           setError(response.error);
