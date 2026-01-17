@@ -1,0 +1,35 @@
+﻿
+> foodcal_fe@0.1.0 build
+> next build
+
+Γû▓ Next.js 16.1.2 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 4.7s
+  Running TypeScript ...
+  Collecting page data using 15 workers ...
+  Generating static pages using 15 workers (0/6) ...
+  Generating static pages using 15 workers (1/6) 
+  Generating static pages using 15 workers (2/6) 
+  Generating static pages using 15 workers (4/6) 
+Γ£ô Generating static pages using 15 workers (6/6) in 1109.0ms
+  Finalizing page optimization ...
+
+Route (app)
+Γöî Γùï /
+Γö£ ╞Æ /_not-found
+Γö£ ╞Æ /api/analyze-food
+Γö£ ╞Æ /api/scan
+Γö£ ╞Æ /history
+Γö£ Γùï /icon
+Γö£ ╞Æ /login
+Γö£ Γùï /profile
+Γöö ╞Æ /scan
+
+
+╞Æ Proxy (Middleware)
+
+Γùï  (Static)   prerendered as static content
+╞Æ  (Dynamic)  server-rendered on demand
+

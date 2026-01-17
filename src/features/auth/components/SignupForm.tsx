@@ -7,7 +7,11 @@ import { useAuth } from '../hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/constants/routes';
 
-export const SignupForm: React.FC = () => {
+interface SignupFormProps {
+  onSuccess: () => void;
+}
+
+export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -16,7 +20,7 @@ export const SignupForm: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
   const { signup, isLoading, error } = useAuth();
-  const router = useRouter();
+  // const router = useRouter(); // Not needed for signup flow update
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -53,7 +57,7 @@ export const SignupForm: React.FC = () => {
     });
 
     if (result.success) {
-      router.push(ROUTES.HOME);
+      onSuccess();
     }
   };
 

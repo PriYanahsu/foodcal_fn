@@ -20,6 +20,10 @@
 
   /* Text */
   --text-muted: #8b949e;
+
+  /* Inputs */
+  --input-bg: #21262d;
+  --input-border: #30363d;
 }
 
 body {
