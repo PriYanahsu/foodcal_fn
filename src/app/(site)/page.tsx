@@ -7,6 +7,8 @@ import { StatCard } from '@/components/dashboard/StatCard';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useDailyStats } from '@/features/dashboard/hooks/useDailyStats';
 
+export const dynamic = 'force-dynamic';
+
 export default function Dashboard() {
   const { user } = useAuth();
   const { stats, recentLogs, loading } = useDailyStats();
