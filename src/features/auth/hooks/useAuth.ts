@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react';
 import { login as loginApi, signup as signupApi, logout as logoutApi } from '../services/auth.api';
 import { LoginCredentials, SignupCredentials } from '../types';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/lib/supabase/client';
 import { User } from '@supabase/supabase-js';
 
 export const useAuth = () => {
+  const supabase = createClient();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export interface DailyStats {
@@ -18,6 +18,7 @@ export interface FoodLog {
 }
 
 export const useDailyStats = () => {
+    const supabase = createClient();
     const [stats, setStats] = useState<DailyStats>({
         calories: 0,
         protein: 0,

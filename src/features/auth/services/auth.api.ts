@@ -1,9 +1,10 @@
 import { LoginCredentials, SignupCredentials, AuthResponse } from '../types';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/lib/supabase/client';
 
 export const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
   try {
     let { email, password } = credentials;
+    const supabase = createClient();
 
     // Check if input is username (no @)
     if (!email.includes('@')) {
@@ -61,6 +62,7 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
 export const signup = async (credentials: SignupCredentials): Promise<AuthResponse> => {
   try {
     const { name, username, email, gender, password } = credentials;
+    const supabase = createClient();
 
     const { data, error: signupError } = await supabase.auth.signUp({
       email: email,
@@ -126,6 +128,7 @@ export const signup = async (credentials: SignupCredentials): Promise<AuthRespon
 
 export const logout = async (): Promise<{ success: boolean; error?: string }> => {
   try {
+    const supabase = createClient();
     const { error } = await supabase.auth.signOut();
     if (error) {
       return { success: false, error: error.message };

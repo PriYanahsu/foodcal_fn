@@ -4,12 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { LoginForm } from './LoginForm';
 import { SignupForm } from './SignupForm';
 import { Card } from '@/components/ui/Card';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 
 export const AuthPage: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
   const router = useRouter();
+  const supabase = createClient();
 
   // Check if user already has an ID (is logged in)
   useEffect(() => {

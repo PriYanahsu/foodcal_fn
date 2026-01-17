@@ -1,10 +1,11 @@
 'use client';
 import { useState } from 'react';
 import { analyzeFoodImage, NutritionData } from '../services/scan.api';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export const useFoodScan = () => {
+  const supabase = createClient();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [nutritionData, setNutritionData] = useState<NutritionData | null>(null);
