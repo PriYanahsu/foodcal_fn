@@ -1,18 +1,40 @@
 'use client';
 
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ROUTES } from '@/constants/routes';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useDailyStats } from '@/features/dashboard/hooks/useDailyStats';
+import { createClient } from '@/lib/supabase/client';
 
 export const dynamic = 'force-dynamic';
 
 export default function Dashboard() {
+  const supabase = createClient();
   const { user } = useAuth();
   const { stats, recentLogs, loading } = useDailyStats();
+  const [profileName, setProfileName] = useState<string | null>(null);
 
-  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+  useEffect(() => {
+    async function fetchProfileName() {
+      if (!user) return;
+
+      const { data } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+
+      if (data?.full_name) {
+        setProfileName(data.full_name);
+      }
+    }
+
+    fetchProfileName();
+  }, [user]);
+
+  const userName = profileName || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
 
   // Goals (could be editable in future, hardcoded for now)
   const goals = {
