@@ -1,4 +1,3 @@
-import axiosInstance from '@/lib/axios';
 import { LoginCredentials, SignupCredentials, AuthResponse } from '../types';
 import { supabase } from '@/lib/supabaseClient';
 
