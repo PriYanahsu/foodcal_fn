@@ -9,9 +9,10 @@ interface AvatarUploadProps {
     url: string | null;
     onUpload: (url: string) => void;
     size?: number;
+    isEditing: boolean;
 }
 
-export default function AvatarUpload({ uid, url, onUpload, size = 150 }: AvatarUploadProps) {
+export default function AvatarUpload({ uid, url, onUpload, size = 150, isEditing }: AvatarUploadProps) {
     const supabase = createClient();
     const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
     const [uploading, setUploading] = useState(false);
@@ -67,7 +68,7 @@ export default function AvatarUpload({ uid, url, onUpload, size = 150 }: AvatarU
                 <img
                     src={avatarUrl}
                     alt="Avatar"
-                    className="rounded-full object-cover border-4 border-white shadow-lg"
+                    className={`${isEditing ? 'border-4 border-white' : 'border-[var(--card-border)]'} rounded-full object-cover shadow-lg`}
                     style={{ height: size, width: size }}
                 />
             ) : (
@@ -80,7 +81,7 @@ export default function AvatarUpload({ uid, url, onUpload, size = 150 }: AvatarU
             )}
 
             <div style={{ width: size }} className="absolute bottom-0 left-0 right-0 flex justify-center">
-                <label
+                {isEditing && (<label
                     htmlFor="single"
                     className="bg-[var(--card-bg)] p-2 rounded-full cursor-pointer hover:bg-gray-700 transition-colors border border-[var(--card-border)] shadow-md"
                 >
@@ -90,6 +91,7 @@ export default function AvatarUpload({ uid, url, onUpload, size = 150 }: AvatarU
                         <CameraIcon className="h-5 w-5 text-gray-300" />
                     )}
                 </label>
+                )}
                 <input
                     style={{
                         visibility: 'hidden',

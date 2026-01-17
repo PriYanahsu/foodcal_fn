@@ -4,37 +4,44 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ROUTES } from '@/constants/routes';
 import { StatCard } from '@/components/dashboard/StatCard';
+import AvatarUpload from '@/app/(site)/profile/AvatarUpload';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useDailyStats } from '@/features/dashboard/hooks/useDailyStats';
 import { createClient } from '@/lib/supabase/client';
 
+
 export const dynamic = 'force-dynamic';
+
+interface ProfileData {
+  full_name: string | null;
+  avatar_url: string | null;
+}
 
 export default function Dashboard() {
   const supabase = createClient();
   const { user } = useAuth();
   const { stats, recentLogs, loading } = useDailyStats();
-  const [profileName, setProfileName] = useState<string | null>(null);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
 
   useEffect(() => {
-    async function fetchProfileName() {
+    async function fetchProfile() {
       if (!user) return;
 
       const { data } = await supabase
         .from('profiles')
-        .select('full_name')
+        .select('full_name, avatar_url')
         .eq('id', user.id)
         .single();
 
-      if (data?.full_name) {
-        setProfileName(data.full_name);
+      if (data) {
+        setProfile(data);
       }
     }
 
-    fetchProfileName();
+    fetchProfile();
   }, [user]);
 
-  const userName = profileName || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+  const userName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
 
   // Goals (could be editable in future, hardcoded for now)
   const goals = {
@@ -48,17 +55,32 @@ export default function Dashboard() {
     <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-10">
 
       {/* Hero Section */}
-      <section className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-2">
-            Hello, <span className="text-[var(--primary)]">{userName}</span> 👋
-          </h1>
-          <p className="text-[var(--text-muted)] text-lg">
-            {loading ? 'Loading your stats...' : "You're on track! Keep up the momentum."}
-          </p>
+      <section className="flex flex-col md:flex-row justify-between items-center gap-6">
+        <div className="flex items-center gap-6 w-full md:w-auto">
+          <div className="relative z-10 shrink-0">
+            <AvatarUpload
+              uid={user?.id || ''}
+              url={profile?.avatar_url ?? null}
+              isEditing={false}
+              onUpload={(url) => {
+                supabase.from('profiles').update({ avatar_url: url }).eq('id', user?.id).then();
+                setProfile(prev => prev ? { ...prev, avatar_url: url } : null);
+              }}
+              size={80}
+            />
+          </div>
+          <div className="flex flex-col">
+            <h1 className="text-3xl md:text-5xl font-bold">
+              Hello, <span className="text-[var(--primary)]">{userName}</span>
+            </h1>
+            <p className="text-[var(--text-muted)] text-sm md:text-lg">
+              {loading ? 'Loading your stats...' : "You're on track! Keep up the momentum."}
+            </p>
+          </div>
         </div>
-        <Link href={ROUTES.SCAN}>
-          <button className="btn-primary flex items-center gap-2">
+
+        <Link href={ROUTES.SCAN} className="w-full md:w-auto">
+          <button className="btn-primary flex items-center justify-center gap-2 w-full md:w-auto py-3 px-6 text-lg">
             <span className="text-xl">📷</span>
             Log Meal
           </button>
