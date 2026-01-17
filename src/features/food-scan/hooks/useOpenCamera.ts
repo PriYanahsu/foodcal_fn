@@ -2,30 +2,78 @@ import { useRef, useState, useCallback, useEffect } from "react";
 
 export const useOpenCamera = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
   const streamRef = useRef<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  const startStream = useCallback(async (mode: "user" | "environment") => {
+    try {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+      }
+
+      // Check if API is supported (fails on insecure HTTP)
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("Camera API not available. This usually happens on insecure (HTTP) connections. Please use HTTPS or localhost.");
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: mode },
+      });
+
+      streamRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+
+      setError(null);
+    } catch (err: any) {
+      console.error("Error accessing camera:", err);
+      // Determine user-friendly error message
+      let msg = "Could not access camera. Please ensure permissions are granted.";
+      if (err instanceof Error) {
+        msg = err.message;
+      }
+      // Common permission/security errors
+      if (err.name === 'NotAllowedError') msg = "Camera permission denied. Please allow access in browser settings.";
+      if (err.name === 'NotFoundError') msg = "No camera device found.";
+      if (err.name === 'NotReadableError') msg = "Camera is currently in use by another app.";
+
+      setError(msg);
+      // Keep isOpen true so the Overlay can display the error message
+      setIsOpen(true);
+    }
+  }, []);
+
   const openCamera = async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "environment" },
-    });
-    streamRef.current = stream;
     setIsOpen(true);
+    await startStream(facingMode);
   };
 
-  // 🔥 KEY FIX: attach stream AFTER video mounts
+  const switchCamera = async () => {
+    const newMode = facingMode === "environment" ? "user" : "environment";
+    setFacingMode(newMode);
+    await startStream(newMode);
+  };
+
+  // Attach stream when video element becomes available or facingMode changes
   useEffect(() => {
-    if (isOpen && videoRef.current && streamRef.current) {
-      videoRef.current.srcObject = streamRef.current;
-      videoRef.current.play();
+    if (isOpen && videoRef.current && !videoRef.current.srcObject) {
+      startStream(facingMode);
     }
-  }, [isOpen]);
+  }, [isOpen, facingMode, startStream]);
 
   const closeCamera = () => {
-    streamRef.current?.getTracks().forEach(track => track.stop());
-    streamRef.current = null;
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
     setIsOpen(false);
+    setError(null);
   };
 
   const captureImage = (): File | null => {
@@ -40,6 +88,12 @@ export const useOpenCamera = () => {
     const ctx = canvas.getContext("2d");
     if (!ctx) return null;
 
+    // Flip horizontally if using front camera for natural mirroring
+    if (facingMode === 'user') {
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+    }
+
     ctx.drawImage(video, 0, 0);
 
     return new File(
@@ -51,8 +105,10 @@ export const useOpenCamera = () => {
 
   return {
     isOpen,
+    error,
     openCamera,
     closeCamera,
+    switchCamera,
     captureImage,
     videoRef,
     canvasRef,

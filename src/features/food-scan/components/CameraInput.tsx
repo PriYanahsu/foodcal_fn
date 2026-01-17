@@ -18,6 +18,8 @@ export const CameraInput: React.FC<CameraInputProps> = ({
     isOpen,
     openCamera,
     closeCamera,
+    switchCamera,
+    error,
     captureImage,
     videoRef,
     canvasRef,
@@ -71,8 +73,10 @@ export const CameraInput: React.FC<CameraInputProps> = ({
         <CameraOverlay
           onCapture={handleCapture}
           onClose={closeCamera}
+          onSwitchCamera={switchCamera}
           videoRef={videoRef}
           canvasRef={canvasRef}
+          error={error}
         />
       )}
     </>

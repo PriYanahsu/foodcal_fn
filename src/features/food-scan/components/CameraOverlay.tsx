@@ -4,15 +4,19 @@ import { RefObject } from "react";
 interface CameraOverlayProps {
     onCapture: () => void;
     onClose: () => void;
+    onSwitchCamera: () => void;
     videoRef: RefObject<HTMLVideoElement | null>;
     canvasRef: RefObject<HTMLCanvasElement | null>;
+    error?: string | null;
 }
 
 export const CameraOverlay = ({
     onCapture,
     onClose,
+    onSwitchCamera,
     videoRef,
     canvasRef,
+    error,
 }: CameraOverlayProps) => {
     return (
         <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
@@ -29,6 +33,21 @@ export const CameraOverlay = ({
                         </svg>
                     </button>
                 </div>
+
+                {/* Error Message */}
+                {error && (
+                    <div className="absolute inset-0 flex items-center justify-center p-6 bg-black/80 z-20">
+                        <div className="text-center">
+                            <p className="text-red-400 mb-4">{error}</p>
+                            <button
+                                onClick={onClose}
+                                className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Camera View */}
                 <div className="relative aspect-[4/3] bg-black">
@@ -56,13 +75,27 @@ export const CameraOverlay = ({
                 </div>
 
                 {/* Controls */}
-                <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/90 to-transparent flex justify-center items-center pb-8">
+                <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/90 to-transparent flex justify-center items-center gap-8 pb-8">
+                    {/* Switch Camera Button */}
+                    <button
+                        onClick={onSwitchCamera}
+                        className="p-3 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors backdrop-blur-md"
+                        title="Switch Camera"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                        </svg>
+                    </button>
+
                     <button
                         onClick={onCapture}
                         className="w-20 h-20 rounded-full border-4 border-white flex items-center justify-center hover:scale-105 transition-transform duration-200 group"
                     >
                         <div className="w-16 h-16 rounded-full bg-white group-hover:bg-[var(--primary)] transition-colors duration-200" />
                     </button>
+
+                    {/* Placeholder for symmetry */}
+                    <div className="w-12" />
                 </div>
             </div>
 
