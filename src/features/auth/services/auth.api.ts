@@ -42,7 +42,7 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
 
 export const signup = async (credentials: SignupCredentials): Promise<AuthResponse> => {
   try {
-    const { confirmPassword, name, email, password } = credentials;
+    const { name, email, password } = credentials;
 
     const { data, error: signupError } = await supabase.auth.signUp({
       email: email,
