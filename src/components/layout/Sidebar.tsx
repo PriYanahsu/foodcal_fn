@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
     HomeIcon,
     CameraIcon,
@@ -36,12 +37,19 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 export function Sidebar() {
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
     const { logout } = useAuth();
     const router = useRouter();
 
     const handleLogout = async () => {
-        await logout();
-        router.push('/login');
+        try {
+            setIsLoggingOut(true);
+            await logout();
+            router.push('/login');
+        } catch (error) {
+            console.error('Logout failed:', error);
+            setIsLoggingOut(false);
+        }
     };
 
     return (
@@ -54,11 +62,87 @@ export function Sidebar() {
                 {isOpen ? <Icons.Close /> : <Icons.Menu />}
             </button>
 
-            {/* Sidebar Container */}
-            <div className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-[var(--card-bg)] border-r border-[var(--card-border)] transform transition-transform duration-300 ease-in-out md:translate-x-0
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
+            {/* Mobile Sidebar & Overlay */}
+            <AnimatePresence>
+                {isOpen && (
+                    <>
+                        {/* Overlay */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm md:hidden"
+                            onClick={() => setIsOpen(false)}
+                        />
+
+                        {/* Sidebar Drawer */}
+                        <motion.div
+                            initial={{ x: '-100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '-100%' }}
+                            transition={{ type: "spring", bounce: 0, duration: 0.3 }}
+                            className="fixed inset-y-0 left-0 z-40 w-64 bg-[var(--card-bg)] border-r border-[var(--card-border)] md:hidden"
+                        >
+                            <div className="flex flex-col h-full p-6">
+                                <div className="mb-10 flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)]"></div>
+                                    <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
+                                        FoodCal
+                                    </h1>
+                                </div>
+
+                                <nav className="flex-1 space-y-2">
+                                    {MENU_ITEMS.map((item) => {
+                                        const isActive = pathname === item.path;
+                                        const Icon = item.icon;
+                                        return (
+                                            <Link
+                                                key={item.path}
+                                                href={item.path}
+                                                onClick={() => setIsOpen(false)}
+                                                className="relative block"
+                                            >
+                                                {isActive && (
+                                                    <motion.div
+                                                        layoutId="sidebar-active-mobile"
+                                                        className="absolute inset-0 bg-[var(--primary)] rounded-xl shadow-[0_0_15px_#00ff8833]"
+                                                        initial={false}
+                                                        transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                                                    />
+                                                )}
+                                                <span className={`relative flex items-center gap-3 px-4 py-3 rounded-xl transition-colors duration-200 ${isActive ? 'text-black font-semibold' : 'text-gray-400 hover:text-white'}`}>
+                                                    <Icon />
+                                                    <span>{item.name}</span>
+                                                </span>
+                                            </Link>
+                                        );
+                                    })}
+                                </nav>
+
+                                <div className="pt-6 border-t border-[var(--card-border)]">
+                                    <button
+                                        onClick={handleLogout}
+                                        disabled={isLoggingOut}
+                                        className="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl w-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                        {isLoggingOut ? (
+                                            <svg className="animate-spin h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                        ) : (
+                                            <Icons.Logout />
+                                        )}
+                                        <span>{isLoggingOut ? 'Logging Out...' : 'Log Out'}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
+
+            {/* Desktop Sidebar (Static) */}
+            <div className="hidden md:block fixed inset-y-0 left-0 z-40 w-64 bg-[var(--card-bg)] border-r border-[var(--card-border)]">
                 <div className="flex flex-col h-full p-6">
                     <div className="mb-10 flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)]"></div>
@@ -75,17 +159,21 @@ export function Sidebar() {
                                 <Link
                                     key={item.path}
                                     href={item.path}
-                                    className={`
-                    flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group
-                    ${isActive
-                                            ? 'bg-[var(--primary)] text-black font-semibold shadow-[0_0_15px_#00ff8833]'
-                                            : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                                        }
-                  `}
                                     onClick={() => setIsOpen(false)}
+                                    className="relative block"
                                 >
-                                    <Icon />
-                                    <span>{item.name}</span>
+                                    {isActive && (
+                                        <motion.div
+                                            layoutId="sidebar-active"
+                                            className="absolute inset-0 bg-[var(--primary)] rounded-xl shadow-[0_0_15px_#00ff8833]"
+                                            initial={false}
+                                            transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                                        />
+                                    )}
+                                    <span className={`relative flex items-center gap-3 px-4 py-3 rounded-xl transition-colors duration-200 ${isActive ? 'text-black font-semibold' : 'text-gray-400 hover:text-white'}`}>
+                                        <Icon />
+                                        <span>{item.name}</span>
+                                    </span>
                                 </Link>
                             );
                         })}
@@ -94,21 +182,21 @@ export function Sidebar() {
                     <div className="pt-6 border-t border-[var(--card-border)]">
                         <button
                             onClick={handleLogout}
-                            className="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl w-full transition-colors">
-                            <Icons.Logout />
-                            <span>Log Out</span>
+                            disabled={isLoggingOut}
+                            className="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl w-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            {isLoggingOut ? (
+                                <svg className="animate-spin h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            ) : (
+                                <Icons.Logout />
+                            )}
+                            <span>{isLoggingOut ? 'Logging Out...' : 'Log Out'}</span>
                         </button>
                     </div>
                 </div>
             </div>
-
-            {/* Overlay for mobile */}
-            {isOpen && (
-                <div
-                    className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm md:hidden"
-                    onClick={() => setIsOpen(false)}
-                />
-            )}
         </>
     );
 }

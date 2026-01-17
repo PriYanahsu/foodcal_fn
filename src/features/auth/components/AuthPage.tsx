@@ -67,7 +67,7 @@ export const AuthPage: React.FC = () => {
           </div>
 
           {/* Form */}
-          {isLogin ? <LoginForm /> : <SignupForm />}
+          {isLogin ? <LoginForm /> : <SignupForm onSuccess={() => setIsLogin(true)} />}
         </Card>
       </div>
     </div>
