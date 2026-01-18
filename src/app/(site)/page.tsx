@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ROUTES } from '@/constants/routes';
 import { StatCard } from '@/components/dashboard/StatCard';
-import AvatarUpload from '@/app/(site)/profile/AvatarUpload';
+import AvatarUpload from '@/features/userProfile/AvatarUpload';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useDailyStats } from '@/features/dashboard/hooks/useDailyStats';
 import { createClient } from '@/lib/supabase/client';
