@@ -10,7 +10,7 @@ export interface NutritionData {
     analysis_notes?: string;
 }
 
-export const analyzeFoodImage = async (imageFile: File): Promise<NutritionData> => {
+export const analyzeFoodImage = async (imageFile: File, additionalPrompt?: string): Promise<NutritionData> => {
     try {
         // Convert file to base64
         const base64Image = await new Promise<string>((resolve, reject) => {
@@ -22,6 +22,7 @@ export const analyzeFoodImage = async (imageFile: File): Promise<NutritionData> 
 
         const response = await axios.post<{ data: NutritionData }>('/api/analyze-food', {
             image: base64Image,
+            additional_prompt: additionalPrompt,
         });
 
         return response.data.data;

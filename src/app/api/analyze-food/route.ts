@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     // }
 
     try {
-        const { image } = await req.json();
+        const { image, additional_prompt } = await req.json();
 
         if (!image) {
             return NextResponse.json(
@@ -42,6 +42,8 @@ export async function POST(req: Request) {
         
         If the image is NOT food, set confidence to 0 and food_name to "Not Food".
         Return ONLY valid JSON. Do not include markdown formatting like \`\`\`json.
+        
+        ${additional_prompt ? `User provided additional context: "${additional_prompt}". Take this into account when identifying the food or ingredients.` : ''}
         `;
 
         const result = await model.generateContent([

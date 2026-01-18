@@ -11,14 +11,14 @@ export const useFoodScan = () => {
   const [nutritionData, setNutritionData] = useState<NutritionData | null>(null);
   const { user } = useAuth();
 
-  const scanImage = async (file: File) => {
+  const scanImage = async (file: File, additionalPrompt?: string) => {
     setIsLoading(true);
     setError(null);
     setNutritionData(null);
 
     try {
       // 1. Analyze with OpenAI
-      const data = await analyzeFoodImage(file);
+      const data = await analyzeFoodImage(file, additionalPrompt);
       setNutritionData(data);
 
       // 2. Save to Supabase (if user is logged in)
