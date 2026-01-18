@@ -1,4 +1,7 @@
--- 1. Create the profiles table
+-- ==========================================
+-- 1. Profiles Table & Auth Triggers
+-- ==========================================
+
 create table if not exists public.profiles (
   id uuid references auth.users not null primary key,
   username text unique,
@@ -15,7 +18,6 @@ create table if not exists public.profiles (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- 2. Enable RLS on profiles
 alter table public.profiles enable row level security;
 
 create policy "Public profiles are viewable by everyone"
@@ -30,8 +32,7 @@ create policy "Users can update their own profile"
   on profiles for update
   using ( auth.uid() = id );
 
--- 3. Automatic Profile Creation Trigger
--- This function copies data from auth.users (and metadata) to public.profiles
+-- Trigger for new user creation
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
@@ -47,13 +48,15 @@ begin
 end;
 $$ language plpgsql security definer;
 
--- Trigger execution
 create or replace trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
 
 
--- 4. Create the food_logs table (from previous step)
+-- ==========================================
+-- 2. Food Logs Table
+-- ==========================================
+
 create table if not exists public.food_logs (
   id uuid default gen_random_uuid() primary key,
   user_id uuid references auth.users not null,
@@ -63,12 +66,12 @@ create table if not exists public.food_logs (
   carbs float,
   fats float,
   confidence float,
-  image_path text,
   meal_type text default 'snack',
+  image_path text,
+  is_manual boolean default false,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- Enable RLS on food_logs
 alter table public.food_logs enable row level security;
 
 create policy "Users can view their own food logs"
@@ -86,3 +89,50 @@ create policy "Users can update their own food logs"
 create policy "Users can delete their own food logs"
   on public.food_logs for delete
   using (auth.uid() = user_id);
+
+
+-- ==========================================
+-- 3. Storage Buckets & Policies
+-- ==========================================
+
+-- Avatar Images Bucket
+insert into storage.buckets (id, name, public)
+values ('avatars', 'avatars', true)
+on conflict (id) do nothing;
+
+create policy "Avatar images are publicly accessible"
+  on storage.objects for select
+  using ( bucket_id = 'avatars' );
+
+create policy "Anyone can upload an avatar"
+  on storage.objects for insert
+  with check ( bucket_id = 'avatars' );
+
+-- Meal Images Bucket
+insert into storage.buckets (id, name, public)
+values ('meal_images', 'meal_images', true)
+on conflict (id) do nothing;
+
+-- Meal Images Policies
+-- Note: We use simpler creates here. If they fail because they exist, that's fine for a schema reference.
+-- For a migration script, we'd use DO blocks, but for a reference file, CREATE is standard.
+
+create policy "Public Access to Meal Images"
+  on storage.objects for select
+  to public
+  using ( bucket_id = 'meal_images' );
+
+create policy "Authenticated users can upload meal images"
+  on storage.objects for insert
+  to authenticated
+  with check ( bucket_id = 'meal_images' AND auth.uid() = owner );
+
+create policy "Users can update their own meal images"
+  on storage.objects for update
+  to authenticated
+  using ( bucket_id = 'meal_images' AND auth.uid() = owner );
+
+create policy "Users can delete their own meal images"
+  on storage.objects for delete
+  to authenticated
+  using ( bucket_id = 'meal_images' AND auth.uid() = owner );

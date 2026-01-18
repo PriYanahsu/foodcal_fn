@@ -15,6 +15,7 @@ export interface FoodLog {
     calories: number;
     created_at: string;
     meal_type: string;
+    image_path: string | null;
 }
 
 export const useDailyStats = () => {
