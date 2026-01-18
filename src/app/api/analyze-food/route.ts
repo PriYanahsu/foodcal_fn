@@ -4,12 +4,12 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
-    if (!process.env.GEMINI_API_KEY) {
-        return NextResponse.json(
-            { error: 'GEMINI_API_KEY is missing in environment variables' },
-            { status: 500 }
-        );
-    }
+    // if (!process.env.GEMINI_API_KEY) {
+    //     return NextResponse.json(
+    //         { error: 'GEMINI_API_KEY is missing in environment variables' },
+    //         { status: 500 }
+    //     );
+    // }
 
     try {
         const { image } = await req.json();
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
         }
 
         // Initialize Gemini
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
         // Use standard alias for best availability (avoids experimental quota limits)
         const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 
