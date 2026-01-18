@@ -1,17 +1,15 @@
 import { NextResponse } from 'next/server';
-import OpenAI from 'openai';
-
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
-    if (!process.env.OPENAI_API_KEY) {
-        throw new Error('OPENAI_API_KEY missing');
+    if (!process.env.GEMINI_API_KEY) {
+        return NextResponse.json(
+            { error: 'GEMINI_API_KEY is missing in environment variables' },
+            { status: 500 }
+        );
     }
-
-    const openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY,
-    });
 
     try {
         const { image } = await req.json();
@@ -23,56 +21,51 @@ export async function POST(req: Request) {
             );
         }
 
-        // Remove data:image/jpeg;base64, prefix if present for OpenAI
-        const base64Image = image.replace(/^data:image\/[a-z]+;base64,/, '');
+        // Initialize Gemini
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        // Use standard alias for best availability (avoids experimental quota limits)
+        const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 
-        const response = await openai.chat.completions.create({
-            model: 'gpt-4o',
-            messages: [
-                {
-                    role: 'system',
-                    content: `You are a professional nutritionist API. 
-          Analyze the food in the image and return a JSON object with the following fields:
-          - food_name: string (concise name of the dish)
-          - calories: number (estimated total calories)
-          - protein: number (grams)
-          - carbs: number (grams)
-          - fats: number (grams)
-          - confidence: number (0-1, how confident you are that this is food)
-          - analysis_notes: string (brief explanation of the estimate)
-          
-          If the image is NOT food, set confidence to 0 and food_name to "Not Food".
-          Return ONLY valid JSON. Do not include markdown formatting like \`\`\`json.`
+        // Clean base64 string
+        const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
+
+        const prompt = `
+        You are a professional nutritionist API. 
+        Analyze the food in the image and return a JSON object with the following fields:
+        - food_name: string (concise name of the dish)
+        - calories: number (estimated total calories)
+        - protein: number (grams)
+        - carbs: number (grams)
+        - fats: number (grams)
+        - confidence: number (0.0 to 1.0, how confident you are that this is food)
+        - analysis_notes: string (brief explanation of the estimate)
+        
+        If the image is NOT food, set confidence to 0 and food_name to "Not Food".
+        Return ONLY valid JSON. Do not include markdown formatting like \`\`\`json.
+        `;
+
+        const result = await model.generateContent([
+            prompt,
+            {
+                inlineData: {
+                    data: base64Data,
+                    mimeType: "image/jpeg", // Assuming JPEG for simplicity, or we could detect/pass it.
                 },
-                {
-                    role: 'user',
-                    content: [
-                        {
-                            type: 'text',
-                            text: 'Analyze this image for nutritional content.'
-                        },
-                        {
-                            type: 'image_url',
-                            image_url: {
-                                url: `data:image/jpeg;base64,${base64Image}`,
-                            },
-                        },
-                    ],
-                },
-            ],
-            max_tokens: 500,
-        });
+            },
+        ]);
 
-        const content = response.choices[0].message.content;
+        const responseText = result.response.text();
 
-        if (!content) {
-            throw new Error('No analysis received from AI');
+        // Clean up markdown if present
+        const cleanContent = responseText.replace(/```json\n?|\n?```/g, '').trim();
+
+        let analysis;
+        try {
+            analysis = JSON.parse(cleanContent);
+        } catch (e) {
+            console.error("Failed to parse JSON:", cleanContent);
+            throw new Error("Failed to parse AI response");
         }
-
-        // Clean up content if it has markdown code blocks
-        const cleanContent = content.replace(/```json\n?|\n?```/g, '').trim();
-
-        const analysis = JSON.parse(cleanContent);
 
         if (analysis.confidence < 0.5 || analysis.food_name === "Not Food") {
             return NextResponse.json(
@@ -82,8 +75,21 @@ export async function POST(req: Request) {
         }
 
         return NextResponse.json({ data: analysis });
+
     } catch (error: any) {
-        console.error('Food Analysis Error:', error);
+        console.error('Food Analysis Error (Gemini):', error);
+
+        // Debug: List available models if possible
+        try {
+            if (process.env.GEMINI_API_KEY) {
+                const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+                // Note: listModels might not be directly exposed on the instance in all SDK versions easily without correct type, 
+                // but checking connection is useful. 
+                // Using a clearer error message for the user.
+                console.log("If you are seeing 404, please ensure 'Generative Language API' is ENABLED in your Google Cloud Console.");
+            }
+        } catch (e) { /* ignore */ }
+
         return NextResponse.json(
             { error: error.message || 'Failed to analyze food' },
             { status: 500 }
