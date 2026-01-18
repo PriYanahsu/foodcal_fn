@@ -3,14 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { CameraIcon } from '@heroicons/react/24/outline';
-
-interface AvatarUploadProps {
-    uid: string;
-    url: string | null;
-    onUpload: (url: string) => void;
-    size?: number;
-    isEditing: boolean;
-}
+import { AvatarUploadProps } from '../type';
 
 export default function AvatarUpload({ uid, url, onUpload, size = 150, isEditing }: AvatarUploadProps) {
     const supabase = createClient();

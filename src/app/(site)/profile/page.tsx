@@ -1,4 +1,4 @@
-import UserProfile from '@/features/userProfile';
+import { UserProfile } from "@/features/userProfile";
 
 export const dynamic = 'force-dynamic';
 

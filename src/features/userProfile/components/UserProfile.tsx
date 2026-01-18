@@ -6,20 +6,8 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
-import AvatarUpload from '@/features/userProfile/AvatarUpload';
-
-interface ProfileData {
-  username: string;
-  full_name: string;
-  email: string;
-  gender: string;
-  age: number | '';
-  height: number | '';
-  weight: number | '';
-  activity_level: string;
-  goal: string;
-  avatar_url?: string | null;
-}
+import AvatarUpload from '@/features/userProfile/components/AvatarUpload';
+import { ProfileData } from '../type';
 
 export const dynamic = 'force-dynamic';
 
