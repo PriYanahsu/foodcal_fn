@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import WeightProgressWidget from '@/features/fitnessProfile/components/WeightProgressWidget';
 import FitnessSetupWizard from '@/features/fitnessProfile/components/setup/FitnessSetupWizard';
+import { StatCard } from '@/components/dashboard/StatCard';
+import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import {
     SparklesIcon,
     TrophyIcon,
@@ -30,6 +32,9 @@ interface ProfileData {
     target_date: string | null;
     weight: number | null;
     height: number | null;
+    gender: string | null;
+    age: number | null;
+    activity_level: string | null;
 }
 
 export default function FitnessHub() {
@@ -48,9 +53,18 @@ export default function FitnessHub() {
             .single();
         if (data) {
             setProfile(data);
+
+            // Only show reminder if profile is not complete
+            const completion = calculateProfileCompletion(data);
+            if (completion < 100) {
+                setShowReminder(true);
+            }
         }
         setLoading(false);
     }
+
+    const completionPercentage = calculateProfileCompletion(profile);
+    const [showReminder, setShowReminder] = useState(false);
 
     useEffect(() => {
         fetchProfile();
@@ -66,6 +80,28 @@ export default function FitnessHub() {
 
     return (
         <div className="p-4 md:p-8 lg:p-12 max-w-7xl mx-auto space-y-12 pb-20">
+            {showReminder && (
+                <div className="animate-slide-up">
+                    <div className="bg-gradient-to-r from-orange-500/20 to-transparent border border-orange-500/30 p-4 rounded-2xl flex items-center justify-between backdrop-blur-md">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-xl bg-orange-500/20 text-orange-400">
+                                <FireIcon className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <p className="font-bold text-white text-sm">Profile Incomplete ({completionPercentage}%)</p>
+                                <p className="text-[var(--text-muted)] text-xs">For maximum AI accuracy, please ensure all profile details are set.</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setShowReminder(false)}
+                            className="text-white/40 hover:text-white transition-colors"
+                        >
+                            <XMarkIcon className="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {showWizard && user ? (
                 <section className="animate-fade-in space-y-8">
                     <div className="flex items-center justify-between bg-[var(--card-bg)]/50 p-6 rounded-2xl border border-[var(--card-border)]">
@@ -95,30 +131,30 @@ export default function FitnessHub() {
                 </section>
             ) : (
                 <>
-                    {/* Hero Header */}
-                    <header className="relative py-12 px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-[var(--primary)]/10 via-transparent to-transparent border border-[var(--card-border)] shadow-2xl">
-                        <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
-                            <TrophyIcon className="w-64 h-64 text-[var(--primary)]" />
+                    {/* Compact Hero Header */}
+                    <header className="relative py-8 md:py-10 px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-[var(--primary)]/10 via-transparent to-transparent border border-[var(--card-border)] shadow-xl">
+                        <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+                            <TrophyIcon className="w-40 h-40 text-[var(--primary)]" />
                         </div>
 
-                        <div className="relative z-10 space-y-4">
-                            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] text-sm font-semibold uppercase tracking-wider">
-                                <SparklesIcon className="w-4 h-4" />
-                                Elite AI Coaching Engaged
+                        <div className="relative z-10 space-y-3">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] text-[10px] font-bold uppercase tracking-widest">
+                                <SparklesIcon className="w-3 h-3" />
+                                Elite AI Coaching Active
                             </div>
-                            <h1 className="text-4xl md:text-6xl font-black tracking-tight">
-                                Welcome to Your <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">Fitness Hub</span>
+                            <h1 className="text-3xl md:text-5xl font-black tracking-tight">
+                                Fitness <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] font-outline-2">Hub</span>
                             </h1>
-                            <p className="text-xl text-[var(--text-muted)] max-w-2xl leading-relaxed">
+                            <p className="text-lg text-[var(--text-muted)] max-w-xl leading-relaxed font-medium">
                                 {profile?.goal
-                                    ? `Currently working towards ${profile.goal.toLowerCase()} with an AI-optimized plan.`
-                                    : "You haven't set an active fitness plan yet. Let's build your expert coaching profile."}
+                                    ? `Optimizing for ${profile.goal.toLowerCase()} with AI precision.`
+                                    : "Build your expert coaching profile to begin."}
                             </p>
 
                             {!profile?.goal && (
                                 <button
                                     onClick={() => setShowWizard(true)}
-                                    className="mt-6 btn-primary px-8 py-4 text-lg shadow-[0_0_30px_#00ff8844]"
+                                    className="mt-4 btn-primary px-6 py-3 text-base shadow-[0_0_20px_#00ff8822]"
                                 >
                                     Start AI Consultation
                                 </button>
@@ -126,109 +162,142 @@ export default function FitnessHub() {
                         </div>
                     </header>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        {/* Left Column: Progress & Stats */}
-                        <div className="lg:col-span-2 space-y-8">
-                            {/* Weight Section */}
-                            <section className="bg-[var(--card-bg)]/80 backdrop-blur-xl border border-[var(--card-border)] rounded-3xl p-8 shadow-xl">
-                                <div className="flex items-center justify-between mb-8">
-                                    <h2 className="text-2xl font-bold flex items-center gap-3">
-                                        <ScaleIcon className="w-8 h-8 text-[var(--primary)]" />
-                                        Weight Progression
-                                    </h2>
-                                </div>
+                    {/* Main Layout Grid */}
+                    <div className="space-y-10">
+                        {/* 1. Expert Coaching (Sleek Strategy Card) */}
+                        <aside className="relative overflow-hidden bg-gradient-to-br from-[var(--primary)]/5 via-[var(--card-bg)] to-transparent border border-[var(--primary)]/20 rounded-3xl p-6 md:p-8 shadow-lg group">
+                            <div className="absolute top-0 right-0 p-6 opacity-[0.02] pointer-events-none group-hover:scale-110 transition-transform duration-700">
+                                <SparklesIcon className="w-32 h-32 text-[var(--primary)]" />
+                            </div>
 
-                                {user && (
-                                    <WeightProgressWidget
-                                        userId={user.id}
-                                        targetWeight={profile?.target_weight || null}
-                                    />
-                                )}
-                            </section>
-
-                            {/* Goals & Targets Grid */}
-                            <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="bg-[var(--card-bg)]/50 backdrop-blur-md border border-[var(--card-border)] rounded-3xl p-6 transition-all hover:bg-[var(--card-bg)] hover:border-[var(--primary)]/30 group">
-                                    <div className="flex items-center gap-4 mb-4">
-                                        <div className="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-400 group-hover:scale-110 transition-transform">
-                                            <FireIcon className="w-6 h-6" />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-lg">Daily Calories</h3>
-                                            <p className="text-sm text-[var(--text-muted)]">AI Targeted Intake</p>
-                                        </div>
-                                    </div>
-                                    <div className="text-3xl font-black group-hover:text-[var(--primary)] transition-colors">
-                                        {profile?.daily_calorie_target ? `${profile.daily_calorie_target} kcal` : '--'}
-                                    </div>
-                                </div>
-
-                                <div className="bg-[var(--card-bg)]/50 backdrop-blur-md border border-[var(--card-border)] rounded-3xl p-6 transition-all hover:bg-[var(--card-bg)] hover:border-[var(--secondary)]/30 group">
-                                    <div className="flex items-center gap-4 mb-4">
-                                        <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
-                                            <CalendarIcon className="w-6 h-6" />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-lg">Target Date</h3>
-                                            <p className="text-sm text-[var(--text-muted)]">Roadmap Deadline</p>
-                                        </div>
-                                    </div>
-                                    <div className="text-3xl font-black group-hover:text-[var(--secondary)] transition-colors">
-                                        {profile?.target_date ? new Date(profile.target_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--'}
-                                    </div>
-                                </div>
-                            </section>
-                        </div>
-
-                        {/* Right Column: AI Coach Advice & Profile Summary */}
-                        <div className="space-y-8">
-                            {/* AI Coach Sidebar Widget */}
-                            <aside className="relative overflow-hidden bg-gradient-to-br from-[var(--primary)] via-[var(--primary)]/5 to-[var(--card-bg)] border border-[var(--primary)]/30 rounded-3xl p-8 shadow-2xl glass-effect">
-                                <div className="absolute -top-10 -right-10 opacity-10 blur-3xl w-40 h-40 bg-white rounded-full" />
-
-                                <div className="relative z-10 space-y-6">
+                            <div className="relative z-10 flex flex-col md:flex-row gap-6 items-center">
+                                <div className="flex-1 space-y-4">
                                     <div className="flex items-center gap-3 text-[var(--primary)]">
-                                        <SparklesIcon className="w-8 h-8 animate-pulse" />
-                                        <h3 className="text-2xl font-black uppercase tracking-tight">Expert Advice</h3>
+                                        <div className="p-2 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 shadow-[0_0_10px_rgba(0,255,136,0.1)]">
+                                            <SparklesIcon className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-black uppercase tracking-tight">Expert Strategy</h3>
+                                            <p className="text-[10px] text-[var(--text-muted)] font-bold tracking-[0.2em]">PRO TIPS • ACTIVE PLAN</p>
+                                        </div>
                                     </div>
 
                                     <div className="bg-black/20 rounded-2xl p-6 border border-white/5">
-                                        <p className="text-white text-lg leading-relaxed italic">
-                                            "{profile?.ai_coach_advice || "Set up your fitness profile to receive elite coaching strategies directed specifically at your objectives."}"
+                                        <p className="text-white text-lg leading-snug font-medium italic opacity-90">
+                                            "{profile?.ai_coach_advice || "Log more data to unlock expert coaching strategies."}"
                                         </p>
                                     </div>
-
-                                    {profile?.goal && (
-                                        <button
-                                            onClick={() => setShowWizard(true)}
-                                            className="w-full flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all group"
-                                        >
-                                            <span className="font-semibold">Modify Active Plan</span>
-                                            <ChevronRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                                        </button>
-                                    )}
                                 </div>
-                            </aside>
 
-                            {/* Profile Summary */}
-                            <div className="bg-[var(--card-bg)]/80 backdrop-blur-xl border border-[var(--card-border)] rounded-3xl p-8 space-y-6">
-                                <h3 className="text-xl font-bold flex items-center gap-2">
-                                    <UserCircleIcon className="w-6 h-6" />
-                                    Physical Profile
-                                </h3>
-                                <ul className="space-y-4">
-                                    {[
-                                        { label: 'Current Weight', value: `${profile?.weight || '--'} kg` },
-                                        { label: 'Target Weight', value: `${profile?.target_weight || '--'} kg` },
-                                        { label: 'Height', value: `${profile?.height || '--'} cm` },
-                                        { label: 'Objective', value: profile?.goal || 'Not Set' },
-                                    ].map((item, i) => (
-                                        <li key={i} className="flex justify-between items-center py-2 border-b border-white/5">
-                                            <span className="text-[var(--text-muted)]">{item.label}</span>
-                                            <span className="font-semibold text-white">{item.value}</span>
-                                        </li>
-                                    ))}
-                                </ul>
+                                {profile?.goal && (
+                                    <button
+                                        onClick={() => setShowWizard(true)}
+                                        className="w-full md:w-auto flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all group/btn"
+                                    >
+                                        <span className="font-bold text-sm tracking-tight whitespace-nowrap">Modify Plan</span>
+                                        <ChevronRightIcon className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                                    </button>
+                                )}
+                            </div>
+                        </aside>
+
+                        {/* 2. Dashboard Content */}
+                        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                            {/* Stats & Progression Column */}
+                            <div className="lg:col-span-3 space-y-8">
+                                {/* Compact Stat Cards Grid */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <StatCard
+                                        label="Daily Calories"
+                                        value={profile?.daily_calorie_target || '--'}
+                                        unit="kcal"
+                                        icon="🔥"
+                                        color="var(--primary)"
+                                    />
+                                    <StatCard
+                                        label="Protein Goal"
+                                        value={profile?.daily_protein_target || '--'}
+                                        unit="g"
+                                        icon="🥩"
+                                        color="#2196f3"
+                                    />
+                                    <StatCard
+                                        label="Target Weight"
+                                        value={profile?.target_weight || '--'}
+                                        unit="kg"
+                                        icon="🎯"
+                                        color="#ff9800"
+                                    />
+                                </div>
+
+                                {/* Weight Section */}
+                                <section className="bg-[var(--card-bg)]/80 backdrop-blur-xl border border-[var(--card-border)] rounded-3xl p-8 shadow-xl relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 p-8 opacity-[0.02] pointer-events-none group-hover:rotate-12 transition-transform duration-1000">
+                                        <ScaleIcon className="w-48 h-48 text-[var(--primary)]" />
+                                    </div>
+
+                                    <div className="relative z-10">
+                                        <div className="flex items-center justify-between mb-8">
+                                            <h2 className="text-2xl font-bold flex items-center gap-3">
+                                                <ScaleIcon className="w-8 h-8 text-[var(--primary)]" />
+                                                Progression Tracking
+                                            </h2>
+                                        </div>
+
+                                        {user && (
+                                            <WeightProgressWidget
+                                                userId={user.id}
+                                                targetWeight={profile?.target_weight || null}
+                                                onLogSuccess={fetchProfile}
+                                            />
+                                        )}
+                                    </div>
+                                </section>
+                            </div>
+
+                            {/* Info Side Column */}
+                            <div className="space-y-8">
+                                {/* Physical Profile Summary */}
+                                <div className="bg-[var(--card-bg)]/80 backdrop-blur-xl border border-[var(--card-border)] rounded-3xl p-8 space-y-6 shadow-lg">
+                                    <h3 className="text-xl font-bold flex items-center gap-2">
+                                        <UserCircleIcon className="w-6 h-6 text-[var(--primary)]" />
+                                        Physical Data
+                                    </h3>
+                                    <ul className="space-y-3">
+                                        {[
+                                            { label: 'Current Weight', value: `${profile?.weight || '--'} kg`, icon: ScaleIcon },
+                                            { label: 'Target Weight', value: `${profile?.target_weight || '--'} kg`, icon: TrophyIcon },
+                                            { label: 'Height', value: `${profile?.height || '--'} cm`, icon: ScaleIcon },
+                                            { label: 'Objective', value: profile?.goal || 'Not Set', icon: SparklesIcon },
+                                        ].map((item, i) => (
+                                            <li key={i} className="flex justify-between items-center py-2.5 border-b border-white/5 last:border-0 group/stat">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-1.5 rounded-lg bg-white/5 text-[var(--text-muted)] group-hover/stat:text-[var(--primary)] transition-colors">
+                                                        <item.icon className="w-3.5 h-3.5" />
+                                                    </div>
+                                                    <span className="text-[var(--text-muted)] text-sm font-medium">{item.label}</span>
+                                                </div>
+                                                <span className="font-bold text-white text-sm group-hover/stat:text-[var(--primary)] transition-colors">{item.value}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                {/* Target Date Box */}
+                                <div className="bg-gradient-to-br from-blue-500/10 to-transparent border border-blue-500/20 rounded-3xl p-6 shadow-md group">
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <div className="p-2 rounded-xl bg-blue-500/20 text-blue-400">
+                                            <CalendarIcon className="w-5 h-5" />
+                                        </div>
+                                        <span className="text-sm font-bold uppercase tracking-widest text-blue-400">Roadmap</span>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-xs text-[var(--text-muted)]">Goal Completion Date</p>
+                                        <p className="text-2xl font-black text-white group-hover:text-blue-400 transition-colors tabular-nums">
+                                            {profile?.target_date ? new Date(profile.target_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Setting...'}
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -9,7 +9,7 @@ interface WeightLog {
     created_at: string;
 }
 
-export default function WeightProgressWidget({ userId, targetWeight }: { userId: string, targetWeight: number | null }) {
+export default function WeightProgressWidget({ userId, targetWeight, onLogSuccess }: { userId: string, targetWeight: number | null, onLogSuccess?: () => void }) {
     const supabase = createClient();
     const [currentWeight, setCurrentWeight] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
@@ -36,17 +36,27 @@ export default function WeightProgressWidget({ userId, targetWeight }: { userId:
     }, [userId]);
 
     const handleLogWeight = async () => {
-        if (!newWeight || isNaN(parseFloat(newWeight))) return;
+        const weightValue = parseFloat(newWeight);
+        if (!newWeight || isNaN(weightValue)) return;
 
         setLoading(true);
-        const { error } = await supabase
-            .from('weight_logs')
-            .insert({ user_id: userId, weight: parseFloat(newWeight) });
 
-        if (!error) {
-            setCurrentWeight(parseFloat(newWeight));
+        // 1. Log to weight_logs history
+        const { error: logError } = await supabase
+            .from('weight_logs')
+            .insert({ user_id: userId, weight: weightValue });
+
+        if (!logError) {
+            // 2. Update profiles table for sync across app
+            await supabase
+                .from('profiles')
+                .update({ weight: weightValue })
+                .eq('id', userId);
+
+            setCurrentWeight(weightValue);
             setIsLogging(false);
             setNewWeight('');
+            if (onLogSuccess) onLogSuccess();
         } else {
             alert('Failed to log weight');
         }
@@ -60,64 +70,75 @@ export default function WeightProgressWidget({ userId, targetWeight }: { userId:
         : 0;
 
     return (
-        <div className="bg-[var(--card-bg)]/80 backdrop-blur-md border border-[var(--card-border)] rounded-2xl shadow-xl p-6 space-y-4">
-            <div className="flex justify-between items-center">
-                <h3 className="font-bold flex items-center gap-2">
-                    <ScaleIcon className="w-5 h-5 text-[var(--accent)]" /> Weight Progress
+        <div className="bg-gradient-to-br from-[var(--card-bg)]/40 to-black/10 backdrop-blur-md border border-white/5 rounded-2xl p-6 mt-4 transition-all">
+            <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--primary)]/70 flex items-center gap-2">
+                    <ScaleIcon className="w-4 h-4" /> Progression Metric
                 </h3>
                 <button
                     onClick={() => setIsLogging(!isLogging)}
-                    className="p-1.5 hover:bg-white/5 rounded-lg transition-colors text-[var(--text-muted)] hover:text-white"
+                    className="group/add p-1.5 hover:bg-[var(--primary)]/10 rounded-lg transition-all text-[var(--text-muted)] hover:text-[var(--primary)]"
                 >
-                    <PlusIcon className="w-5 h-5" />
+                    <PlusIcon className="w-5 h-5 group-hover/add:rotate-90 transition-transform" />
                 </button>
             </div>
 
             {isLogging ? (
-                <div className="flex gap-2 animate-slide-up">
+                <div className="flex gap-3 animate-slide-up">
                     <input
                         type="number"
                         step="0.1"
                         autoFocus
-                        placeholder="kg"
+                        placeholder="Weight in kg"
                         value={newWeight}
                         onChange={e => setNewWeight(e.target.value)}
-                        className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 outline-none focus:border-[var(--accent)]"
+                        className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-2 outline-none focus:border-[var(--primary)]/50 transition-colors text-white placeholder:text-white/20 font-medium"
                     />
                     <button
                         onClick={handleLogWeight}
                         disabled={loading}
-                        className="bg-[var(--accent)] text-white px-4 py-2 rounded-xl font-bold hover:opacity-80 transition-opacity disabled:opacity-50"
+                        className="bg-[var(--primary)] text-black px-6 py-2 rounded-xl font-black text-sm hover:scale-105 transition-transform disabled:opacity-50"
                     >
                         Save
                     </button>
                 </div>
             ) : (
-                <div className="space-y-4">
+                <div className="space-y-6">
                     <div className="flex justify-between items-end">
                         <div className="space-y-1">
-                            <span className="text-[var(--text-muted)] text-xs uppercase tracking-wider font-medium">Current</span>
-                            <div className="text-2xl font-bold tabular-nums">
-                                {loading ? '...' : currentWeight ? `${currentWeight} kg` : '--'}
+                            <span className="text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest opacity-60">Live Status</span>
+                            <div className="text-4xl font-black tabular-nums tracking-tighter text-white">
+                                {loading ? (
+                                    <div className="h-10 w-24 bg-white/5 animate-pulse rounded-lg" />
+                                ) : currentWeight ? (
+                                    <span className="flex items-baseline gap-1">
+                                        {currentWeight}
+                                        <span className="text-sm font-bold opacity-40">KG</span>
+                                    </span>
+                                ) : '--'}
                             </div>
                         </div>
                         <div className="text-right space-y-1">
-                            <span className="text-[var(--text-muted)] text-xs uppercase tracking-wider font-medium">Target</span>
-                            <div className="text-xl font-semibold text-[var(--primary)] tabular-nums">
-                                {targetWeight ? `${targetWeight} kg` : 'Not Set'}
+                            <span className="text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest opacity-60">Objective</span>
+                            <div className="text-2xl font-black text-[var(--primary)] tabular-nums tracking-tighter">
+                                {targetWeight ? (
+                                    <span className="flex items-baseline gap-1 justify-end">
+                                        {targetWeight}
+                                        <span className="text-xs font-bold opacity-40">KG</span>
+                                    </span>
+                                ) : 'Not Set'}
                             </div>
                         </div>
                     </div>
 
                     {currentWeight && targetWeight && (
-                        <div className="space-y-2">
-                            <div className="flex justify-between text-xs">
-                                <span className="text-[var(--text-muted)]">Remaining</span>
-                                <span className="font-bold text-white">{Math.abs(currentWeight - targetWeight).toFixed(1)} kg</span>
+                        <div className="space-y-3">
+                            <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest">
+                                <span className="text-[var(--text-muted)]">Remaining distance</span>
+                                <span className="text-[var(--primary)]">{Math.abs(currentWeight - targetWeight).toFixed(1)} kg</span>
                             </div>
-                            <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                                {/* Simple indicator of how far we are. For now just 50% or something as placeholder */}
-                                <div className="h-full bg-[var(--accent)] rounded-full w-1/2" />
+                            <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                                <div className="h-full bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] rounded-full w-1/2 shadow-[0_0_10px_rgba(0,255,136,0.3)] anim-progress" />
                             </div>
                         </div>
                     )}

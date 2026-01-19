@@ -15,15 +15,15 @@ import {
 
 interface Stats {
     gender: string;
-    age: number;
-    height: number;
-    weight: number;
+    age: number | '';
+    height: number | '';
+    weight: number | '';
     activity_level: string;
 }
 
 interface Goals {
     objective: string;
-    target_weight: number;
+    target_weight: number | '';
     target_date: string;
 }
 
@@ -169,7 +169,7 @@ export default function FitnessSetupWizard({
                                 <input
                                     type="number"
                                     value={stats.age}
-                                    onChange={e => setStats({ ...stats, age: parseInt(e.target.value) })}
+                                    onChange={e => setStats({ ...stats, age: e.target.value === '' ? '' : parseInt(e.target.value) })}
                                     className="w-full bg-white/5 border border-white/10 p-3 rounded-xl focus:border-[var(--primary)] outline-none"
                                 />
                             </div>
@@ -178,7 +178,7 @@ export default function FitnessSetupWizard({
                                 <input
                                     type="number"
                                     value={stats.height}
-                                    onChange={e => setStats({ ...stats, height: parseInt(e.target.value) })}
+                                    onChange={e => setStats({ ...stats, height: e.target.value === '' ? '' : parseInt(e.target.value) })}
                                     className="w-full bg-white/5 border border-white/10 p-3 rounded-xl focus:border-[var(--primary)] outline-none"
                                 />
                             </div>
@@ -187,7 +187,7 @@ export default function FitnessSetupWizard({
                                 <input
                                     type="number"
                                     value={stats.weight}
-                                    onChange={e => setStats({ ...stats, weight: parseFloat(e.target.value) })}
+                                    onChange={e => setStats({ ...stats, weight: e.target.value === '' ? '' : parseFloat(e.target.value) })}
                                     className="w-full bg-white/5 border border-white/10 p-3 rounded-xl focus:border-[var(--primary)] outline-none"
                                 />
                             </div>
@@ -230,7 +230,7 @@ export default function FitnessSetupWizard({
                                     <input
                                         type="number"
                                         value={goals.target_weight}
-                                        onChange={e => setGoals({ ...goals, target_weight: parseFloat(e.target.value) })}
+                                        onChange={e => setGoals({ ...goals, target_weight: e.target.value === '' ? '' : parseFloat(e.target.value) })}
                                         className="w-full bg-white/5 border border-white/10 p-3 rounded-xl focus:border-[var(--accent)] outline-none"
                                     />
                                 </div>

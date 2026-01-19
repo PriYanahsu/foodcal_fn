@@ -11,7 +11,8 @@ import { useDailyStats } from '@/features/dashboard/hooks/useDailyStats';
 import { createClient } from '@/lib/supabase/client';
 import FitnessSetupWizard from '@/features/fitnessProfile/components/setup/FitnessSetupWizard';
 import WeightProgressWidget from '@/features/fitnessProfile/components/WeightProgressWidget';
-import { SparklesIcon, TrophyIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { SparklesIcon, TrophyIcon, ChevronRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { calculateProfileCompletion } from '@/utils/profileCompletion';
 
 
 export const dynamic = 'force-dynamic';
@@ -49,11 +50,17 @@ export default function Dashboard() {
   // to the updated hook which handles dependencies correctly.
   const { stats, recentLogs, loading } = useDailyStats(selectedDate + 'T00:00:00');
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [showReminder, setShowReminder] = useState(false);
 
   useEffect(() => {
     async function fetchProfile() {
-      if (!user) return;
+      if (!user) {
+        setProfileLoading(false);
+        return;
+      }
 
+      setProfileLoading(true);
       const { data } = await supabase
         .from('profiles')
         .select('*')
@@ -62,11 +69,18 @@ export default function Dashboard() {
 
       if (data) {
         setProfile(data);
+        const completion = calculateProfileCompletion(data);
+        if (completion < 100) {
+          setShowReminder(true);
+        }
       }
+      setProfileLoading(false);
     }
 
     fetchProfile();
   }, [user]);
+
+  const completionPercentage = calculateProfileCompletion(profile);
 
   const userName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
 
@@ -80,6 +94,33 @@ export default function Dashboard() {
 
   return (
     <div className="p-4 md:p-6 lg:p-10 max-w-7xl mx-auto space-y-8 md:space-y-10">
+
+      {showReminder && (
+        <div className="animate-slide-up">
+          <div className="bg-gradient-to-r from-[var(--primary)]/20 to-transparent border border-[var(--primary)]/30 p-4 rounded-2xl flex items-center justify-between backdrop-blur-md">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-[var(--primary)]/20 text-[var(--primary)]">
+                <SparklesIcon className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="font-bold text-white text-sm">Profile Incomplete ({completionPercentage}%)</p>
+                <p className="text-[var(--text-muted)] text-xs">For peak AI accuracy, please complete your profile details.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Link href="/profile">
+                <button className="text-[var(--primary)] text-xs font-bold hover:underline">Complete Now</button>
+              </Link>
+              <button
+                onClick={() => setShowReminder(false)}
+                className="text-white/40 hover:text-white transition-colors"
+              >
+                <XMarkIcon className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hero Section */}
       <section className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 animate-fade-in-up">
@@ -107,7 +148,7 @@ export default function Dashboard() {
         </div>
 
         <div className='flex flex-col sm:flex-row w-full xl:w-auto gap-4'>
-          {!profile?.goal && (
+          {!profileLoading && !profile?.goal && (
             <button
               onClick={() => setShowWizard(true)}
               className="btn-secondary flex items-center justify-center gap-2 py-3 px-6 text-lg border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)]/10"
