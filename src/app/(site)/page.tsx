@@ -97,35 +97,30 @@ export default function Dashboard() {
 
       {showReminder && (
         <div className="animate-slide-up">
-          <div className="bg-gradient-to-r from-[var(--primary)]/20 to-transparent border border-[var(--primary)]/30 p-4 rounded-2xl flex items-center justify-between backdrop-blur-md">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-[var(--primary)]/20 text-[var(--primary)]">
-                <SparklesIcon className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="font-bold text-white text-sm">Profile Incomplete ({completionPercentage}%)</p>
-                <p className="text-[var(--text-muted)] text-xs">For peak AI accuracy, please complete your profile details.</p>
-              </div>
+          <div className="glass-card px-3 sm:px-4 py-2 flex items-start gap-3 border-[var(--primary)]/20 relative pr-10">
+            <SparklesIcon className="w-5 h-5 text-[var(--primary)] shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm font-medium leading-relaxed">
+                Profile Incomplete ({completionPercentage}%) —
+                <Link href="/profile" className="text-[var(--primary)] hover:underline ml-1 inline-flex items-center gap-1">
+                  Complete now <span className="hidden xs:inline">for better AI results</span>
+                </Link>
+              </p>
             </div>
-            <div className="flex items-center gap-3">
-              <Link href="/profile">
-                <button className="text-[var(--primary)] text-xs font-bold hover:underline">Complete Now</button>
-              </Link>
-              <button
-                onClick={() => setShowReminder(false)}
-                className="text-white/40 hover:text-white transition-colors"
-              >
-                <XMarkIcon className="w-5 h-5" />
-              </button>
-            </div>
+            <button
+              onClick={() => setShowReminder(false)}
+              className="absolute right-3 top-2.5 text-[var(--text-muted)] hover:text-white transition-colors p-1"
+            >
+              <XMarkIcon className="w-4 h-4" />
+            </button>
           </div>
         </div>
       )}
 
       {/* Hero Section */}
-      <section className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 animate-fade-in-up">
-        <div className="flex items-center gap-4 md:gap-6 w-full xl:w-auto">
-          <div className="relative z-10 shrink-0">
+      <section className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-6 animate-fade-in-up overflow-hidden">
+        <div className="flex items-center gap-4 max-w-full">
+          <div className="premium-ring shrink-0">
             <AvatarUpload
               uid={user?.id || ''}
               url={profile?.avatar_url ?? null}
@@ -134,33 +129,32 @@ export default function Dashboard() {
                 supabase.from('profiles').update({ avatar_url: url }).eq('id', user?.id).then();
                 setProfile(prev => prev ? { ...prev, avatar_url: url } : null);
               }}
-              size={80} // Size might need to be responsive props if supported, but 80 is ok
+              size={60}
             />
           </div>
-          <div className="flex flex-col">
-            <h1 className="text-2xl md:text-3xl xl:text-5xl font-bold">
+          <div className="flex flex-col min-w-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight truncate">
               Hello, <span className="text-[var(--primary)]">{userName}</span>
             </h1>
-            <p className="text-[var(--text-muted)] text-sm md:text-lg">
-              {loading ? 'Loading your stats...' : profile?.goal ? `Goal: ${profile.goal}` : "Click 'Consult Coach' to set your targets."}
+            <p className="text-[var(--text-muted)] text-[10px] sm:text-xs font-medium truncate">
+              {loading ? 'Fetching stats...' : profile?.goal ? `Target: ${profile.goal}` : "Set your targets to begin."}
             </p>
           </div>
         </div>
 
-        <div className='flex flex-col sm:flex-row w-full xl:w-auto gap-4'>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full xl:w-auto">
           {!profileLoading && !profile?.goal && (
             <button
               onClick={() => setShowWizard(true)}
-              className="btn-secondary flex items-center justify-center gap-2 py-3 px-6 text-lg border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)]/10"
+              className="btn-secondary group flex items-center justify-center gap-2 border-[var(--primary)]/30 text-[var(--primary)] hover:bg-[var(--primary)]/5 py-2 px-4 h-10"
             >
-              <SparklesIcon className="w-6 h-6" />
-              Consult Coach
+              <SparklesIcon className="w-4 h-4" />
+              <span className="text-xs">Consult Coach</span>
             </button>
           )}
-          <div className="w-full sm:w-auto relative group">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--primary)] pointer-events-none transition-colors group-hover:text-white z-10">
-              <CalendarDaysIcon className="w-6 h-6" />
-            </div>
+
+          <div className="relative">
+            <CalendarDaysIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--primary)] pointer-events-none" />
             <input
               type="date"
               name="dateFilter"
@@ -168,14 +162,14 @@ export default function Dashboard() {
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
               style={{ colorScheme: 'dark' }}
-              className="w-full sm:w-auto py-3 pl-12 pr-6 text-lg rounded-full border border-white/10 bg-white/5 backdrop-blur-md focus:border-[var(--primary)] focus:bg-white/10 focus:shadow-[0_0_15px_rgba(0,255,136,0.3)] transition-all outline-none cursor-pointer appearance-none text-white hover:border-white/30 font-medium"
+              className="w-full sm:w-auto h-10 pl-9 pr-4 text-xs rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] focus:border-[var(--primary)] transition-all outline-none cursor-pointer text-white font-medium"
             />
           </div>
-          <Link href={ROUTES.SCAN} className="w-full sm:w-auto">
-            <button className="relative group overflow-hidden btn-primary flex items-center justify-center gap-2 w-full sm:w-auto py-3 px-8 text-lg shadow-[0_0_20px_rgba(0,255,136,0.2)] hover:shadow-[0_0_30px_rgba(0,255,136,0.4)] transition-all border border-[var(--primary)]/50">
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700 ease-in-out pointer-events-none" />
-              <CameraIcon className="w-6 h-6" />
-              <span className="font-bold tracking-wide">Log Meal</span>
+
+          <Link href={ROUTES.SCAN}>
+            <button className="btn-primary flex items-center justify-center gap-2 h-10 px-6 text-xs w-full sm:w-auto">
+              <CameraIcon className="w-4 h-4" />
+              <span className="font-bold">Log Meal</span>
             </button>
           </Link>
         </div>

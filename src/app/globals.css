@@ -40,23 +40,32 @@ body {
   }
 
   .btn-secondary {
-    @apply bg-[var(--card-bg)] text-[var(--foreground)] border border-[var(--card-border)] py-3 px-6 rounded-xl hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all duration-300;
+    @apply bg-[var(--card-bg)] text-[var(--foreground)] border border-[var(--card-border)] py-2.5 px-5 rounded-xl hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all duration-200 text-sm font-semibold;
+  }
+
+  /* Premium Minimalism */
+  .glass-card {
+    @apply bg-[var(--card-bg)]/80 backdrop-blur-md border border-[var(--card-border)] rounded-2xl shadow-sm;
+  }
+
+  .premium-ring {
+    @apply relative p-0.5 rounded-full bg-gradient-to-tr from-[var(--primary)]/40 to-transparent;
   }
 
   /* Custom Scrollbar */
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-track {
     background: transparent;
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-thumb {
     background: var(--card-border);
     border-radius: 10px;
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: var(--primary);
   }
