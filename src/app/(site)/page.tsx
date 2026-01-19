@@ -20,7 +20,22 @@ interface ProfileData {
 export default function Dashboard() {
   const supabase = createClient();
   const { user } = useAuth();
-  const { stats, recentLogs, loading } = useDailyStats();
+
+  // State for the selected date filter
+  // Initialize with today's date formatted as YYYY-MM-DD for the input
+  // We use a safe default that doesn't rely on hydration-sensitive calculations if possible, 
+  // but for the input 'value', YYYY-MM-DD is standard.
+  // We will handle the display text separately.
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toLocaleDateString('en-CA'));
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // We now pass the string directly (with time component to ensure local start of day) 
+  // to the updated hook which handles dependencies correctly.
+  const { stats, recentLogs, loading } = useDailyStats(selectedDate + 'T00:00:00');
   const [profile, setProfile] = useState<ProfileData | null>(null);
 
   useEffect(() => {
@@ -79,12 +94,24 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <Link href={ROUTES.SCAN} className="w-full md:w-auto">
-          <button className="btn-primary flex items-center justify-center gap-2 w-full md:w-auto py-3 px-6 text-lg">
-            <span className="text-xl">📷</span>
-            Log Meal
-          </button>
-        </Link>
+        <div className='flex lg:flex-row flex-col w-full md:w-auto gap-6'>
+          <div>
+            <input
+              type="date"
+              name="dateFilter"
+              id="dateFilter"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="input-primary w-full md:w-auto py-3 px-6 text-lg rounded-full border-2 border-white/20 bg-white/5 backdrop-blur-md focus:border-[var(--primary)] transition-all outline-none"
+            />
+          </div>
+          <Link href={ROUTES.SCAN} className="w-full md:w-auto">
+            <button className="btn-primary flex items-center justify-center gap-2 w-full md:w-auto py-3 px-6 text-lg shadow-lg hover:shadow-[var(--primary)]/20 transition-all">
+              <span className="text-xl">📷</span>
+              Log Meal
+            </button>
+          </Link>
+        </div>
       </section>
 
       {/* Stats Grid */}
@@ -129,42 +156,65 @@ export default function Dashboard() {
         {/* Recent Activity */}
         <div className="lg:col-span-2 space-y-6">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold">Recent Activity</h2>
-            <Link href={ROUTES.HISTORY} className="text-[var(--primary)] hover:underline">View All</Link>
+            {/* Prevent hydration mismatch by only showing formatted date after mount */}
+            <h2 className="text-2xl font-bold">
+              Log for {mounted ? new Date(selectedDate + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' }) : '...'}
+            </h2>
+            <Link href={ROUTES.HISTORY} className="text-[var(--primary)] hover:underline">View All History</Link>
           </div>
 
-          <div className="space-y-4">
-            {recentLogs.length === 0 && !loading && (
-              <div className="text-[var(--text-muted)] py-8 text-center bg-[var(--card-bg)]/50 rounded-2xl border border-[var(--card-border)] border-dashed">
-                No meals logged today yet.
+          <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+            {loading ? (
+              // Skeleton Loader to prevent flickering
+              <div className="space-y-4 animate-pulse">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="h-24 bg-white/5 rounded-2xl border border-white/10" />
+                ))}
               </div>
+            ) : recentLogs.length === 0 ? (
+              // Premium Empty State
+              <div className="flex flex-col items-center justify-center py-12 px-6 bg-[var(--card-bg)]/30 backdrop-blur-md rounded-3xl border border-[var(--card-border)] border-dashed">
+                <div className="w-16 h-16 mb-4 rounded-full bg-[var(--card-bg)] flex items-center justify-center text-3xl shadow-inner">
+                  📅
+                </div>
+                <h3 className="text-xl font-bold mb-2">No Data Entered For This Day</h3>
+                <p className="text-[var(--text-muted)] text-center max-w-sm mb-6">
+                  It looks like you didn't log any meals on this date. Select another date or log a meal now!
+                </p>
+                {selectedDate === new Date().toLocaleDateString('en-CA') && (
+                  <Link href={ROUTES.SCAN}>
+                    <button className="px-6 py-2 bg-[var(--card-bg)] hover:bg-white/10 border border-white/10 rounded-full transition-colors font-medium">
+                      Log a Meal Now
+                    </button>
+                  </Link>
+                )}
+              </div>
+            ) : (
+              recentLogs.map((log) => {
+                return (
+                  <Link href={`/history/${new Date(log.created_at).toLocaleDateString('en-CA')}/${log.id}`} key={log.id}>
+                    <div className="bg-[var(--card-bg)]/80 backdrop-blur-md border border-[var(--card-border)] rounded-2xl shadow-xl p-4 flex items-center justify-between hover:bg-white/5 transition-colors cursor-pointer group">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-gray-800/50 group-hover:bg-gray-800 transition-colors flex items-center justify-center text-2xl overflow-hidden">
+                          {/* Simple fallback icon based on meal type or generic */}
+                          🍽️
+                        </div>
+                        <div>
+                          <h3 className="font-semibold">{log.food_name}</h3>
+                          <p className="text-sm text-[var(--text-muted)]">
+                            {mounted ? new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="block font-bold text-[var(--primary)]">+{Math.round(log.calories)}</span>
+                        <span className="text-xs text-[var(--text-muted)]">kcal</span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })
             )}
-
-            {recentLogs.map((log) => {
-              const date = new Date(log.created_at).toLocaleDateString('en-CA');
-              return (
-                <Link href={`/history/${date}/${log.id}`} key={log.id}>
-                  <div className="bg-[var(--card-bg)]/80 backdrop-blur-md border border-[var(--card-border)] rounded-2xl shadow-xl p-4 flex items-center justify-between hover:bg-white/5 transition-colors cursor-pointer">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-gray-800 flex items-center justify-center text-2xl overflow-hidden">
-                        {/* Simple fallback icon based on meal type or generic */}
-                        🍽️
-                      </div>
-                      <div>
-                        <h3 className="font-semibold">{log.food_name}</h3>
-                        <p className="text-sm text-[var(--text-muted)]">
-                          {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="block font-bold text-[var(--primary)]">+{Math.round(log.calories)}</span>
-                      <span className="text-xs text-[var(--text-muted)]">kcal</span>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
           </div>
         </div>
 
