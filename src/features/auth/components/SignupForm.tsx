@@ -37,8 +37,8 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
       return;
     }
 
-    if (password.length < 6) {
-      setValidationError('Password must be at least 6 characters long');
+    if (password.length < 8) {
+      setValidationError('Password must be at least 8 characters long');
       return;
     }
 
@@ -87,7 +87,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
       {error && (
         <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
           <p className="text-sm text-red-400">{error}</p>
@@ -108,63 +108,67 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
         required
       />
 
-      <Input
-        type="text"
-        label="Username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        placeholder="Choose a username"
-        required
-      />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <Input
+          type="text"
+          label="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Choose a username"
+          required
+        />
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-[var(--text-secondary)]">Gender</label>
-        <select
-          value={gender}
-          onChange={(e) => setGender(e.target.value)}
-          className="w-full px-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all"
-        >
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-          <option value="Other">Other</option>
-        </select>
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-[var(--text-secondary)]">Gender</label>
+          <select
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
+            className="w-full px-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all h-[50px]"
+          >
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
       </div>
 
       <Input
         type="email"
-        label="Email"
+        label="Email Address"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="Enter your email"
         required
       />
 
-      <Input
-        type="password"
-        label="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Create a password (min. 6 characters)"
-        required
-      />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <Input
+          type="password"
+          label="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Min. 8 chars"
+          required
+        />
 
-      <Input
-        type="password"
-        label="Confirm Password"
-        value={confirmPassword}
-        onChange={(e) => setConfirmPassword(e.target.value)}
-        placeholder="Confirm your password"
-        required
-      />
+        <Input
+          type="password"
+          label="Repeat Password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          placeholder="Confirm password"
+          required
+        />
+      </div>
 
       <Button
         type="submit"
         variant="primary"
         size="lg"
         isLoading={isLoading}
-        className="w-full"
+        className="w-full h-14 mt-2"
       >
-        Sign Up
+        Create Account
       </Button>
     </form>
   );
