@@ -17,6 +17,4 @@ export interface ProfileData {
     activity_level: string;
     goal: string;
     avatar_url?: string | null;
-    target_weight?: number | null;
-    target_date?: string | null;
 }

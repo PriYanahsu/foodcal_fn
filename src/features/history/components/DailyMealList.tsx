@@ -77,7 +77,7 @@ export default function DailyMealList({ date }: DailyMealListProps) {
 
                             <div>
                                 <h3 className="font-semibold">{meal.food_name}</h3>
-                                <p className="text-xs text-gray-400 capitalize">{meal.meal_type}</p>
+                                <p className="text-xs text-gray-400 capitalize">{meal.meal_type} • {meal.is_manual ? 'Manual' : 'AI Scan'}</p>
                             </div>
                         </div>
 
