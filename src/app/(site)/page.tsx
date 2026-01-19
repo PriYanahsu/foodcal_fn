@@ -67,11 +67,11 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-10">
+    <div className="p-4 md:p-6 lg:p-10 max-w-7xl mx-auto space-y-8 md:space-y-10">
 
       {/* Hero Section */}
-      <section className="flex flex-col md:flex-row justify-between items-center gap-6">
-        <div className="flex items-center gap-6 w-full md:w-auto">
+      <section className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 animate-fade-in-up">
+        <div className="flex items-center gap-4 md:gap-6 w-full xl:w-auto">
           <div className="relative z-10 shrink-0">
             <AvatarUpload
               uid={user?.id || ''}
@@ -81,11 +81,11 @@ export default function Dashboard() {
                 supabase.from('profiles').update({ avatar_url: url }).eq('id', user?.id).then();
                 setProfile(prev => prev ? { ...prev, avatar_url: url } : null);
               }}
-              size={80}
+              size={80} // Size might need to be responsive props if supported, but 80 is ok
             />
           </div>
           <div className="flex flex-col">
-            <h1 className="text-3xl md:text-5xl font-bold">
+            <h1 className="text-2xl md:text-3xl xl:text-5xl font-bold">
               Hello, <span className="text-[var(--primary)]">{userName}</span>
             </h1>
             <p className="text-[var(--text-muted)] text-sm md:text-lg">
@@ -94,19 +94,19 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className='flex lg:flex-row flex-col w-full md:w-auto gap-6'>
-          <div>
+        <div className='flex flex-col sm:flex-row w-full xl:w-auto gap-4'>
+          <div className="w-full sm:w-auto">
             <input
               type="date"
               name="dateFilter"
               id="dateFilter"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="input-primary w-full md:w-auto py-3 px-6 text-lg rounded-full border-2 border-white/20 bg-white/5 backdrop-blur-md focus:border-[var(--primary)] transition-all outline-none"
+              className="input-primary w-full sm:w-auto py-3 px-6 text-lg rounded-full border-2 border-white/20 bg-white/5 backdrop-blur-md focus:border-[var(--primary)] transition-all outline-none"
             />
           </div>
-          <Link href={ROUTES.SCAN} className="w-full md:w-auto">
-            <button className="btn-primary flex items-center justify-center gap-2 w-full md:w-auto py-3 px-6 text-lg shadow-lg hover:shadow-[var(--primary)]/20 transition-all">
+          <Link href={ROUTES.SCAN} className="w-full sm:w-auto">
+            <button className="btn-primary flex items-center justify-center gap-2 w-full sm:w-auto py-3 px-6 text-lg shadow-lg hover:shadow-[var(--primary)]/20 transition-all">
               <span className="text-xl">📷</span>
               Log Meal
             </button>
@@ -115,7 +115,7 @@ export default function Dashboard() {
       </section>
 
       {/* Stats Grid */}
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <StatCard
           label="Calories"
           value={Math.round(stats.calories)}
@@ -151,16 +151,16 @@ export default function Dashboard() {
       </section>
 
       {/* Main Content Split */}
-      <section className="grid lg:grid-cols-3 gap-8">
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
         {/* Recent Activity */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-wrap justify-between items-center gap-4">
             {/* Prevent hydration mismatch by only showing formatted date after mount */}
-            <h2 className="text-2xl font-bold">
+            <h2 className="text-xl md:text-2xl font-bold">
               Log for {mounted ? new Date(selectedDate + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' }) : '...'}
             </h2>
-            <Link href={ROUTES.HISTORY} className="text-[var(--primary)] hover:underline">View All History</Link>
+            <Link href={ROUTES.HISTORY} className="text-[var(--primary)] hover:underline text-sm md:text-base">View All History</Link>
           </div>
 
           <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
@@ -177,7 +177,7 @@ export default function Dashboard() {
                 <div className="w-16 h-16 mb-4 rounded-full bg-[var(--card-bg)] flex items-center justify-center text-3xl shadow-inner">
                   📅
                 </div>
-                <h3 className="text-xl font-bold mb-2">No Data Entered For This Day</h3>
+                <h3 className="text-xl font-bold mb-2 text-center">No Data Entered For This Day</h3>
                 <p className="text-[var(--text-muted)] text-center max-w-sm mb-6">
                   It looks like you didn't log any meals on this date. Select another date or log a meal now!
                 </p>
@@ -195,18 +195,18 @@ export default function Dashboard() {
                   <Link href={`/history/${new Date(log.created_at).toLocaleDateString('en-CA')}/${log.id}`} key={log.id}>
                     <div className="bg-[var(--card-bg)]/80 backdrop-blur-md border border-[var(--card-border)] rounded-2xl shadow-xl p-4 flex items-center justify-between hover:bg-white/5 transition-colors cursor-pointer group">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-gray-800/50 group-hover:bg-gray-800 transition-colors flex items-center justify-center text-2xl overflow-hidden">
+                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gray-800/50 group-hover:bg-gray-800 transition-colors flex items-center justify-center text-xl md:text-2xl overflow-hidden shrink-0">
                           {/* Simple fallback icon based on meal type or generic */}
                           🍽️
                         </div>
-                        <div>
-                          <h3 className="font-semibold">{log.food_name}</h3>
-                          <p className="text-sm text-[var(--text-muted)]">
+                        <div className="min-w-0">
+                          <h3 className="font-semibold truncate">{log.food_name}</h3>
+                          <p className="text-xs md:text-sm text-[var(--text-muted)]">
                             {mounted ? new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                           </p>
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right shrink-0">
                         <span className="block font-bold text-[var(--primary)]">+{Math.round(log.calories)}</span>
                         <span className="text-xs text-[var(--text-muted)]">kcal</span>
                       </div>
@@ -220,10 +220,10 @@ export default function Dashboard() {
 
         {/* Quick Tips / Goals */}
         <div className="space-y-6">
-          <h2 className="text-2xl font-bold">Daily Goals</h2>
+          <h2 className="text-xl md:text-2xl font-bold">Daily Goals</h2>
           <div className="bg-[var(--card-bg)]/80 backdrop-blur-md border border-[var(--card-border)] rounded-2xl shadow-xl p-6 space-y-6">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">💧</div>
+              <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">💧</div>
               <div className="flex-1">
                 <div className="flex justify-between mb-1">
                   <span className="font-medium">Water Intake</span>
@@ -236,7 +236,7 @@ export default function Dashboard() {
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400">💤</div>
+              <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400 shrink-0">💤</div>
               <div className="flex-1">
                 <div className="flex justify-between mb-1">
                   <span className="font-medium">Sleep</span>
