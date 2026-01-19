@@ -72,8 +72,8 @@ export default function MealDetailView({ mealId }: MealDetailViewProps) {
                 <div className="flex justify-between items-start">
                     <div>
                         <h1 className="text-3xl font-bold">{meal.food_name}</h1>
-                        <span className="inline-block px-2 py-1 rounded text-xs font-bold mt-2 bg-green-500/20 text-green-400">
-                            AI Analysis
+                        <span className={`inline-block px-2 py-1 rounded text-xs font-bold mt-2 ${meal.is_manual ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400'}`}>
+                            {meal.is_manual ? 'Manual Entry' : 'AI Analysis'}
                         </span>
                     </div>
                     <div className="text-right">

@@ -1,4 +1,4 @@
-import { XMarkIcon, ArrowsRightLeftIcon } from "@heroicons/react/24/outline";
+import { Button } from "@/components/ui/Button";
 import { RefObject } from "react";
 
 interface CameraOverlayProps {
@@ -19,30 +19,38 @@ export const CameraOverlay = ({
     error,
 }: CameraOverlayProps) => {
     return (
-        <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center animate-fade-in overflow-hidden">
-            {/* Header - Floating on top of camera */}
-            <div className="absolute top-0 left-0 right-0 flex justify-between items-center p-4 md:p-6 z-20">
-                <button
-                    onClick={onClose}
-                    className="p-3 rounded-2xl bg-black/40 text-white backdrop-blur-xl hover:bg-black/60 transition-all border border-white/10"
-                >
-                    <XMarkIcon className="w-6 h-6" />
-                </button>
-                <div className="hidden sm:block text-white text-[10px] font-black uppercase tracking-[0.2em] opacity-40 bg-black/40 px-4 py-2 rounded-full backdrop-blur-xl border border-white/5">
-                    Scanning Mode Active
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="relative w-full max-w-2xl bg-black rounded-3xl overflow-hidden shadow-2xl border border-[var(--card-border)]">
+                {/* Header */}
+                <div className="absolute top-0 left-0 right-0 p-4 z-10 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
+                    <h2 className="text-white font-semibold">Take a Photo</h2>
+                    <button
+                        onClick={onClose}
+                        className="p-2 rounded-full bg-black/50 text-white hover:bg-white/20 transition-colors"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                        </svg>
+                    </button>
                 </div>
-                <button
-                    onClick={onSwitchCamera}
-                    className="p-3 rounded-2xl bg-black/40 text-white backdrop-blur-xl hover:bg-black/60 transition-all border border-white/10"
-                    title="Switch Camera"
-                >
-                    <ArrowsRightLeftIcon className="w-6 h-6" />
-                </button>
-            </div>
 
-            {/* Viewport Area - Fullscreen on Mobile, Very Large on Desktop */}
-            <div className="relative w-full h-full flex items-center justify-center bg-neutral-950">
-                <div className="relative w-full h-full md:w-[90vw] md:h-[85vh] md:max-w-6xl md:rounded-[3rem] overflow-hidden bg-neutral-900 shadow-[0_0_100px_rgba(0,0,0,0.8)] md:border md:border-white/10 transition-all duration-500 ease-out">
+                {/* Error Message */}
+                {error && (
+                    <div className="absolute inset-0 flex items-center justify-center p-6 bg-black/80 z-20">
+                        <div className="text-center">
+                            <p className="text-red-400 mb-4">{error}</p>
+                            <button
+                                onClick={onClose}
+                                className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Camera View */}
+                <div className="relative aspect-[4/3] bg-black">
                     <video
                         ref={videoRef}
                         className="w-full h-full object-cover"
@@ -51,44 +59,44 @@ export const CameraOverlay = ({
                         muted
                     />
 
-                    {/* Minimal Guidelines */}
-                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                        <div className="w-64 h-64 md:w-80 md:h-80 border-[0.5px] border-white/20 rounded-[3rem] shadow-[0_0_0_100vmax_rgba(0,0,0,0.3)]" />
+                    {/* Guidelines Overlay */}
+                    <div className="absolute inset-0 border-[3px] border-white/30 m-8 rounded-2xl pointer-events-none">
+                        <div className="absolute top-1/3 left-0 right-0 h-px bg-white/20" />
+                        <div className="absolute bottom-1/3 left-0 right-0 h-px bg-white/20" />
+                        <div className="absolute left-1/3 top-0 bottom-0 w-px bg-white/20" />
+                        <div className="absolute right-1/3 top-0 bottom-0 w-px bg-white/20" />
 
-                        {/* Corner Accents */}
-                        <div className="absolute w-64 h-64 md:w-80 md:h-80 pointer-events-none">
-                            <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-[var(--primary)] rounded-tl-3xl" />
-                            <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-[var(--primary)] rounded-tr-3xl" />
-                            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-[var(--primary)] rounded-bl-3xl" />
-                            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-[var(--primary)] rounded-br-3xl" />
-                        </div>
+                        {/* Corner Brackets */}
+                        <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-[var(--primary)] -mt-1 -ml-1 rounded-tl-lg" />
+                        <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-[var(--primary)] -mt-1 -mr-1 rounded-tr-lg" />
+                        <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-[var(--primary)] -mb-1 -ml-1 rounded-bl-lg" />
+                        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-[var(--primary)] -mb-1 -mr-1 rounded-br-lg" />
                     </div>
-
-                    {/* Error Overlay */}
-                    {error && (
-                        <div className="absolute inset-0 flex items-center justify-center p-8 bg-black/90 backdrop-blur-xl z-30">
-                            <div className="text-center space-y-4">
-                                <p className="text-red-400 text-sm font-black uppercase tracking-widest">{error}</p>
-                                <button onClick={onClose} className="px-6 py-2 bg-white text-black text-[10px] font-black uppercase rounded-full tracking-widest">Close</button>
-                            </div>
-                        </div>
-                    )}
                 </div>
-            </div>
 
-            {/* Bottom Controls - Floating on bottom */}
-            <div className="absolute bottom-8 md:bottom-12 left-0 right-0 flex justify-center items-center z-20">
-                <button
-                    onClick={onCapture}
-                    className="group relative flex items-center justify-center transition-transform active:scale-90"
-                >
-                    {/* Ring */}
-                    <div className="absolute w-24 h-24 md:w-28 md:h-28 rounded-full border-[6px] border-white/20 group-hover:border-[var(--primary)]/30 transition-all" />
-                    {/* Shutter Button */}
-                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white group-hover:bg-[var(--primary)] shadow-2xl transition-all flex items-center justify-center">
-                        <div className="w-[90%] h-[90%] rounded-full border-2 border-black/5" />
-                    </div>
-                </button>
+                {/* Controls */}
+                <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/90 to-transparent flex justify-center items-center gap-8 pb-8">
+                    {/* Switch Camera Button */}
+                    <button
+                        onClick={onSwitchCamera}
+                        className="p-3 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors backdrop-blur-md"
+                        title="Switch Camera"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                        </svg>
+                    </button>
+
+                    <button
+                        onClick={onCapture}
+                        className="w-20 h-20 rounded-full border-4 border-white flex items-center justify-center hover:scale-105 transition-transform duration-200 group"
+                    >
+                        <div className="w-16 h-16 rounded-full bg-white group-hover:bg-[var(--primary)] transition-colors duration-200" />
+                    </button>
+
+                    {/* Placeholder for symmetry */}
+                    <div className="w-12" />
+                </div>
             </div>
 
             <canvas ref={canvasRef} className="hidden" />

@@ -9,7 +9,7 @@ export default function SiteLayout({
   return (
     <div className="min-h-screen flex flex-col">
       <main className="grow">{children}</main>
-      {/* <Footer /> */}
+      <Footer />
     </div>
   );
 }
