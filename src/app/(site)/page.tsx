@@ -2,9 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { CalendarDaysIcon, CameraIcon } from '@heroicons/react/24/outline';
+import AvatarUpload from '@/features/userProfile/components/AvatarUpload';
 import { ROUTES } from '@/constants/routes';
 import { StatCard } from '@/components/dashboard/StatCard';
-import AvatarUpload from '@/features/userProfile/components/AvatarUpload';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useDailyStats } from '@/features/dashboard/hooks/useDailyStats';
 import { createClient } from '@/lib/supabase/client';
@@ -95,20 +96,25 @@ export default function Dashboard() {
         </div>
 
         <div className='flex flex-col sm:flex-row w-full xl:w-auto gap-4'>
-          <div className="w-full sm:w-auto">
+          <div className="w-full sm:w-auto relative group">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--primary)] pointer-events-none transition-colors group-hover:text-white z-10">
+              <CalendarDaysIcon className="w-6 h-6" />
+            </div>
             <input
               type="date"
               name="dateFilter"
               id="dateFilter"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="input-primary w-full sm:w-auto py-3 px-6 text-lg rounded-full border-2 border-white/20 bg-white/5 backdrop-blur-md focus:border-[var(--primary)] transition-all outline-none"
+              style={{ colorScheme: 'dark' }}
+              className="w-full sm:w-auto py-3 pl-12 pr-6 text-lg rounded-full border border-white/10 bg-white/5 backdrop-blur-md focus:border-[var(--primary)] focus:bg-white/10 focus:shadow-[0_0_15px_rgba(0,255,136,0.3)] transition-all outline-none cursor-pointer appearance-none text-white hover:border-white/30 font-medium"
             />
           </div>
           <Link href={ROUTES.SCAN} className="w-full sm:w-auto">
-            <button className="btn-primary flex items-center justify-center gap-2 w-full sm:w-auto py-3 px-6 text-lg shadow-lg hover:shadow-[var(--primary)]/20 transition-all">
-              <span className="text-xl">📷</span>
-              Log Meal
+            <button className="relative group overflow-hidden btn-primary flex items-center justify-center gap-2 w-full sm:w-auto py-3 px-8 text-lg shadow-[0_0_20px_rgba(0,255,136,0.2)] hover:shadow-[0_0_30px_rgba(0,255,136,0.4)] transition-all border border-[var(--primary)]/50">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700 ease-in-out pointer-events-none" />
+              <CameraIcon className="w-6 h-6" />
+              <span className="font-bold tracking-wide">Log Meal</span>
             </button>
           </Link>
         </div>
@@ -193,21 +199,21 @@ export default function Dashboard() {
               recentLogs.map((log) => {
                 return (
                   <Link href={`/history/${new Date(log.created_at).toLocaleDateString('en-CA')}/${log.id}`} key={log.id}>
-                    <div className="bg-[var(--card-bg)]/80 backdrop-blur-md border border-[var(--card-border)] rounded-2xl shadow-xl p-4 flex items-center justify-between hover:bg-white/5 transition-colors cursor-pointer group">
-                      <div className="flex items-center gap-4">
+                    <div className="bg-[var(--card-bg)]/80 backdrop-blur-md border border-[var(--card-border)] rounded-2xl shadow-xl p-4 flex items-center justify-between gap-4 hover:bg-white/5 transition-colors cursor-pointer group">
+                      <div className="flex items-center gap-4 flex-1 min-w-0">
                         <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gray-800/50 group-hover:bg-gray-800 transition-colors flex items-center justify-center text-xl md:text-2xl overflow-hidden shrink-0">
                           {/* Simple fallback icon based on meal type or generic */}
                           🍽️
                         </div>
-                        <div className="min-w-0">
-                          <h3 className="font-semibold truncate">{log.food_name}</h3>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-semibold truncate pr-2">{log.food_name}</h3>
                           <p className="text-xs md:text-sm text-[var(--text-muted)]">
                             {mounted ? new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                           </p>
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <span className="block font-bold text-[var(--primary)]">+{Math.round(log.calories)}</span>
+                        <span className="block font-bold text-[var(--primary)] text-sm md:text-base">+{Math.round(log.calories)}</span>
                         <span className="text-xs text-[var(--text-muted)]">kcal</span>
                       </div>
                     </div>
