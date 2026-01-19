@@ -9,6 +9,9 @@ import { StatCard } from '@/components/dashboard/StatCard';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useDailyStats } from '@/features/dashboard/hooks/useDailyStats';
 import { createClient } from '@/lib/supabase/client';
+import FitnessSetupWizard from '@/features/fitnessProfile/components/setup/FitnessSetupWizard';
+import WeightProgressWidget from '@/features/fitnessProfile/components/WeightProgressWidget';
+import { SparklesIcon, TrophyIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
 
 export const dynamic = 'force-dynamic';
@@ -16,6 +19,13 @@ export const dynamic = 'force-dynamic';
 interface ProfileData {
   full_name: string | null;
   avatar_url: string | null;
+  daily_calorie_target: number | null;
+  daily_protein_target: number | null;
+  daily_carbs_target: number | null;
+  daily_fats_target: number | null;
+  ai_coach_advice: string | null;
+  goal: string | null;
+  target_weight: number | null;
 }
 
 export default function Dashboard() {
@@ -29,6 +39,7 @@ export default function Dashboard() {
   // We will handle the display text separately.
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toLocaleDateString('en-CA'));
   const [mounted, setMounted] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -45,7 +56,7 @@ export default function Dashboard() {
 
       const { data } = await supabase
         .from('profiles')
-        .select('full_name, avatar_url')
+        .select('*')
         .eq('id', user.id)
         .single();
 
@@ -59,12 +70,12 @@ export default function Dashboard() {
 
   const userName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
 
-  // Goals (could be editable in future, hardcoded for now)
+  // Goals from profile or defaults
   const goals = {
-    calories: 2200,
-    protein: 150,
-    carbs: 250,
-    fats: 70,
+    calories: profile?.daily_calorie_target || 2200,
+    protein: profile?.daily_protein_target || 150,
+    carbs: profile?.daily_carbs_target || 250,
+    fats: profile?.daily_fats_target || 70,
   };
 
   return (
@@ -90,12 +101,21 @@ export default function Dashboard() {
               Hello, <span className="text-[var(--primary)]">{userName}</span>
             </h1>
             <p className="text-[var(--text-muted)] text-sm md:text-lg">
-              {loading ? 'Loading your stats...' : "You're on track! Keep up the momentum."}
+              {loading ? 'Loading your stats...' : profile?.goal ? `Goal: ${profile.goal}` : "Click 'Consult Coach' to set your targets."}
             </p>
           </div>
         </div>
 
         <div className='flex flex-col sm:flex-row w-full xl:w-auto gap-4'>
+          {!profile?.goal && (
+            <button
+              onClick={() => setShowWizard(true)}
+              className="btn-secondary flex items-center justify-center gap-2 py-3 px-6 text-lg border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)]/10"
+            >
+              <SparklesIcon className="w-6 h-6" />
+              Consult Coach
+            </button>
+          )}
           <div className="w-full sm:w-auto relative group">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--primary)] pointer-events-none transition-colors group-hover:text-white z-10">
               <CalendarDaysIcon className="w-6 h-6" />
@@ -224,8 +244,37 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Quick Tips / Goals */}
+        {/* Fitness Quick Link */}
         <div className="space-y-6">
+          <Link href="/fitness" className="block group">
+            <div className="bg-gradient-to-br from-[var(--primary)]/20 to-[var(--secondary)]/10 backdrop-blur-md border border-[var(--primary)]/30 rounded-2xl p-6 shadow-xl transition-all hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(0,255,136,0.2)]">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/20 flex items-center justify-center text-[var(--primary)] transition-transform group-hover:rotate-12">
+                    <SparklesIcon className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg">Fitness Hub</h3>
+                    <p className="text-xs text-[var(--text-muted)] uppercase tracking-widest">AI Performance Coach</p>
+                  </div>
+                </div>
+                <ChevronRightIcon className="w-5 h-5 text-[var(--primary)] group-hover:translate-x-1 transition-transform" />
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-sm text-gray-300 line-clamp-2 italic">
+                  "{profile?.ai_coach_advice || "Log more meals and update your weight to get personalized coaching tips."}"
+                </p>
+                {profile?.target_weight && (
+                  <div className="flex justify-between items-center text-xs border-t border-white/5 pt-3">
+                    <span className="text-[var(--text-muted)]">Target: {profile.target_weight}kg</span>
+                    <span className="text-[var(--primary)] font-bold">View Progress</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Link>
+
           <h2 className="text-xl md:text-2xl font-bold">Daily Goals</h2>
           <div className="bg-[var(--card-bg)]/80 backdrop-blur-md border border-[var(--card-border)] rounded-2xl shadow-xl p-6 space-y-6">
             <div className="flex items-center gap-4">
@@ -254,16 +303,19 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-
-          <div className="bg-[var(--card-bg)]/80 backdrop-blur-md border border-[var(--card-border)] rounded-2xl shadow-xl p-6 bg-gradient-to-br from-[var(--primary)]/10 to-transparent">
-            <h3 className="font-bold mb-2 text-[var(--primary)]">💡 Pro Tip</h3>
-            <p className="text-sm text-gray-300">
-              Eating protein with every meal helps maintain muscle mass and keeps you full longer.
-            </p>
-          </div>
         </div>
-
       </section>
+
+      {showWizard && user && (
+        <FitnessSetupWizard
+          userId={user.id}
+          onCancel={() => setShowWizard(false)}
+          onComplete={() => {
+            setShowWizard(false);
+            window.location.reload(); // Refresh to show new targets
+          }}
+        />
+      )}
     </div>
   );
 }
