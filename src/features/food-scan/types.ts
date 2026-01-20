@@ -3,7 +3,9 @@ export interface NutritionData {
   protein: number;
   carbs: number;
   fats: number;
-  name?: string;
+  food_name: string;
+  quantity?: string;
+  health_info?: string;
 }
 
 export interface FoodScanResponse {

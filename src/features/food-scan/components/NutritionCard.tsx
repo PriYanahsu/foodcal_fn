@@ -9,7 +9,22 @@ interface NutritionCardProps {
 
 export const NutritionCard: React.FC<NutritionCardProps> = ({ data }) => {
   return (
-    <Card title={data.name || 'Nutrition Information'} className="bg-[var(--card-bg)] border border-[var(--card-border)]">
+    <Card title={data.food_name || 'Nutrition Information'} titleClassName="text-white" className=" bg-[var(--card-bg)] border border-[var(--card-border)]">
+      {data.quantity && (
+        <div className="mb-4 inline-block px-3 py-1 bg-white/10 rounded-full text-xs font-medium text-white/90 border border-white/20">
+          ⚖️ {data.quantity}
+        </div>
+      )}
+      {data.health_info && (
+        <div className="mb-6 p-4 bg-primary/5 rounded-lg border border-primary/10">
+          <h3 className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
+            <span className="text-lg">🥗</span> Health Insights
+          </h3>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            {data.health_info}
+          </p>
+        </div>
+      )}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="text-center p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
           <div className="text-2xl font-bold text-blue-400">

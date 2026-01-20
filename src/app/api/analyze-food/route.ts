@@ -4,12 +4,12 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
-    // if (!process.env.GEMINI_API_KEY) {
-    //     return NextResponse.json(
-    //         { error: 'GEMINI_API_KEY is missing in environment variables' },
-    //         { status: 500 }
-    //     );
-    // }
+    if (!process.env.GEMINI_API_KEY) {
+        return NextResponse.json(
+            { error: 'GEMINI_API_KEY is missing in environment variables' },
+            { status: 500 }
+        );
+    }
 
     try {
         const { image, additional_prompt } = await req.json();
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
         }
 
         // Initialize Gemini
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
         // Use standard alias for best availability (avoids experimental quota limits)
         const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 
@@ -33,6 +33,8 @@ export async function POST(req: Request) {
         You are a professional nutritionist API. 
         Analyze the food in the image and return a JSON object with the following fields:
         - food_name: string (concise name of the dish)
+        - quantity: string (estimated serving size or weight, e.g. "1 bowl", "200g")
+        - health_info: string (20-30 words describing the health benefits of this food)
         - calories: number (estimated total calories)
         - protein: number (grams)
         - carbs: number (grams)
