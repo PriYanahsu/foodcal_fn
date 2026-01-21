@@ -62,7 +62,7 @@ export const StepTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
     // 2. Adaptive Thresholding (Statistical)
     const statsBufferRef = useRef<number[]>([]); // Rolling buffer for Mean/StdDev
-    const dynamicThresholdRef = useRef<number>(1.2);
+    const dynamicThresholdRef = useRef<number>(0.8);
     const accelerationBuffer = useRef<number[]>([]); // Tiny local buffer for peak logic
 
     // 3. Rhythm & Anti-Cheat
@@ -372,8 +372,11 @@ export const StepTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
                                 if (pendingStepsRef.current.steps >= 5) syncNow(); // Sync faster
                                 savePendingToLocal();
                             }
-                        } else if (timeSinceLast > 3500) {
-                            rhythmBufferRef.current = 0; // Rhythm broken
+                        } else if (timeSinceLast > 3000) {
+                            // Rhythm broken (too slow) - BUT this peak counts as the "first" of a new sequence
+                            // We must update the lastValidStepTimeRef so the *next* peak can be compared to this one.
+                            rhythmBufferRef.current = 1;
+                            lastValidStepTimeRef.current = now;
                         }
                     }
                 }
