@@ -8,7 +8,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 // We use custom SVGs defined below instead of external icon libraries
 
 export const StepTracker: React.FC = () => {
-    const { steps, isTracking, requestPermission, stopTracking } = useStepTrackerContext();
+    const { steps, distance, calories, isTracking, requestPermission, stopTracking } = useStepTrackerContext();
     const { user } = useAuth();
 
     // State for editable step goal
@@ -163,11 +163,11 @@ export const StepTracker: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                     <div className="bg-white/5 p-3 rounded-2xl border border-white/5">
                         <span className="block text-[var(--text-muted)] text-[10px] uppercase font-black mb-1">Distance</span>
-                        <span className="text-white font-bold">{(steps * 0.0007).toFixed(2)} <small className="text-gray-500 font-normal">km</small></span>
+                        <span className="text-white font-bold">{distance.toFixed(2)} <small className="text-gray-500 font-normal">km</small></span>
                     </div>
                     <div className="bg-white/5 p-3 rounded-2xl border border-white/5">
                         <span className="block text-[var(--text-muted)] text-[10px] uppercase font-black mb-1">Burned</span>
-                        <span className="text-white font-bold">{(steps * 0.04).toFixed(0)} <small className="text-gray-500 font-normal">kcal</small></span>
+                        <span className="text-white font-bold">{calories.toFixed(0)} <small className="text-gray-500 font-normal">kcal</small></span>
                     </div>
                 </div>
 
