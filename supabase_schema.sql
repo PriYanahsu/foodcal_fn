@@ -209,6 +209,10 @@ create policy "Users can update their own step logs"
   on public.step_logs for update
   using (auth.uid() = user_id);
 
+create policy "Users can delete their own step logs"
+  on public.step_logs for delete
+  using (auth.uid() = user_id);
+
 -- RPC Function for atomic step increments
 create or replace function public.increment_steps(user_id_input uuid, steps_count integer)
 returns void as $$
