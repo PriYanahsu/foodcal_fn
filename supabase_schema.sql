@@ -176,3 +176,4 @@ create policy "Users can delete their own weight logs"
   on public.weight_logs for delete
   using (auth.uid() = user_id);
 
+

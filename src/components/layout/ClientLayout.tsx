@@ -3,6 +3,8 @@
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import { Sidebar } from './Sidebar';
+import { NotificationProvider } from '@/features/notifications/context/NotificationContext';
+import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -11,21 +13,30 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     const isAuthPage = pathname === '/login' || pathname === '/signup';
 
     return (
-        <div className="flex min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-            {!isAuthPage && <Sidebar />}
+        <NotificationProvider>
+            <div className="flex min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+                {!isAuthPage && <Sidebar />}
 
-            <main
-                className={`flex-1 transition-all duration-300 w-full relative ${!isAuthPage ? "pt-14" : ""} md:pt-0 ${!isAuthPage ? 'md:ml-64' : ''}`}
-            >
-                {/* Mobile Brand Header (Global) */}
-                <div className="md:hidden absolute top-6 left-6 flex items-center gap-3 z-50">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)]"></div>
-                    <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
-                        FoodCal
-                    </h1>
-                </div>
-                {children}
-            </main>
-        </div>
+                <main
+                    className={`flex-1 transition-all duration-300 w-full relative ${!isAuthPage ? "pt-14" : ""} md:pt-0 ${!isAuthPage ? 'md:ml-64' : ''}`}
+                >
+                    {/* Header area for notifications */}
+                    {!isAuthPage && (
+                        <div className="absolute top-4 right-16 md:right-4 z-50 flex items-center gap-3">
+                            <NotificationBell />
+                        </div>
+                    )}
+
+                    {/* Mobile Brand Header (Global) */}
+                    <div className="md:hidden absolute top-6 left-6 flex items-center gap-3 z-50">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)]"></div>
+                        <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
+                            FoodCal
+                        </h1>
+                    </div>
+                    {children}
+                </main>
+            </div>
+        </NotificationProvider>
     );
 }
