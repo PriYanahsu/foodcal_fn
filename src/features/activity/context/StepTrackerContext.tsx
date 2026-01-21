@@ -56,11 +56,15 @@ export const StepTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const profileRef = useRef<{ height: number; weight: number }>({ height: 175, weight: 75 });
     const hasProfileLoaded = useRef(false);
 
-    // Algorithm Refs
-    const gravityRef = useRef<{ x: number; y: number; z: number }>({ x: 0, y: 0, z: 0 });
+    // -- Advanced Algorithm State --
+    // We use the "Scalar Magnitude" approach which is rotation-invariant.
+    // Instead of vector subtraction (which fails on rotation), we analyze the magnitude of the total force.
+    const averageMagnitudeRef = useRef<number>(9.8); // Tracks the baseline gravity (usually ~9.8)
     const accelerationBuffer = useRef<number[]>([]);
     const peakBuffer = useRef<{ value: number; time: number }[]>([]);
-    const dynamicThreshold = useRef<number>(1.2); // S slightly lower default for HPF signal
+    const dynamicThreshold = useRef<number>(1.2); // Default threshold
+    const rhythmBufferRef = useRef<number>(0); // Counts candidate steps to verify rhythm
+    const lastCandidateTimeRef = useRef<number>(0);
 
     // -- Initialization & Restoration --
 
@@ -129,7 +133,6 @@ export const StepTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
             }
 
             // RECOVERY: Check for unsynced steps in localStorage
-            // Format: "pending_steps_{userId}" -> JSON
             try {
                 const pendingKey = `pending_steps_${user.id}`;
                 const storedPending = localStorage.getItem(pendingKey);
@@ -148,7 +151,7 @@ export const StepTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
                 console.error('Error parsing pending steps', e);
             }
 
-            // Final Display State = DB + Pending (if any just added)
+            // Final Display State = DB + Pending
             const totalSteps = dbSteps + pendingStepsRef.current.steps;
             setSteps(totalSteps);
             setDistance(dbDist + pendingStepsRef.current.distance);
@@ -160,7 +163,6 @@ export const StepTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
         initSession();
     }, [user, supabase]);
-
 
     // -- Permission & Control --
 
@@ -201,23 +203,15 @@ export const StepTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
         }
     };
 
-
     // -- Algorithmic Logic --
 
-    // Calculates metrics for a single step
     const calculateStepMetrics = () => {
         // 1. Stride Length (km)
-        // Heuristic: Height * 0.415 for men, * 0.413 for women. We average/simplify to 0.415 or default.
-        // Height is in cm, converted to meters * constant
         const heightM = profileRef.current.height / 100;
         const strideM = heightM * 0.415;
         const strideKm = strideM / 1000;
 
         // 2. Calories (kcal)
-        // Formula: 0.5 * weight(kg) * distance(km) (rule of thumb for walking) 
-        // OR standard metabolic: ~0.75 cal / kg / km. 
-        // Let's use a standard factor: 0.0005 kcal per step per kg roughly?
-        // Better: Calories = Distance(km) * Weight(kg) * 1.036
         const weightKg = profileRef.current.weight;
         const kcal = strideKm * weightKg * 1.036;
 
@@ -227,88 +221,105 @@ export const StepTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const updateDynamicThreshold = (recentPeaks: number[]) => {
         if (recentPeaks.length < 5) return;
         const avg = recentPeaks.reduce((a, b) => a + b, 0) / recentPeaks.length;
-        // Keep threshold bounded
-        dynamicThreshold.current = Math.max(0.8, Math.min(avg * 0.8, 4.0));
+        dynamicThreshold.current = Math.max(1.2, Math.min(avg * 0.8, 5.0));
     };
 
     useEffect(() => {
         if (!isTracking) return;
 
         let lastReadingTime = 0;
-        const SAMPLE_INTERVAL = 20; // limit processing to ~50Hz
+        const SAMPLE_INTERVAL = 20; // 50 Hz
 
         const handleMotion = (event: DeviceMotionEvent) => {
             const now = Date.now();
             if (now - lastReadingTime < SAMPLE_INTERVAL) return;
             lastReadingTime = now;
 
-            // 1. Get Acceleration including gravity (most reliable sensor)
+            // 1. Get Acceleration including gravity (Universal support & most accurate total force)
             const acc = event.accelerationIncludingGravity;
             if (!acc || acc.x === null || acc.y === null || acc.z === null) return;
 
-            // 2. Gravity Isolation (Low-Pass Filter)
-            const alpha = 0.8; // Heavy filtering to isolate gravity component
-            gravityRef.current.x = alpha * gravityRef.current.x + (1 - alpha) * acc.x;
-            gravityRef.current.y = alpha * gravityRef.current.y + (1 - alpha) * acc.y;
-            gravityRef.current.z = alpha * gravityRef.current.z + (1 - alpha) * acc.z;
+            // 2. Calculate Scalar Magnitude (Total Absolute Force)
+            // This is immune to phone rotation. x/y/z doesn't matter, only total force.
+            const magnitude = Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
 
-            // 3. User Acceleration = Raw - Gravity (High-Pass Filter)
-            const userAccX = acc.x - gravityRef.current.x;
-            const userAccY = acc.y - gravityRef.current.y;
-            const userAccZ = acc.z - gravityRef.current.z;
+            // 3. Update Baseline Gravity (Low-pass filter on magnitude)
+            // This finds the "center" of the wave (usually 9.8, but varies with calibration)
+            const alpha = 0.95;
+            averageMagnitudeRef.current = alpha * averageMagnitudeRef.current + (1 - alpha) * magnitude;
 
-            // 4. Magnitude of user motion
-            const magnitude = Math.sqrt(userAccX * userAccX + userAccY * userAccY + userAccZ * userAccZ);
+            // 4. User Motion Signal (High-pass equivalent)
+            const userMotion = magnitude - averageMagnitudeRef.current;
 
             // 5. Buffer & Peak Detection
-            accelerationBuffer.current.push(magnitude);
+            accelerationBuffer.current.push(userMotion);
             if (accelerationBuffer.current.length > 30) accelerationBuffer.current.shift();
 
-            // Check for peak in middle of buffer (simple local maxima)
-            // Need enough context: Prev < Curr > Next
+            // Detect PEAK (Local Maxima)
             if (accelerationBuffer.current.length >= 3) {
                 const len = accelerationBuffer.current.length;
                 const prev = accelerationBuffer.current[len - 2];
-                const curr = accelerationBuffer.current[len - 1]; // Current is actually the latest, we detect "just passed" peaks
+                const curr = accelerationBuffer.current[len - 1]; // "curr" is actually end of buffer
                 const prevPrev = accelerationBuffer.current[len - 3];
 
-                // Detect peak at (len-2)
+                // Check for Peak at prev
                 if (prev > prevPrev && prev > curr) {
-                    // Potential peak found at 'prev'
 
-                    // -- Validation --
-                    // 1. Threshold check
+                    // -- Validation 1: Amplitude Threshold --
                     if (prev > dynamicThreshold.current) {
-                        // 2. Timing check (Step cadence)
-                        if (now - lastStepTime.current > 250) { // Min 250ms per step (max 240 steps/min)
 
-                            // CONFIRMED STEP
-                            const { dist, cal } = calculateStepMetrics();
+                        // -- Validation 2: Timing / Rhythm --
+                        const timeDelta = now - lastCandidateTimeRef.current;
 
-                            // Update Refs (Sources of Truth for Logic)
-                            stepCountRef.current += 1;
-                            pendingStepsRef.current.steps += 1;
-                            pendingStepsRef.current.distance += dist;
-                            pendingStepsRef.current.calories += cal;
-                            lastStepTime.current = now;
+                        // Valid Step Window: 250ms (Running) to 2000ms (Slow Walk)
+                        if (timeDelta > 250 && timeDelta < 2000) {
 
-                            // Update State (for UI)
-                            setSteps(s => s + 1);
-                            setDistance(d => d + dist);
-                            setCalories(c => c + cal);
+                            // 🌟 Rhythm Buffer Logic 🌟
+                            rhythmBufferRef.current += 1;
+                            lastCandidateTimeRef.current = now;
 
-                            // Optimize Threshold
-                            peakBuffer.current.push({ value: prev, time: now });
-                            if (peakBuffer.current.length > 20) peakBuffer.current.shift();
-                            updateDynamicThreshold(peakBuffer.current.map(p => p.value));
+                            // If we have 4+ consecutive rhythmic steps, we consider it valid walking.
+                            const MIN_CONSECUTIVE_STEPS = 4;
 
-                            // Sync Logic Check
-                            if (pendingStepsRef.current.steps >= 10) {
-                                syncNow();
+                            if (rhythmBufferRef.current >= MIN_CONSECUTIVE_STEPS) {
+                                // Steps are valid!
+
+                                // On the exact 4th step, we apply the previous 3 held-back steps too
+                                let increment = 1;
+                                if (rhythmBufferRef.current === MIN_CONSECUTIVE_STEPS) {
+                                    increment = MIN_CONSECUTIVE_STEPS;
+                                }
+
+                                // Apply Steps
+                                const { dist, cal } = calculateStepMetrics();
+                                const distInc = dist * increment;
+                                const calInc = cal * increment;
+
+                                stepCountRef.current += increment;
+                                pendingStepsRef.current.steps += increment;
+                                pendingStepsRef.current.distance += distInc;
+                                pendingStepsRef.current.calories += calInc;
+                                lastStepTime.current = now;
+
+                                setSteps(s => s + increment);
+                                setDistance(d => d + distInc);
+                                setCalories(c => c + calInc);
+
+                                // Update Adaptive Threshold
+                                peakBuffer.current.push({ value: prev, time: now });
+                                if (peakBuffer.current.length > 20) peakBuffer.current.shift();
+                                updateDynamicThreshold(peakBuffer.current.map(p => p.value));
+
+                                // Sync Check
+                                if (pendingStepsRef.current.steps >= 10) {
+                                    syncNow();
+                                }
+                                savePendingToLocal();
                             }
-
-                            // Local Backup
-                            savePendingToLocal();
+                        } else if (timeDelta > 2000) {
+                            // Too slow! Rhythm broken. Reset buffer.
+                            rhythmBufferRef.current = 1;
+                            lastCandidateTimeRef.current = now;
                         }
                     }
                 }
@@ -338,10 +349,9 @@ export const StepTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
         console.log('🔄 Syncing steps:', payload);
 
-        // Optimistic reset of pending (if it fails, we should technically revert, but for steps rare loss is preferred over double count)
-        // Resetting ref immediately prevents double-triggering
+        // Optimistic reset
         pendingStepsRef.current = { steps: 0, distance: 0, calories: 0 };
-        savePendingToLocal(); // Clear local backup
+        savePendingToLocal();
 
         const { error } = await supabase.rpc('increment_steps', {
             user_id_input: user.id,
@@ -352,7 +362,6 @@ export const StepTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
         if (error) {
             console.error('❌ Sync failed, putting back pending');
-            // Restore steps to pending if sync failed
             pendingStepsRef.current.steps += payload.steps;
             pendingStepsRef.current.distance += payload.distance;
             pendingStepsRef.current.calories += payload.calories;
@@ -363,7 +372,7 @@ export const StepTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
         }
     };
 
-    // Sync on visibility change (leaving app)
+    // Sync on visibility change
     useEffect(() => {
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'hidden') {
@@ -373,8 +382,6 @@ export const StepTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
         document.addEventListener('visibilitychange', handleVisibilityChange);
         return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
     }, [user]);
-
-    // Cleanup: Sync on unmount logic is hard to rely on, visibilitychange is better.
 
     return (
         <StepTrackerContext.Provider
