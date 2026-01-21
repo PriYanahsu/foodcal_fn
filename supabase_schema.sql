@@ -150,6 +150,7 @@ add column if not exists daily_calorie_target integer,
 add column if not exists daily_protein_target integer,
 add column if not exists daily_carbs_target integer,
 add column if not exists daily_fats_target integer,
+add column if not exists daily_step_goal integer default 10000,
 add column if not exists ai_coach_advice text;
 
 -- Create Weight Logs Table
@@ -207,6 +208,10 @@ create policy "Users can insert their own step logs"
 
 create policy "Users can update their own step logs"
   on public.step_logs for update
+  using (auth.uid() = user_id);
+
+create policy "Users can delete their own step logs"
+  on public.step_logs for delete
   using (auth.uid() = user_id);
 
 -- RPC Function for atomic step increments
