@@ -15,6 +15,7 @@ export const StepTracker: React.FC = () => {
     const [stepGoal, setStepGoal] = useState(10000);
     const [isEditingGoal, setIsEditingGoal] = useState(false);
     const [tempGoal, setTempGoal] = useState(10000);
+    const [isSaving, setIsSaving] = useState(false); // Valid Loading State
 
     // Load step goal from database on mount
     useEffect(() => {
@@ -41,20 +42,31 @@ export const StepTracker: React.FC = () => {
     const saveStepGoal = async () => {
         if (!user || tempGoal < 100) return;
 
+        setIsSaving(true);
         const supabase = createClient();
-        const { error } = await supabase
-            .from('user_preferences')
-            .upsert({
-                user_id: user.id,
-                step_goal: tempGoal,
-                updated_at: new Date().toISOString()
-            }, {
-                onConflict: 'user_id'
-            });
 
-        if (!error) {
-            setStepGoal(tempGoal);
-            setIsEditingGoal(false);
+        try {
+            const { error } = await supabase
+                .from('user_preferences')
+                .upsert({
+                    user_id: user.id,
+                    step_goal: tempGoal,
+                    updated_at: new Date().toISOString()
+                }, {
+                    onConflict: 'user_id'
+                });
+
+            if (!error) {
+                setStepGoal(tempGoal);
+                setIsEditingGoal(false);
+            } else {
+                console.error("Failed to save goal:", error);
+                alert("Failed to save goal. Please check your connection.");
+            }
+        } catch (e) {
+            console.error("Unexpected error saving goal", e);
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -109,42 +121,74 @@ export const StepTracker: React.FC = () => {
 
                 <div className="relative pt-4">
                     <div className="flex justify-between items-end mb-2">
-                        <span className="text-4xl font-black text-white tabular-nums">
+                        <span className="text-4xl font-black text-white tabular-nums tracking-tighter">
                             {steps.toLocaleString()}
                         </span>
                         {isEditingGoal ? (
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="number"
-                                    value={tempGoal}
-                                    onChange={(e) => setTempGoal(parseInt(e.target.value) || 0)}
-                                    className="w-20 px-2 py-1 text-xs bg-white/10 border border-white/20 rounded-lg text-white text-right"
-                                    min="100"
-                                    max="100000"
-                                />
+                            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-200">
+                                <div className="relative group">
+                                    <input
+                                        type="number"
+                                        autoFocus
+                                        disabled={isSaving}
+                                        value={tempGoal}
+                                        onChange={(e) => setTempGoal(parseInt(e.target.value) || 0)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') saveStepGoal();
+                                            if (e.key === 'Escape') {
+                                                setIsEditingGoal(false);
+                                                setTempGoal(stepGoal);
+                                            }
+                                        }}
+                                        className="w-28 px-3 py-2 text-base font-bold bg-white/10 border border-[var(--primary)]/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-inner disabled:opacity-50"
+                                    />
+                                    <span className="text-[10px] text-[var(--text-muted)] absolute -top-4 right-0 font-bold uppercase tracking-wider bg-black/40 px-1.5 py-0.5 rounded backdrop-blur-sm">Set Goal</span>
+                                </div>
+
                                 <button
                                     onClick={saveStepGoal}
-                                    className="text-[var(--primary)] text-xs font-bold hover:underline"
+                                    disabled={isSaving}
+                                    className="w-10 h-10 rounded-xl bg-[var(--primary)] text-black flex items-center justify-center active:scale-95 transition-all shadow-[0_0_15px_rgba(0,255,136,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
+                                    title="Save Goal"
                                 >
-                                    ✓
+                                    {isSaving ? (
+                                        <svg className="animate-spin h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                    ) : (
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    )}
                                 </button>
+
                                 <button
                                     onClick={() => {
                                         setIsEditingGoal(false);
                                         setTempGoal(stepGoal);
                                     }}
-                                    className="text-gray-400 text-xs hover:underline"
+                                    disabled={isSaving}
+                                    className="w-10 h-10 rounded-xl bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white flex items-center justify-center active:scale-95 transition-all disabled:opacity-50"
+                                    title="Cancel"
                                 >
-                                    ✕
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                                 </button>
                             </div>
                         ) : (
                             <button
                                 onClick={() => setIsEditingGoal(true)}
-                                className="text-[var(--text-muted)] text-xs font-bold mb-1 hover:text-[var(--primary)] transition-colors flex items-center gap-1"
+                                className="group flex flex-col items-end p-2 -mr-2 rounded-xl hover:bg-white/5 active:bg-white/10 transition-colors"
                             >
-                                Goal: {stepGoal.toLocaleString()}
-                                <span className="text-[10px]">✎</span>
+                                <span className="text-[var(--text-muted)] text-[10px] uppercase font-bold tracking-wider group-hover:text-[var(--primary)] transition-colors mb-0.5">
+                                    Goal Target
+                                </span>
+                                <div className="flex items-center gap-2 text-white/80 group-hover:text-white transition-colors">
+                                    <span className="text-xl font-bold tabular-nums">
+                                        {stepGoal.toLocaleString()}
+                                    </span>
+                                    <div className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-[var(--primary)] group-hover:text-black transition-all">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                    </div>
+                                </div>
                             </button>
                         )}
                     </div>
