@@ -187,7 +187,10 @@ create table if not exists public.step_logs (
   steps integer default 0,
   distance_km float default 0,
   calories_burned float default 0,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+  log_date date default current_date not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  UNIQUE(user_id, log_date)
 );
 
 -- Enable RLS for Step Logs
@@ -210,15 +213,21 @@ create policy "Users can update their own step logs"
 create or replace function public.increment_steps(user_id_input uuid, steps_count integer)
 returns void as $$
 begin
-  insert into public.step_logs (user_id, steps, created_at)
-  values (user_id_input, steps_count, timezone('utc'::text, now()))
-  on conflict (id) do nothing; -- Note: This is a simple version, in reality we'd group by day.
-  
-  -- Better version for daily tracking:
-  insert into public.step_logs (user_id, steps, created_at)
-  values (user_id_input, steps_count, current_date)
-  on conflict (user_id, created_at) -- Requires a unique constraint
-  do update set steps = public.step_logs.steps + steps_count;
+  insert into public.step_logs (user_id, steps, log_date, distance_km, calories_burned, updated_at)
+  values (
+    user_id_input, 
+    steps_count, 
+    current_date,
+    steps_count * 0.0007,
+    steps_count * 0.04,
+    timezone('utc'::text, now())
+  )
+  on conflict (user_id, log_date)
+  do update set 
+    steps = public.step_logs.steps + steps_count,
+    distance_km = (public.step_logs.steps + steps_count) * 0.0007,
+    calories_burned = (public.step_logs.steps + steps_count) * 0.04,
+    updated_at = timezone('utc'::text, now());
 end;
 $$ language plpgsql security definer;
 

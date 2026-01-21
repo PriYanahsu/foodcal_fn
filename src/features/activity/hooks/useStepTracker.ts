@@ -19,29 +19,43 @@ export const useStepTracker = () => {
     const lastStepTime = useRef<number>(0);
     const stepCountRef = useRef<number>(0);
 
-    // Load initial steps from Supabase/LocalStorage
+    // Load initial steps from Supabase for today
     useEffect(() => {
         if (!user) return;
 
         const fetchInitialSteps = async () => {
             const today = new Date().toISOString().split('T')[0];
-            const { data } = await supabase
+
+            const { data, error } = await supabase
                 .from('step_logs')
                 .select('steps')
                 .eq('user_id', user.id)
-                .gte('created_at', `${today}T00:00:00Z`)
-                .order('created_at', { ascending: false })
-                .limit(1)
+                .eq('log_date', today)
                 .single();
 
-            if (data) {
+            if (data && !error) {
+                console.log('Step Tracker: Loaded steps from DB:', data.steps);
                 setSteps(data.steps);
                 stepCountRef.current = data.steps;
+            } else {
+                console.log('Step Tracker: No existing steps for today, starting from 0');
+                // Initialize today's log with 0 steps
+                await supabase
+                    .from('step_logs')
+                    .insert({
+                        user_id: user.id,
+                        steps: 0,
+                        log_date: today,
+                        distance_km: 0,
+                        calories_burned: 0
+                    })
+                    .select()
+                    .single();
             }
         };
 
         fetchInitialSteps();
-    }, [user]);
+    }, [user, supabase]);
 
     const requestPermission = async () => {
         if (typeof window === 'undefined') return;
@@ -111,21 +125,26 @@ export const useStepTracker = () => {
         return () => window.removeEventListener('devicemotion', handleMotion);
     }, [isTracking, user]);
 
-    // Background Sync to Supabase every 50 steps
+    // Sync to Supabase every 10 steps for better persistence
     useEffect(() => {
-        if (!user || steps === 0 || steps % 50 !== 0) return;
+        if (!user || steps === 0 || steps % 10 !== 0) return;
 
         const syncSteps = async () => {
-            const today = new Date().toISOString().split('T')[0];
-            // Update or Insert logic for today's logs
-            await supabase.rpc('increment_steps', {
+            console.log('Step Tracker: Syncing', steps, 'steps to database');
+            const { error } = await supabase.rpc('increment_steps', {
                 user_id_input: user.id,
-                steps_count: 50
+                steps_count: 10
             });
+
+            if (error) {
+                console.error('Step Tracker: Sync failed', error);
+            } else {
+                console.log('Step Tracker: Sync successful');
+            }
         };
 
         syncSteps();
-    }, [steps, user]);
+    }, [steps, user, supabase]);
 
     return {
         steps,
