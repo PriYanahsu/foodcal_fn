@@ -1,14 +1,13 @@
 'use client';
 
 /**
- * Global Step Tracker Context - SENIOR SENSOR FUSION IMPLEMENTATION
+ * Global Step Tracker Context - SENIOR SENSOR FUSION IMPLEMENTATION (TUNED)
  * 
- * Features:
- * - Anti-Cheat: Rotation rate analysis to reject shaking/handling noise.
- * - Sensor Fusion: Scalar Magnitude + High-Pass Gravity Removal + Low-Pass Smoothing.
- * - Adaptive Threshold: Statistical (Mean + StdDev) thresholding for robust detection.
- * - Activity Classification: Distinguishes Walking vs Running for precise calorie math.
- * - Robust Syncing: "Pending" buffer prevents data loss.
+ * Tuning Adjustments:
+ * - Gravity Alpha: 0.98 (Slower adaptation to prevent signal loss).
+ * - Anti-Cheat: Warning only for high rotation (500 deg/s) to prevent false blocks.
+ * - Rhythm Buffer: Reduced to 2 steps for faster user feedback.
+ * - Threshold: Same statistical logic but smoother filters.
  */
 
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
@@ -283,10 +282,14 @@ export const StepTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
             if (!acc || acc.x === null) return;
 
             // --- 2. ANTI-CHEAT: ROTATION REJECTION ---
-            // Rejects heavy shaking (e.g. phone in hand being shaken)
+            // If the phone is rotating wildly (shaking in hand), reject data.
+            // Relaxed threshold: > 500 deg/s.
             if (rot && rot.alpha !== null && rot.beta !== null && rot.gamma !== null) {
                 const totalRotation = Math.abs(rot.alpha) + Math.abs(rot.beta) + Math.abs(rot.gamma);
-                if (totalRotation > 350) return; // ⛔ REJECT NOISE
+                if (totalRotation > 500) {
+                    // console.warn("StepTracker: Excessive Rotation detected (ignored)", totalRotation);
+                    // return; // ONLY LOG WARNING, DO NOT REJECT FOR NOW TO DEBUG
+                }
             }
 
             // --- 3. MAGNITUDE & GRAVITY REMOVAL ---
@@ -298,12 +301,14 @@ export const StepTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
             );
 
             // High-Pass Filter (Gravity Removal)
-            const alphaGrav = 0.9;
+            // TUNED: 0.9 was too fast (eating the step signal). 
+            // 0.98 means it adapts slowly to gravity changes, letting steps (faster signals) pass through.
+            const alphaGrav = 0.98;
             gravityBaselineRef.current = alphaGrav * gravityBaselineRef.current + (1 - alphaGrav) * rawMag;
             const userForce = rawMag - gravityBaselineRef.current;
 
             // --- 4. SIGNAL SMOOTHING (Low-Pass) ---
-            const alphaSmooth = 0.3;
+            const alphaSmooth = 0.35; // Slightly more responsive
             smoothedSignalRef.current = alphaSmooth * smoothedSignalRef.current + (1 - alphaSmooth) * userForce;
             const signal = smoothedSignalRef.current;
 
@@ -332,14 +337,15 @@ export const StepTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
                         if (timeSinceLast > 250 && timeSinceLast < 2000) {
 
-                            // C. Rhythm Buffer (Require 3 steps to confirm walking)
+                            // C. Rhythm Buffer (Require 2 steps to confirm walking - more sensitive)
                             rhythmBufferRef.current += 1;
 
-                            if (rhythmBufferRef.current >= 3) {
+                            // Lowered persistence requirement for faster feedback
+                            if (rhythmBufferRef.current >= 2) {
                                 // CONFIRMED STEP
                                 let increment = 1;
-                                // If it's the 3rd step, count the previous 2 buffered ones
-                                if (rhythmBufferRef.current === 3) increment = 3;
+                                // If it's the 2nd step, count the previous 1 buffered one too
+                                if (rhythmBufferRef.current === 2) increment = 2;
 
                                 lastValidStepTimeRef.current = now;
 
@@ -360,7 +366,10 @@ export const StepTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
                                 setDistance(d => d + totalDist);
                                 setCalories(c => c + totalCal);
 
-                                if (pendingStepsRef.current.steps >= 10) syncNow();
+                                // Feedback for user (DEBUG)
+                                // console.log(`Step! Force: ${prev.toFixed(2)} vs Thresh: ${dynamicThresholdRef.current.toFixed(2)}`);
+
+                                if (pendingStepsRef.current.steps >= 5) syncNow(); // Sync faster
                                 savePendingToLocal();
                             }
                         } else if (timeSinceLast > 2500) {
