@@ -1,7 +1,7 @@
 # 🔔 FoodCal Notification System Documentation
 
 ## Overview
-The FoodCal Notification System is a lightweight, AI-driven engine designed to keep users on track with their nutritional goals. It proactively monitors daily intake and provides personalized coaching advice via system-level and in-app alerts.
+The FoodCal Notification System is a lightweight, AI-driven engine designed to keep users on track with their nutritional goals using **Positive Psychology**. Instead of robotic status updates, it provides personalized coaching advice via empathetic, human-like alerts that celebrate progress.
 
 ---
 
