@@ -40,6 +40,98 @@ body {
   }
 
   .btn-secondary {
-    @apply bg-[var(--card-bg)] text-[var(--foreground)] border border-[var(--card-border)] py-3 px-6 rounded-xl hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all duration-300;
+    @apply bg-[var(--card-bg)] text-[var(--foreground)] border border-[var(--card-border)] py-2.5 px-5 rounded-xl hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all duration-200 text-sm font-semibold;
+  }
+
+  /* Premium Minimalism */
+  .glass-card {
+    @apply bg-[var(--card-bg)]/80 backdrop-blur-md border border-[var(--card-border)] rounded-2xl shadow-sm;
+  }
+
+  .premium-ring {
+    @apply relative p-0.5 rounded-full bg-gradient-to-tr from-[var(--primary)]/40 to-transparent;
+  }
+
+  .glass-panel {
+    @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl;
+  }
+
+  /* Scanner Animations */
+  @keyframes scan-line {
+    0% {
+      top: 0%;
+      opacity: 0;
+    }
+
+    10% {
+      opacity: 1;
+    }
+
+    90% {
+      opacity: 1;
+    }
+
+    100% {
+      top: 100%;
+      opacity: 0;
+    }
+  }
+
+  .scan-beam {
+    @apply absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[var(--primary)] to-transparent opacity-50 shadow-[0_0_15px_var(--primary)];
+    animation: scan-line 2.5s ease-in-out infinite;
+  }
+
+  .glass-container {
+    @apply bg-[var(--card-bg)]/60 backdrop-blur-xl border border-white/5 rounded-3xl overflow-hidden;
+  }
+
+  .camera-shutter {
+    @apply w-16 h-16 rounded-full border-4 border-white flex items-center justify-center p-1 transition-all active:scale-95;
+  }
+
+  .camera-shutter div {
+    @apply w-full h-full rounded-full bg-white transition-colors;
+  }
+
+  .camera-shutter:hover div {
+    @apply bg-[var(--primary)];
+  }
+
+  /* Custom Scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--card-border);
+    border-radius: 10px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+  }
+
+  /* Custom Animations */
+  @keyframes slide-up {
+    0% { transform: translateY(20px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+
+  @keyframes fade-in {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.6s ease-out forwards;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.8s ease-out forwards;
   }
 }

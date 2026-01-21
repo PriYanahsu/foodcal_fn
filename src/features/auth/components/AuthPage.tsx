@@ -43,9 +43,9 @@ export const AuthPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[var(--background)] py-6 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen w-full flex flex-col items-center justify-start sm:justify-center bg-[var(--background)] py-8 sm:py-12 px-4 sm:px-6 lg:px-8 relative overflow-x-hidden overflow-y-auto custom-scrollbar">
       {/* Dynamic Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/4 w-72 sm:w-96 h-72 sm:h-96 bg-[var(--primary)]/15 rounded-full blur-[80px] sm:blur-[100px] animate-pulse" />
         <div className="absolute bottom-0 right-1/4 w-72 sm:w-96 h-72 sm:h-96 bg-[var(--secondary)]/15 rounded-full blur-[80px] sm:blur-[100px] animate-pulse delay-1000" />
 
@@ -62,8 +62,8 @@ export const AuthPage: React.FC = () => {
         />
       </div>
 
-      <div className="w-full max-w-[420px] relative z-10 perspective-1000">
-        <Card className="min-h-[480px] sm:min-h-[550px] flex flex-col justify-center p-6 sm:p-8 bg-[var(--card-bg)]/85 backdrop-blur-xl border border-[var(--card-border)] shadow-2xl rounded-2xl sm:rounded-3xl relative overflow-hidden transition-all duration-300">
+      <div className="w-full max-w-[440px] relative z-10 perspective-1000 my-auto">
+        <Card className="h-fit flex flex-col justify-center p-4 sm:p-10 bg-[var(--card-bg)]/85 backdrop-blur-xl border border-[var(--card-border)] shadow-2xl rounded-2xl sm:rounded-3xl relative overflow-hidden transition-all duration-300">
 
           <AnimatePresence mode="wait" initial={false}>
             {/* Landing View */}

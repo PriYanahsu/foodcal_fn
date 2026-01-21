@@ -23,11 +23,10 @@ export const LoginForm: React.FC = () => {
       return;
     }
 
-    // Allow login with Username (no @ required)
-    // if (!email.includes('@')) {
-    //   setValidationError('Please enter a valid email address');
-    //   return;
-    // }
+    if (!email.includes('@')) {
+      setValidationError('Please enter a valid email address');
+      return;
+    }
 
     const result = await login({ email, password });
     if (result.success) {
@@ -49,11 +48,11 @@ export const LoginForm: React.FC = () => {
       )}
 
       <Input
-        type="text"
-        label="Username or Email"
+        type="email"
+        label="Email Address"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        placeholder="Enter your username or email"
+        placeholder="Enter your email"
         required
       />
 
@@ -71,7 +70,7 @@ export const LoginForm: React.FC = () => {
         variant="primary"
         size="lg"
         isLoading={isLoading}
-        className="w-full"
+        className="w-full h-14"
       >
         Sign In
       </Button>

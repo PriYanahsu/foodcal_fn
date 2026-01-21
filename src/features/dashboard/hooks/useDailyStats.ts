@@ -18,7 +18,7 @@ export interface FoodLog {
     image_path: string | null;
 }
 
-export const useDailyStats = () => {
+export const useDailyStats = (dateInput: string | Date = new Date()) => { // Accept string or Date
     const supabase = createClient();
     const [stats, setStats] = useState<DailyStats>({
         calories: 0,
@@ -30,18 +30,31 @@ export const useDailyStats = () => {
     const [loading, setLoading] = useState(true);
     const { user } = useAuth();
 
+    // Create a stable key for dependency array to prevent infinite loops
+    // We normalize to the start of the day in local time (or consistent interpretation)
+    const dateObj = new Date(dateInput);
+
+    const startOfDay = new Date(dateObj);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(dateObj);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    // This key will only change if the day changes, preventing object-ref-based re-renders
+    const dateKey = startOfDay.toISOString();
+
     useEffect(() => {
         if (!user) return;
 
         const fetchDailyStats = async () => {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            setLoading(true);
 
             const { data, error } = await supabase
                 .from('food_logs')
                 .select('*')
                 .eq('user_id', user.id)
-                .gte('created_at', today.toISOString())
+                .gte('created_at', startOfDay.toISOString())
+                .lte('created_at', endOfDay.toISOString())
                 .order('created_at', { ascending: false });
 
             if (error) {
@@ -50,7 +63,7 @@ export const useDailyStats = () => {
                 return;
             }
 
-            // Aggregate totals
+            // 3. Aggregate totals from the fetched logs
             const totals = data.reduce(
                 (acc, log) => ({
                     calories: acc.calories + (log.calories || 0),
@@ -62,13 +75,12 @@ export const useDailyStats = () => {
             );
 
             setStats(totals);
-            setRecentLogs(data.slice(0, 5)); // Get top 5 recent logs
+            setRecentLogs(data);
             setLoading(false);
         };
 
         fetchDailyStats();
 
-        // Subscribe to realtime changes
         const channel = supabase
             .channel('daily_stats_changes')
             .on(
@@ -83,7 +95,8 @@ export const useDailyStats = () => {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [user]);
+        // Use dateKey instead of date/dateInput to avoid infinite loops from unstable object references
+    }, [user, dateKey]);
 
     return { stats, recentLogs, loading };
 };
