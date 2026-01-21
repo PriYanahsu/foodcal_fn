@@ -215,7 +215,12 @@ create policy "Users can delete their own step logs"
   using (auth.uid() = user_id);
 
 -- RPC Function for atomic step increments
-create or replace function public.increment_steps(user_id_input uuid, steps_count integer)
+create or replace function public.increment_steps(
+    user_id_input uuid, 
+    steps_count integer,
+    distance_inc float default 0,
+    calories_inc float default 0
+)
 returns void as $$
 begin
   insert into public.step_logs (user_id, steps, log_date, distance_km, calories_burned, updated_at)
@@ -223,15 +228,15 @@ begin
     user_id_input, 
     steps_count, 
     current_date,
-    steps_count * 0.0007,
-    steps_count * 0.04,
+    distance_inc,
+    calories_inc,
     timezone('utc'::text, now())
   )
   on conflict (user_id, log_date)
   do update set 
     steps = public.step_logs.steps + steps_count,
-    distance_km = (public.step_logs.steps + steps_count) * 0.0007,
-    calories_burned = (public.step_logs.steps + steps_count) * 0.04,
+    distance_km = public.step_logs.distance_km + distance_inc,
+    calories_burned = public.step_logs.calories_burned + calories_inc,
     updated_at = timezone('utc'::text, now());
 end;
 $$ language plpgsql security definer;
