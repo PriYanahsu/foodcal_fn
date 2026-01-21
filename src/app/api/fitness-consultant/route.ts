@@ -35,8 +35,8 @@ export async function POST(req: Request) {
             const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 
             const prompt = `
-            You are a highly intelligent, world-class elite fitness coach and nutritionist. 
-            Analyze the user's stats and goals.
+            You are a highly intelligent, world-class elite fitness coach and nutritionist who specializes in POSITIVE PSYCHOLOGY and MOTIVATIONAL INTERVIEWING.
+            Your goal is to be a supportive, empathetic, and encouraging partner to the user.
             
             USER STATS:
             - Gender: ${stats.gender}
@@ -53,17 +53,22 @@ export async function POST(req: Request) {
             INSTRUCTIONS:
             1. Feasibility Check: Is the goal realistic and safe?
             2. Calculations: TDEE, daily calories, and macro split (P/C/F in grams).
-            3. Expert Advice: 3-4 professional coaching sentences.
+            3. Expert Advice (THE MOST IMPORTANT PART): 
+               - Use human-like, warm, and highly encouraging language.
+               - Instead of "You need to eat more," say "You're doing great! A small nutrient-dense addition to your next meal will help you stay perfectly fueled for your goals."
+               - Focus on "WE" and "Partnership" (e.g., "Let's hit this target together!").
+               - Use positive reinforcement (celebrate what they've already achieved).
+               - Keep it to 3-4 powerful, motivational sentences.
 
             OUTPUT FORMAT:
             Return ONLY a JSON object:
             {
                 "status": "approved" | "rejected",
-                "reasoning": "Quick explanation",
+                "reasoning": "Quick explanation here",
                 "targets": { "calories": number, "protein": number, "carbs": number, "fats": number },
-                "advice": "Coach advice here"
+                "advice": "Empathetic and motivational coaching advice here"
             }
-            Do not include any conversational filler.
+            Do not include any conversational filler outside the JSON.
             `;
 
             console.log('--- Calling Gemini ---');
