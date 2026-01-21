@@ -11,6 +11,7 @@ import { useDailyStats } from '@/features/dashboard/hooks/useDailyStats';
 import { createClient } from '@/lib/supabase/client';
 import FitnessSetupWizard from '@/features/fitnessProfile/components/setup/FitnessSetupWizard';
 import WeightProgressWidget from '@/features/fitnessProfile/components/WeightProgressWidget';
+import { StepTracker } from '@/features/activity/components/StepTracker';
 import { SparklesIcon, TrophyIcon, ChevronRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 
@@ -309,6 +310,8 @@ export default function Dashboard() {
               </div>
             </div>
           </Link>
+
+          <StepTracker />
 
           <h2 className="text-xl md:text-2xl font-bold">Daily Goals</h2>
           <div className="bg-[var(--card-bg)]/80 backdrop-blur-md border border-[var(--card-border)] rounded-2xl shadow-xl p-6 space-y-6">
