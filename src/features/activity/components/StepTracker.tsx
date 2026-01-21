@@ -2,13 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { useStepTracker } from '../hooks/useStepTracker';
+import { useStepTrackerContext } from '../context/StepTrackerContext';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 // We use custom SVGs defined below instead of external icon libraries
 
 export const StepTracker: React.FC = () => {
-    const { steps, isTracking, requestPermission } = useStepTracker();
+    const { steps, isTracking, requestPermission, stopTracking } = useStepTrackerContext();
     const { user } = useAuth();
 
     // State for editable step goal
@@ -79,13 +79,22 @@ export const StepTracker: React.FC = () => {
                         </div>
                     </div>
 
-                    {!isTracking && (
+
+                    {!isTracking ? (
                         <button
                             onClick={requestPermission}
                             className="btn-primary py-2 px-4 rounded-xl text-xs flex items-center gap-2 shadow-[0_0_15px_rgba(0,255,136,0.3)]"
                         >
                             <PlayIcon className="w-3 h-3 fill-current" />
                             Start Tracking
+                        </button>
+                    ) : (
+                        <button
+                            onClick={stopTracking}
+                            className="bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 py-2 px-4 rounded-xl text-xs flex items-center gap-2 shadow-[0_0_15px_rgba(255,0,0,0.2)] transition-all"
+                        >
+                            <StopIcon className="w-3 h-3 fill-current" />
+                            Stop Tracking
                         </button>
                     )}
                 </div>
@@ -212,5 +221,18 @@ const PlayIcon = ({ className }: { className?: string }) => (
         className={className}
     >
         <polygon points="5 3 19 12 5 21 5 3" />
+    </svg>
+);
+
+const StopIcon = ({ className }: { className?: string }) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        className={className}
+    >
+        <rect x="6" y="6" width="12" height="12" rx="2" />
     </svg>
 );

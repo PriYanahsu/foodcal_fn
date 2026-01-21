@@ -1,10 +1,34 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+/**
+ * Global Step Tracker Context
+ * 
+ * This context runs at the app level (wrapped in ClientLayout) and provides
+ * step tracking functionality that persists across ALL pages and navigation.
+ * 
+ * Once tracking is started, it continues running in the background until:
+ * - User explicitly stops tracking
+ * - User logs out
+ * 
+ * The motion listener is attached globally and will track steps regardless
+ * of which page the user is currently viewing.
+ */
+
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
-export const useStepTracker = () => {
+interface StepTrackerContextType {
+    steps: number;
+    isTracking: boolean;
+    requestPermission: () => Promise<void>;
+    stopTracking: () => void;
+    permissionStatus: PermissionState | 'not-supported';
+}
+
+const StepTrackerContext = createContext<StepTrackerContextType | undefined>(undefined);
+
+export const StepTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { user } = useAuth();
     const supabase = createClient();
 
@@ -13,8 +37,8 @@ export const useStepTracker = () => {
     const [permissionStatus, setPermissionStatus] = useState<PermissionState | 'not-supported'>('prompt');
 
     // Algorithm constants
-    const THRESHOLD = 12.0; // Acceleration magnitude threshold
-    const STEP_DELAY = 300; // Min ms between steps to avoid double counting
+    const THRESHOLD = 12.0;
+    const STEP_DELAY = 300;
 
     const lastStepTime = useRef<number>(0);
     const stepCountRef = useRef<number>(0);
@@ -52,7 +76,6 @@ export const useStepTracker = () => {
                 stepCountRef.current = data.steps;
             } else {
                 console.log('Step Tracker: No existing steps for today, starting from 0');
-                // Initialize today's log with 0 steps
                 await supabase
                     .from('step_logs')
                     .insert({
@@ -74,9 +97,8 @@ export const useStepTracker = () => {
         if (typeof window === 'undefined') return;
 
         console.log('Step Tracker: Permission requested');
-        console.log('DeviceMotionEvent available:', 'DeviceMotionEvent' in window);
 
-        // iOS 13+ requires explicit permission for DeviceMotionEvent
+        // iOS 13+ requires explicit permission
         if (typeof (DeviceMotionEvent as any).requestPermission === 'function') {
             console.log('Step Tracker: iOS permission flow detected');
             try {
@@ -93,7 +115,6 @@ export const useStepTracker = () => {
                 alert('Failed to request motion permission: ' + e);
             }
         } else {
-            // Android and older iOS just work
             console.log('Step Tracker: Direct tracking (Android/Desktop)');
             startTracking();
         }
@@ -102,14 +123,13 @@ export const useStepTracker = () => {
     const startTracking = () => {
         if (typeof window === 'undefined' || !('DeviceMotionEvent' in window)) {
             console.error('Step Tracker: DeviceMotionEvent not supported');
-            alert('Step tracking requires a mobile device with motion sensors. This feature is not available on desktop browsers.');
+            alert('Step tracking requires a mobile device with motion sensors.');
             setPermissionStatus('not-supported');
             return;
         }
         console.log('Step Tracker: Starting motion listener');
         setIsTracking(true);
 
-        // Persist tracking state so it survives page navigation
         if (user) {
             localStorage.setItem(`step_tracking_active_${user.id}`, 'true');
         }
@@ -119,12 +139,12 @@ export const useStepTracker = () => {
         console.log('Step Tracker: Stopping motion listener');
         setIsTracking(false);
 
-        // Clear persistent tracking state
         if (user) {
             localStorage.removeItem(`step_tracking_active_${user.id}`);
         }
     };
 
+    // Motion event listener - THIS RUNS GLOBALLY
     useEffect(() => {
         if (!isTracking) return;
 
@@ -132,28 +152,30 @@ export const useStepTracker = () => {
             const acc = event.accelerationIncludingGravity;
             if (!acc || acc.x === null || acc.y === null || acc.z === null) return;
 
-            // Calculate vector magnitude: sqrt(x^2 + y^2 + z^2)
             const magnitude = Math.sqrt(acc.x ** 2 + acc.y ** 2 + acc.z ** 2);
             const now = Date.now();
 
-            // Smart Peak Detection Logic
             if (magnitude > THRESHOLD && (now - lastStepTime.current) > STEP_DELAY) {
                 stepCountRef.current += 1;
                 lastStepTime.current = now;
                 setSteps(stepCountRef.current);
 
-                // Sync to local storage for persistence within the session
                 if (user) {
                     localStorage.setItem(`steps_${user.id}_${new Date().toDateString()}`, stepCountRef.current.toString());
                 }
             }
         };
 
+        console.log('Step Tracker: Adding global motion listener');
         window.addEventListener('devicemotion', handleMotion);
-        return () => window.removeEventListener('devicemotion', handleMotion);
+
+        return () => {
+            console.log('Step Tracker: Removing global motion listener');
+            window.removeEventListener('devicemotion', handleMotion);
+        };
     }, [isTracking, user]);
 
-    // Sync to Supabase every 10 steps for better persistence
+    // Sync to Supabase every 10 steps
     useEffect(() => {
         if (!user || steps === 0 || steps % 10 !== 0) return;
 
@@ -182,11 +204,25 @@ export const useStepTracker = () => {
         }
     }, [user, isTracking]);
 
-    return {
-        steps,
-        isTracking,
-        requestPermission,
-        stopTracking,
-        permissionStatus
-    };
+    return (
+        <StepTrackerContext.Provider
+            value={{
+                steps,
+                isTracking,
+                requestPermission,
+                stopTracking,
+                permissionStatus
+            }}
+        >
+            {children}
+        </StepTrackerContext.Provider>
+    );
+};
+
+export const useStepTrackerContext = () => {
+    const context = useContext(StepTrackerContext);
+    if (context === undefined) {
+        throw new Error('useStepTrackerContext must be used within a StepTrackerProvider');
+    }
+    return context;
 };
