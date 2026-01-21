@@ -89,6 +89,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             const current = stats.calories;
             const now = new Date();
             const hour = now.getHours();
+            const remaining = Math.max(0, target - current);
 
             // Check if this notification was already sent today
             const todayStr = now.toLocaleDateString('en-CA');
@@ -100,43 +101,43 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
             let conditionMet = false;
             let message = '';
-            let title = 'Nutrition Alert 🎯';
+            let title = 'Wellness Update ✨';
             const objective = profile.goal?.toLowerCase() || 'maintain';
 
-            // WEIGHT GAIN LOGIC (Behind Schedule)
+            // WEIGHT GAIN LOGIC (Behind Schedule) - Focus on momentum and fueling
             if (objective.includes('gain')) {
                 if (hour >= 15 && hour < 18 && current < target * 0.4) {
                     conditionMet = true;
-                    title = 'Energy Boost Needed ⚡';
-                    message = "It's already afternoon and you've only hit 40% of your daily goal. Time for a high-calorie snack!";
+                    title = 'Fueling Your Progress 🚀';
+                    message = `You're doing great! You've reached 40% of your goal—just ${remaining} calories away from your afternoon target!`;
                 } else if (hour >= 18 && hour < 21 && current < target * 0.6) {
                     conditionMet = true;
-                    title = 'Evening Fuel 🌙';
-                    message = "Evening is here! You're currently at 60% of your goal. A substantial dinner will help you catch up.";
+                    title = 'Powering Through ✨';
+                    message = `Almost there! You've nailed 60% of your goal. A hearty dinner will get you even closer to your peak performance!`;
                 } else if (hour >= 21 && current < target * 0.9) {
                     conditionMet = true;
-                    title = 'Finish Strong 💪';
-                    message = "Almost end of the day! You still need some calories to meet your target. Don't skip your late-night fuel.";
+                    title = 'Finishing Strong 💪';
+                    message = `Incredible effort today! You’re just ${remaining} calories away from your target. One last nutrient-rich snack will help you cross the finish line!`;
                 }
             }
-            // WEIGHT LOSS LOGIC (Limit Alert)
+            // WEIGHT LOSS LOGIC (Limit Alert) - Focus on discipline and mindfulness
             else if (objective.includes('loss') || objective.includes('lose')) {
                 if (current > target * 0.9 && current < target) {
                     conditionMet = true;
-                    title = 'Goal Limit Approaching ⚠️';
-                    message = "You're at 90% of your daily calorie limit. Be mindful of your next choices to stay on track!";
+                    title = 'Mindful Choices 🌿';
+                    message = `You're 90% of the way to your limit! You've stayed so disciplined today—choose your next bite mindfully to finish strong.`;
                 } else if (current >= target) {
                     conditionMet = true;
-                    title = 'Goal Reached 🏆';
-                    message = "You've reached your calorie limit for today. Great job staying disciplined!";
+                    title = 'Limit Mastered! 🏆';
+                    message = `Perfect execution! You've hit your target exactly. Celebrate your discipline today—you’re crushing it!`;
                 }
             }
-            // GENERIC MAINTAIN/DEFAULT
+            // GENERIC MAINTAIN/DEFAULT - Focus on balance
             else {
                 if (hour >= 20 && current < target * 0.5) {
                     conditionMet = true;
-                    title = 'Consistency Check 📊';
-                    message = "You've only consumed 50% of your target today. Make sure you're getting enough nutrients!";
+                    title = 'Stay Nourished 🥗';
+                    message = `You've reached your half-way mark! Keep that momentum going so your body has all the nutrients it needs to shine tomorrow.`;
                 }
             }
 
@@ -147,7 +148,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 );
                 if (hasSentRecently) return;
 
-                let dynamicAdvice = "Try our AI coach for a quick meal suggestion!";
+                let dynamicAdvice = "Our AI coach has a supportive suggestion for your next meal!";
 
                 try {
                     const statsForAi = {
@@ -166,7 +167,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                     const aiRes = await fetch('/api/fitness-consultant', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ stats: statsForAi, goals: goalsForAi })
+                        body: JSON.stringify({ stats: statsForAi, goals: goalsForAi, mode: 'supportive' })
                     });
                     const aiData = await aiRes.json();
                     if (aiData.data && aiData.data.advice) {

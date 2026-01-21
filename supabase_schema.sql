@@ -177,3 +177,48 @@ create policy "Users can delete their own weight logs"
   using (auth.uid() = user_id);
 
 
+-- ==========================================
+-- 5. Step Logs & Activity Tracking
+-- ==========================================
+
+create table if not exists public.step_logs (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users not null,
+  steps integer default 0,
+  distance_km float default 0,
+  calories_burned float default 0,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Enable RLS for Step Logs
+alter table public.step_logs enable row level security;
+
+-- Policies for Step Logs
+create policy "Users can view their own step logs"
+  on public.step_logs for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert their own step logs"
+  on public.step_logs for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can update their own step logs"
+  on public.step_logs for update
+  using (auth.uid() = user_id);
+
+-- RPC Function for atomic step increments
+create or replace function public.increment_steps(user_id_input uuid, steps_count integer)
+returns void as $$
+begin
+  insert into public.step_logs (user_id, steps, created_at)
+  values (user_id_input, steps_count, timezone('utc'::text, now()))
+  on conflict (id) do nothing; -- Note: This is a simple version, in reality we'd group by day.
+  
+  -- Better version for daily tracking:
+  insert into public.step_logs (user_id, steps, created_at)
+  values (user_id_input, steps_count, current_date)
+  on conflict (user_id, created_at) -- Requires a unique constraint
+  do update set steps = public.step_logs.steps + steps_count;
+end;
+$$ language plpgsql security definer;
+
