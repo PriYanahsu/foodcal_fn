@@ -229,8 +229,8 @@ export const StepTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
         // K factor (Baseline 1.0, increases for noisy signals)
         const K = 1.0 + (stdDev > 2 ? 0.4 : 0);
 
-        // Clamp threshold to human limits (min 0.8m/s², max 6m/s²)
-        dynamicThresholdRef.current = Math.min(Math.max(mean + K * stdDev, 0.8), 6.0);
+        // Clamp threshold to human limits (min 0.6m/s², max 6m/s²)
+        dynamicThresholdRef.current = Math.min(Math.max(mean + K * stdDev, 0.6), 6.0);
     };
 
     /**
@@ -335,7 +335,7 @@ export const StepTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
                         // B. Timing Check
                         const timeSinceLast = now - lastValidStepTimeRef.current;
 
-                        if (timeSinceLast > 250 && timeSinceLast < 2000) {
+                        if (timeSinceLast > 200 && timeSinceLast < 3000) {
 
                             // C. Rhythm Buffer (Require 2 steps to confirm walking - more sensitive)
                             rhythmBufferRef.current += 1;
@@ -372,7 +372,7 @@ export const StepTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
                                 if (pendingStepsRef.current.steps >= 5) syncNow(); // Sync faster
                                 savePendingToLocal();
                             }
-                        } else if (timeSinceLast > 2500) {
+                        } else if (timeSinceLast > 3500) {
                             rhythmBufferRef.current = 0; // Rhythm broken
                         }
                     }
