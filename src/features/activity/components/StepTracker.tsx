@@ -1,15 +1,64 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useStepTracker } from '../hooks/useStepTracker';
+import { createClient } from '@/lib/supabase/client';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 // We use custom SVGs defined below instead of external icon libraries
 
 export const StepTracker: React.FC = () => {
     const { steps, isTracking, requestPermission } = useStepTracker();
+    const { user } = useAuth();
 
-    const goal = 10000;
-    const progress = Math.min((steps / goal) * 100, 100);
+    // State for editable step goal
+    const [stepGoal, setStepGoal] = useState(10000);
+    const [isEditingGoal, setIsEditingGoal] = useState(false);
+    const [tempGoal, setTempGoal] = useState(10000);
+
+    // Load step goal from database on mount
+    useEffect(() => {
+        const loadStepGoal = async () => {
+            if (!user) return;
+
+            const supabase = createClient();
+            const { data, error } = await supabase
+                .from('user_preferences')
+                .select('step_goal')
+                .eq('user_id', user.id)
+                .single();
+
+            if (data && data.step_goal) {
+                setStepGoal(data.step_goal);
+                setTempGoal(data.step_goal);
+            }
+        };
+
+        loadStepGoal();
+    }, [user]);
+
+    // Save step goal to database
+    const saveStepGoal = async () => {
+        if (!user || tempGoal < 100) return;
+
+        const supabase = createClient();
+        const { error } = await supabase
+            .from('user_preferences')
+            .upsert({
+                user_id: user.id,
+                step_goal: tempGoal,
+                updated_at: new Date().toISOString()
+            }, {
+                onConflict: 'user_id'
+            });
+
+        if (!error) {
+            setStepGoal(tempGoal);
+            setIsEditingGoal(false);
+        }
+    };
+
+    const progress = Math.min((steps / stepGoal) * 100, 100);
 
     return (
         <div className="glass-card p-6 relative overflow-hidden group">
@@ -54,9 +103,41 @@ export const StepTracker: React.FC = () => {
                         <span className="text-4xl font-black text-white tabular-nums">
                             {steps.toLocaleString()}
                         </span>
-                        <span className="text-[var(--text-muted)] text-xs font-bold mb-1">
-                            Goal: {goal.toLocaleString()}
-                        </span>
+                        {isEditingGoal ? (
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="number"
+                                    value={tempGoal}
+                                    onChange={(e) => setTempGoal(parseInt(e.target.value) || 0)}
+                                    className="w-20 px-2 py-1 text-xs bg-white/10 border border-white/20 rounded-lg text-white text-right"
+                                    min="100"
+                                    max="100000"
+                                />
+                                <button
+                                    onClick={saveStepGoal}
+                                    className="text-[var(--primary)] text-xs font-bold hover:underline"
+                                >
+                                    ✓
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setIsEditingGoal(false);
+                                        setTempGoal(stepGoal);
+                                    }}
+                                    className="text-gray-400 text-xs hover:underline"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => setIsEditingGoal(true)}
+                                className="text-[var(--text-muted)] text-xs font-bold mb-1 hover:text-[var(--primary)] transition-colors flex items-center gap-1"
+                            >
+                                Goal: {stepGoal.toLocaleString()}
+                                <span className="text-[10px]">✎</span>
+                            </button>
+                        )}
                     </div>
 
                     {/* Progress Bar Container */}
