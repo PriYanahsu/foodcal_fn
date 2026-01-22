@@ -177,7 +177,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
             let flag: boolean = false;
             // GLOBAL 23:00 (11 PM) End of Day Summary for ALL USERS
-            if (hour === 0 && minutes === 33 && !flag) {
+            if (hour === 0 && minutes === 58 && !flag) {
                 flag = true;
                 // Determine if they hit their goal
                 const isGoalMet = current >= target * 0.9 && current <= target * 1.1;
