@@ -19,6 +19,19 @@ export const useStepTracker = () => {
     const lastStepTime = useRef<number>(0);
     const stepCountRef = useRef<number>(0);
 
+    // Check if tracking was previously active and auto-resume
+    useEffect(() => {
+        if (!user) return;
+
+        const trackingKey = `step_tracking_active_${user.id}`;
+        const wasTracking = localStorage.getItem(trackingKey) === 'true';
+
+        if (wasTracking) {
+            console.log('Step Tracker: Auto-resuming tracking from previous session');
+            setIsTracking(true);
+        }
+    }, [user]);
+
     // Load initial steps from Supabase for today
     useEffect(() => {
         if (!user) return;
@@ -95,6 +108,21 @@ export const useStepTracker = () => {
         }
         console.log('Step Tracker: Starting motion listener');
         setIsTracking(true);
+
+        // Persist tracking state so it survives page navigation
+        if (user) {
+            localStorage.setItem(`step_tracking_active_${user.id}`, 'true');
+        }
+    };
+
+    const stopTracking = () => {
+        console.log('Step Tracker: Stopping motion listener');
+        setIsTracking(false);
+
+        // Clear persistent tracking state
+        if (user) {
+            localStorage.removeItem(`step_tracking_active_${user.id}`);
+        }
     };
 
     useEffect(() => {
@@ -146,10 +174,19 @@ export const useStepTracker = () => {
         syncSteps();
     }, [steps, user, supabase]);
 
+    // Cleanup: Stop tracking when user logs out
+    useEffect(() => {
+        if (!user && isTracking) {
+            console.log('Step Tracker: User logged out, stopping tracking');
+            stopTracking();
+        }
+    }, [user, isTracking]);
+
     return {
         steps,
         isTracking,
         requestPermission,
+        stopTracking,
         permissionStatus
     };
 };
