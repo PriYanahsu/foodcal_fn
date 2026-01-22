@@ -13,7 +13,7 @@ interface NotificationPanelProps {
 }
 
 export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }) => {
-    const { notifications, unreadCount, markAllAsRead, markAsRead, removeNotification, addNotification } = useNotifications();
+    const { notifications, unreadCount, markAllAsRead, markAsRead, removeNotification, addNotification, permission, requestPermission } = useNotifications();
 
     return (
         <AnimatePresence>
@@ -38,6 +38,14 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, on
                                 <h3 className="font-bold text-lg">Notifications</h3>
                                 <p className="text-xs text-gray-400">{unreadCount} unread messages</p>
                             </div>
+                            {permission === 'default' && (
+                                <button
+                                    onClick={requestPermission}
+                                    className="text-xs bg-[var(--primary)] text-white px-2 py-1 rounded hover:opacity-90 transition-opacity"
+                                >
+                                    Enable Push
+                                </button>
+                            )}
                             {unreadCount > 0 && (
                                 <button
                                     onClick={markAllAsRead}
