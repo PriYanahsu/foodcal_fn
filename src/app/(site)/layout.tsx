@@ -1,5 +1,4 @@
 import React from 'react';
-import Footer from '@/components/layout/Footer';
 
 export default function SiteLayout({
   children,
@@ -9,7 +8,7 @@ export default function SiteLayout({
   return (
     <div className="min-h-screen flex flex-col">
       <main className="grow">{children}</main>
-      {/* <Footer /> */}
+     
     </div>
   );
 }

@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { CameraIcon, ChartBarIcon, SparklesIcon, FireIcon } from '@heroicons/react/24/outline';
 import FeatureCard from './FeatureCard';
+import { CoachWorkflow } from './CoachWorkflow';
 import { ROUTES } from '@/constants/routes';
 
 export default function HeroSection() {
@@ -88,6 +89,9 @@ export default function HeroSection() {
                         />
                     ))}
                 </div>
+
+                {/* AI Coach Workflow Section */}
+                <CoachWorkflow />
 
             </div>
         </div>

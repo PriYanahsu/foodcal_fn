@@ -20,45 +20,55 @@ export const useFoodScan = () => {
       // 1. Analyze with OpenAI
       const data = await analyzeFoodImage(file, additionalPrompt);
       setNutritionData(data);
-
-      // 2. Save to Supabase (if user is logged in)
-      // 2. Save to Supabase (if user is logged in)
-      if (user) {
-        // Upload image first
-        let imagePath = null;
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('meal_images')
-          .upload(fileName, file);
-
-        if (!uploadError && uploadData) {
-          imagePath = uploadData.path;
-        }
-
-        const { error: dbError } = await supabase.from('food_logs').insert({
-          user_id: user.id,
-          food_name: data.food_name,
-          calories: data.calories,
-          protein: data.protein,
-          carbs: data.carbs,
-          fats: data.fats,
-          confidence: data.confidence,
-          meal_type: getMealType(), // Helper to guess meal type by time
-          image_path: imagePath,
-          is_manual: false,
-        });
-
-        if (dbError) {
-          console.error("Failed to save to history:", dbError);
-          // We don't block the UI if saving fails, just log it
-        }
-      }
-
     } catch (err: any) {
       setError(err.message || 'Something went wrong');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const [isSaving, setIsSaving] = useState(false);
+
+  const saveFoodLog = async (file: File, data: NutritionData) => {
+    if (!user) return;
+
+    setIsSaving(true);
+    try {
+      // Upload image first
+      let imagePath = null;
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('meal_images')
+        .upload(fileName, file);
+
+      if (!uploadError && uploadData) {
+        imagePath = uploadData.path;
+      }
+
+      const { error: dbError } = await supabase.from('food_logs').insert({
+        user_id: user.id,
+        food_name: data.food_name,
+        calories: data.calories,
+        protein: data.protein,
+        carbs: data.carbs,
+        fats: data.fats,
+        confidence: data.confidence,
+        meal_type: getMealType(), // Helper to guess meal type by time
+        image_path: imagePath,
+        is_manual: false,
+      });
+
+      if (dbError) {
+        throw dbError;
+      }
+      return true;
+    } catch (err: any) {
+      console.error("Failed to save to history:", err);
+      setError(err.message || "Failed to save meal");
+      return false;
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -69,7 +79,9 @@ export const useFoodScan = () => {
 
   return {
     scanImage,
+    saveFoodLog,
     isLoading,
+    isSaving,
     nutritionData,
     error,
     reset,
