@@ -13,7 +13,7 @@ interface NotificationPanelProps {
 }
 
 export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }) => {
-    const { notifications, unreadCount, markAllAsRead, markAsRead, removeNotification } = useNotifications();
+    const { notifications, unreadCount, markAllAsRead, markAsRead, removeNotification, addNotification } = useNotifications();
 
     return (
         <AnimatePresence>
@@ -89,6 +89,16 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, on
                             <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">
                                 AI Fitness Assistant
                             </span>
+                            <button
+                                onClick={() => addNotification({
+                                    title: "Test Notification 🔔",
+                                    message: "This is a test to verify your new notification system is working perfectly!",
+                                    type: "system"
+                                })}
+                                className="text-[10px] bg-white/5 hover:bg-white/10 text-gray-400 py-1 px-2 rounded transition-colors"
+                            >
+                                Test Notification
+                            </button>
                         </div>
                     </motion.div>
                 </>
