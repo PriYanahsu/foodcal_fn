@@ -2,6 +2,8 @@ import axios from 'axios';
 
 export interface NutritionData {
     food_name: string;
+    quantity?: string;
+    health_info: string;
     calories: number;
     protein: number;
     carbs: number;

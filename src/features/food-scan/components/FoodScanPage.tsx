@@ -7,7 +7,7 @@ import { NutritionCard } from './NutritionCard';
 import { XMarkIcon, SparklesIcon, CameraIcon, PhotoIcon } from '@heroicons/react/24/outline';
 
 export const FoodScanPage: React.FC = () => {
-  const { scanImage, isLoading, nutritionData, error, reset } = useFoodScan();
+  const { scanImage, saveFoodLog, isLoading, isSaving, nutritionData, error, reset } = useFoodScan();
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [prompt, setPrompt] = useState('');
@@ -174,12 +174,38 @@ export const FoodScanPage: React.FC = () => {
             {nutritionData && (
               <div className="space-y-8">
                 <NutritionCard data={nutritionData} />
-                <button
-                  onClick={handleReset}
-                  className="w-full py-5 btn-secondary text-xs font-black uppercase tracking-widest rounded-3xl"
-                >
-                  Perfect, scan next meal
-                </button>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <button
+                    onClick={async () => {
+                      if (selectedFile && nutritionData) {
+                        const success = await saveFoodLog(selectedFile, nutritionData);
+                        if (success) {
+                          handleReset();
+                          // Could add a toast here for better UX
+                        }
+                      }
+                    }}
+                    disabled={isSaving}
+                    className="w-full py-5 btn-primary text-xs font-black uppercase tracking-widest rounded-3xl flex items-center justify-center gap-2"
+                  >
+                    {isSaving ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <span>Add to Daily Diet</span>
+                    )}
+                  </button>
+                  <button
+                    onClick={handleReset}
+                    disabled={isSaving}
+                    className="w-full py-5 btn-secondary text-xs font-black uppercase tracking-widest rounded-3xl"
+                  >
+                    Discard & Scan next
+                  </button>
+                </div>
               </div>
             )}
           </div>

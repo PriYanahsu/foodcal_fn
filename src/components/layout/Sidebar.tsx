@@ -33,6 +33,7 @@ const MENU_ITEMS = [
     { name: 'History', path: '/history', icon: Icons.History },
     { name: 'Notifications', path: '/notifications', icon: Icons.Bell },
     { name: 'Profile', path: '/profile', icon: Icons.Profile },
+    { name: 'Demo', path: '/hero', icon: Icons.Logout },
 ];
 
 import { useRouter } from 'next/navigation';
