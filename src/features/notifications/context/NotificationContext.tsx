@@ -33,11 +33,23 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         localStorage.setItem(`notifications_${user.id}`, JSON.stringify(notifications));
     }, [notifications, user]);
 
-    // Request notification permission on mount
+    const [permission, setPermission] = useState<NotificationPermission>('default');
+
     useEffect(() => {
         if (typeof window !== 'undefined' && 'Notification' in window) {
-            if (Notification.permission === 'default') {
-                Notification.requestPermission();
+            setPermission(Notification.permission);
+        }
+    }, []);
+
+    const requestPermission = useCallback(async () => {
+        if (typeof window !== 'undefined' && 'Notification' in window) {
+            const result = await Notification.requestPermission();
+            setPermission(result);
+            if (result === 'granted') {
+                new Notification('Notifications Enabled! 🎉', {
+                    body: 'You will now receive updates even when the app is in the background.',
+                    icon: '/icons/icon-192x192.png'
+                });
             }
         }
     }, []);
@@ -240,7 +252,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             markAsRead,
             markAllAsRead,
             removeNotification,
-            addNotification
+            addNotification,
+            permission,
+            requestPermission
         }}>
             {children}
         </NotificationContext.Provider>
