@@ -33,16 +33,28 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         localStorage.setItem(`notifications_${user.id}`, JSON.stringify(notifications));
     }, [notifications, user]);
 
-    // Request notification permission on mount
+    const [permission, setPermission] = useState<NotificationPermission>('default');
+
     useEffect(() => {
         if (typeof window !== 'undefined' && 'Notification' in window) {
-            if (Notification.permission === 'default') {
-                Notification.requestPermission();
+            setPermission(Notification.permission);
+        }
+    }, []);
+
+    const requestPermission = useCallback(async () => {
+        if (typeof window !== 'undefined' && 'Notification' in window) {
+            const result = await Notification.requestPermission();
+            setPermission(result);
+            if (result === 'granted') {
+                new Notification('Notifications Enabled! 🎉', {
+                    body: 'You will now receive updates even when the app is in the background.',
+                    icon: '/icons/icon-192x192.png'
+                });
             }
         }
     }, []);
 
-    const addNotification = useCallback((notif: Omit<AppNotification, 'id' | 'timestamp' | 'isRead'>) => {
+    const addNotification = useCallback(async (notif: Omit<AppNotification, 'id' | 'timestamp' | 'isRead'>) => {
         const newNotif: AppNotification = {
             ...notif,
             id: Math.random().toString(36).substring(2, 9),
@@ -51,12 +63,33 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         };
         setNotifications(prev => [newNotif, ...prev].slice(0, 50)); // Keep last 50
 
-        // Trigger System Notification
+        // Trigger System Notification via Service Worker if available, else fallback
         if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-            new Notification(newNotif.title, {
-                body: newNotif.message,
-                icon: '/icons/icon-192x192.png'
-            });
+            try {
+                if ('serviceWorker' in navigator) {
+                    const registration = await navigator.serviceWorker.ready;
+                    // Use showNotification for better mobile/background support
+                    registration.showNotification(newNotif.title, {
+                        body: newNotif.message,
+                        icon: '/icons/icon-192x192.png',
+                        badge: '/icons/icon-192x192.png',
+                        // data property can be used for click handling in SW
+                    });
+                } else {
+                    // Fallback to basic Notification API
+                    new Notification(newNotif.title, {
+                        body: newNotif.message,
+                        icon: '/icons/icon-192x192.png'
+                    });
+                }
+            } catch (e) {
+                console.error('Notification failed:', e);
+                // Fallback catch-all
+                new Notification(newNotif.title, {
+                    body: newNotif.message,
+                    icon: '/icons/icon-192x192.png'
+                });
+            }
         }
     }, []);
 
@@ -89,6 +122,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             const current = stats.calories;
             const now = new Date();
             const hour = now.getHours();
+            const minutes = now.getMinutes();
             const remaining = Math.max(0, target - current);
 
             // Check if this notification was already sent today
@@ -139,6 +173,23 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                     title = 'Stay Nourished 🥗';
                     message = `You've reached your half-way mark! Keep that momentum going so your body has all the nutrients it needs to shine tomorrow.`;
                 }
+            }
+
+            let flag: boolean = false;
+            // GLOBAL 23:00 (11 PM) End of Day Summary for ALL USERS
+            if (hour === 0 && minutes === 33 && !flag) {
+                flag = true;
+                // Determine if they hit their goal
+                const isGoalMet = current >= target * 0.9 && current <= target * 1.1;
+
+                conditionMet = true;
+                title = isGoalMet ? 'Day Complete: Success! 🌟' : 'Day Complete: Good Effort! 🌙';
+                message = isGoalMet
+                    ? `Fantastic work today! You hit your calorie target. Rest up for another great day tomorrow.`
+                    : `Today is a wrap! You logged ${current} calories. Tomorrow is a fresh start to get closer to your ${objective} goal!`;
+
+                // Override duplicates check for this specific high-priority daily summary
+                // We want to ensure this SPECIFIC title doesn't repeat, but we want it to check even if other goal_reminders were sent
             }
 
             if (conditionMet) {
@@ -201,7 +252,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             markAsRead,
             markAllAsRead,
             removeNotification,
-            addNotification
+            addNotification,
+            permission,
+            requestPermission
         }}>
             {children}
         </NotificationContext.Provider>

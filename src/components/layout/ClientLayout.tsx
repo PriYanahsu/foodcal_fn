@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Sidebar } from './Sidebar';
 import { NotificationProvider } from '@/features/notifications/context/NotificationContext';
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
+import { NotificationToast } from '@/features/notifications/components/NotificationToast';
 import { StepTrackerProvider } from '@/features/activity/context/StepTrackerContext';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
@@ -26,6 +27,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                         {!isAuthPage && (
                             <div className="absolute top-4 right-16 md:right-4 z-50 flex items-center gap-3">
                                 <NotificationBell />
+                                <NotificationToast />
                             </div>
                         )}
 

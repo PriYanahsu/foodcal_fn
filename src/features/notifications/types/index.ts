@@ -17,4 +17,6 @@ export interface NotificationContextType {
     markAllAsRead: () => void;
     removeNotification: (id: string) => void;
     addNotification: (notification: Omit<AppNotification, 'id' | 'timestamp' | 'isRead'>) => void;
+    permission: NotificationPermission;
+    requestPermission: () => Promise<void>;
 }
