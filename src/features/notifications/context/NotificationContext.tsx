@@ -51,7 +51,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 schema: 'public',
                 table: 'notifications',
                 filter: `user_id=eq.${user.id}`
-            }, (payload) => {
+            } as any, (payload: any) => {
                 const newRec = payload.new;
                 const newNotif: AppNotification = {
                     id: newRec.id,
@@ -101,12 +101,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     const [permission, setPermission] = useState<NotificationPermission>('default');
 
-    useEffect(() => {
-        if (typeof window !== 'undefined' && 'Notification' in window) {
-            setPermission(Notification.permission);
-        }
-    }, []);
-
     const requestPermission = useCallback(async () => {
         if (typeof window !== 'undefined' && 'Notification' in window) {
             const result = await Notification.requestPermission();
@@ -119,6 +113,16 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             }
         }
     }, []);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && 'Notification' in window) {
+            setPermission(Notification.permission);
+            // Proactively ask if not yet decided
+            if (Notification.permission === 'default' && user) {
+                requestPermission();
+            }
+        }
+    }, [user, requestPermission]);
 
     const addNotification = useCallback(async (notif: Omit<AppNotification, 'id' | 'timestamp' | 'isRead'>) => {
         // Insert into DB. Realtime will handle the state update and UI trigger.
