@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
                     hour: 'numeric',
                     minute: 'numeric',
                     second: 'numeric',
-                    hour12: false,
+                    hourCycle: 'h23',
                     year: 'numeric',
                     month: 'numeric',
                     day: 'numeric'
@@ -71,13 +71,17 @@ Deno.serve(async (req) => {
                 const isNight = hour >= 21
                 const isEndOfDay = hour === 23 && minutes >= 55 // End of day summary
 
-                // NEW: Test Trigger for 1:25 AM (01:25) - also added tolerance for testing
+                // Test Triggers
                 const isTestCheck = hour === 1 && (minutes >= 20 && minutes <= 30)
+                const isTwoAMCheck = hour === 2 // Added per user request
 
-                console.log(`User ${profile.id}: Time ${hour}:${minutes.toString().padStart(2, '0')} (${timeZone}) | Test: ${isTestCheck}, System: ${isSystemCheck}`)
+                console.log(`User ${profile.id}: Time ${hour}:${minutes.toString().padStart(2, '0')} (${timeZone}) | Test: ${isTestCheck}, 2AM: ${isTwoAMCheck}, System: ${isSystemCheck}`)
 
                 if (!isSystemCheck && !isMorningKickoff && !isInactivityCheck && !isEnergyCheck &&
-                    !isAfternoon && !isEvening && !isNight && !isEndOfDay && !isTestCheck) continue;
+                    !isAfternoon && !isEvening && !isNight && !isEndOfDay && !isTestCheck && !isTwoAMCheck) {
+                    console.log(`User ${profile.id}: Skipping - not a trigger time.`)
+                    continue;
+                }
 
                 // 3. Fetch "Today's" Logs for this user
                 const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000)
@@ -87,7 +91,10 @@ Deno.serve(async (req) => {
                     .eq('user_id', profile.id)
                     .gte('created_at', yesterday.toISOString())
 
-                if (logsError) continue;
+                if (logsError) {
+                    console.error(`User ${profile.id}: Error fetching logs:`, logsError)
+                    continue;
+                }
 
                 // Filter logs strictly for "today" in user's timezone
                 const todayLogs = (logs || []).filter(log => {
@@ -97,17 +104,23 @@ Deno.serve(async (req) => {
                 })
 
                 const currentCalories = todayLogs.reduce((sum, log) => sum + (log.calories || 0), 0)
-                const target = profile.daily_calorie_target
+                const target = profile.daily_calorie_target || 2000 // Fallback if not set
                 const remaining = Math.max(0, target - currentCalories)
-                const objective = (profile.goal || 'maintain').toLowerCase()
+                const objective = (profile.goal || 'Maintain Weight').toLowerCase()
+
+                console.log(`User ${profile.id}: Calories ${currentCalories}/${target}, Logs: ${todayLogs.length}`)
 
                 // 4. Logic Implementation
                 let conditionMet = false
                 let title = ''
                 let message = ''
 
-                // NEW TRIGGERS
-                if (isTestCheck) {
+                // TRIGGERS
+                if (isTwoAMCheck) {
+                    conditionMet = true
+                    title = 'Night Owl Check! 🦉'
+                    message = `It's 2:00 AM! Your personal coach is just checking in. Make sure to get some rest to conquer your goals tomorrow!`
+                } else if (isTestCheck) {
                     conditionMet = true
                     title = 'Test Notification! 🔔'
                     message = `It's 1:25 AM (or close)! This is your high-priority test notification for the Edge Function at ${hour}:${minutes}.`
@@ -177,8 +190,6 @@ Deno.serve(async (req) => {
 
                 if (conditionMet) {
                     // 5. Check Duplicates in DB
-                    // Fetch recent notifications for this user (created today local time)
-                    // We'll just check last 20 records to be safe/efficient
                     const { data: recentNotifs } = await supabase
                         .from('notifications')
                         .select('title, created_at')
@@ -186,28 +197,34 @@ Deno.serve(async (req) => {
                         .order('created_at', { ascending: false })
                         .limit(20)
 
-                    const alreadySent = isTestCheck ? false : recentNotifs?.some(n => {
+                    const alreadySent = (isTestCheck || isTwoAMCheck) ? false : recentNotifs?.some(n => {
                         const nDateStr = new Intl.DateTimeFormat('en-CA', { timeZone }).format(new Date(n.created_at))
                         return nDateStr === userTodayDateString && n.title === title
                     })
 
                     if (alreadySent) {
-                        console.log(`Notification '${title}' already sent to ${profile.id} today. Skipping.`)
+                        console.log(`User ${profile.id}: Notification '${title}' already sent today. Skipping.`)
                     }
 
                     if (!alreadySent) {
                         // 6. Insert Notification
-                        // Optional: Call AI endpoint here if needed, skipping for v1 speed
-
-                        await supabase.from('notifications').insert({
+                        const { error: insertError } = await supabase.from('notifications').insert({
                             user_id: profile.id,
                             title,
                             message,
                             type: 'goal_reminder',
                             created_at: new Date().toISOString()
                         })
-                        results.push({ user: profile.id, status: 'Notified', title })
+
+                        if (insertError) {
+                            console.error(`User ${profile.id}: Error inserting notification:`, insertError)
+                        } else {
+                            console.log(`User ${profile.id}: Notification sent! (${title})`)
+                            results.push({ user: profile.id, status: 'Notified', title })
+                        }
                     }
+                } else {
+                    console.log(`User ${profile.id}: No conditions met for notification.`)
                 }
             } catch (err) {
                 console.error(`Error processing user ${profile.id}:`, err)
@@ -220,9 +237,11 @@ Deno.serve(async (req) => {
 
     } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Internal Server Error'
+        console.error('Fatal Error:', errorMessage)
         return new Response(JSON.stringify({ error: errorMessage }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 500,
         })
     }
 })
+
