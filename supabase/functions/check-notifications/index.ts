@@ -20,14 +20,14 @@ Deno.serve(async (req) => {
 
         const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-        // 1. Get all active profiles with targets
-        // In a real large-scale app, pagination would be needed.
+        // 1. Get all profiles (including those without targets for testing/basic checks)
         const { data: profiles, error: profilesError } = await supabase
             .from('profiles')
             .select('id, goal, daily_calorie_target, timezone, gender, age, height, weight, activity_level')
-            .not('daily_calorie_target', 'is', null)
 
         if (profilesError) throw profilesError
+
+        console.log(`Checking notifications for ${profiles?.length || 0} users...`)
 
         const results = []
 
@@ -70,8 +70,13 @@ Deno.serve(async (req) => {
                 const isNight = hour >= 21
                 const isEndOfDay = hour === 23 && minutes >= 55 // End of day summary
 
+                // NEW: Test Trigger for 1:25 AM (01:25) - also added tolerance for testing
+                const isTestCheck = hour === 1 && (minutes >= 20 && minutes <= 30)
+
+                console.log(`User ${profile.id}: Time ${hour}:${minutes.toString().padStart(2, '0')} (${timeZone}) | Test: ${isTestCheck}, System: ${isSystemCheck}`)
+
                 if (!isSystemCheck && !isMorningKickoff && !isInactivityCheck && !isEnergyCheck &&
-                    !isAfternoon && !isEvening && !isNight && !isEndOfDay) continue;
+                    !isAfternoon && !isEvening && !isNight && !isEndOfDay && !isTestCheck) continue;
 
                 // 3. Fetch "Today's" Logs for this user
                 const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000)
@@ -101,7 +106,11 @@ Deno.serve(async (req) => {
                 let message = ''
 
                 // NEW TRIGGERS
-                if (isSystemCheck) {
+                if (isTestCheck) {
+                    conditionMet = true
+                    title = 'Test Notification! 🔔'
+                    message = `It's 1:25 AM (or close)! This is your high-priority test notification for the Edge Function at ${hour}:${minutes}.`
+                } else if (isSystemCheck) {
                     conditionMet = true
                     title = 'System Check 🛠️'
                     message = "Testing the wires! Just making sure your personal coach is ready for your big day tomorrow. See you in the morning!"
@@ -176,10 +185,14 @@ Deno.serve(async (req) => {
                         .order('created_at', { ascending: false })
                         .limit(20)
 
-                    const alreadySent = recentNotifs?.some(n => {
+                    const alreadySent = isTestCheck ? false : recentNotifs?.some(n => {
                         const nDateStr = new Intl.DateTimeFormat('en-CA', { timeZone }).format(new Date(n.created_at))
                         return nDateStr === userTodayDateString && n.title === title
                     })
+
+                    if (alreadySent) {
+                        console.log(`Notification '${title}' already sent to ${profile.id} today. Skipping.`)
+                    }
 
                     if (!alreadySent) {
                         // 6. Insert Notification
