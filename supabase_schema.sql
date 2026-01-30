@@ -144,6 +144,7 @@ create policy "Users can delete their own meal images"
 
 -- Add Goal & Target Columns to Profiles
 alter table public.profiles 
+add column if not exists timezone text default 'UTC',
 add column if not exists target_weight float,
 add column if not exists target_date date,
 add column if not exists daily_calorie_target integer,
@@ -241,3 +242,35 @@ begin
 end;
 $$ language plpgsql security definer;
 
+
+-- ==========================================
+-- 6. Notifications System
+-- ==========================================
+
+create table if not exists public.notifications (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users not null,
+  title text not null,
+  message text not null,
+  type text not null, -- 'goal_reminder', 'system', 'achievement', etc.
+  suggestion text, -- Optional AI advice or action item
+  is_read boolean default false,
+  metadata jsonb, -- Extra data like { "route": "/dashboard" }
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Enable Row Level Security
+alter table public.notifications enable row level security;
+
+-- Policies
+create policy "Users can view their own notifications"
+  on public.notifications for select
+  using (auth.uid() = user_id);
+
+create policy "Users can update their own notifications" -- e.g. marking as read
+  on public.notifications for update
+  using (auth.uid() = user_id);
+
+-- Index for faster queries on user_id
+create index if not exists notifications_user_id_idx on public.notifications(user_id);
+create index if not exists notifications_created_at_idx on public.notifications(created_at);

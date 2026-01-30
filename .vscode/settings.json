@@ -1,1 +1,13 @@
-{}
+{
+    "deno.enable": false,
+    "deno.enablePaths": [
+        "supabase/functions"
+    ],
+    "deno.config": "supabase/functions/deno.json",
+    "deno.importMap": "supabase/functions/deno.json",
+    "deno.suggest.imports.hosts": {
+        "https://deno.land": true,
+        "https://esm.sh": true
+    },
+    "deno.unstable": true
+}
