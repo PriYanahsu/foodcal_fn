@@ -8,7 +8,8 @@ import {
     SparklesIcon,
     TrophyIcon,
     InformationCircleIcon,
-    XMarkIcon
+    XMarkIcon,
+    FireIcon
 } from '@heroicons/react/24/outline';
 
 interface NotificationItemProps {
@@ -23,6 +24,7 @@ const icons: Record<NotificationType, React.ReactNode> = {
     coach_advice: <SparklesIcon className="w-5 h-5 text-[var(--primary)]" />,
     milestone: <TrophyIcon className="w-5 h-5 text-yellow-400" />,
     system: <InformationCircleIcon className="w-5 h-5 text-blue-400" />,
+    motivation: <FireIcon className="w-5 h-5 text-red-500" />,
 };
 
 export const NotificationItem: React.FC<NotificationItemProps> = ({

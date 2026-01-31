@@ -98,16 +98,16 @@ function generateNotification(
     hour: number,
     minutes: number
 ): { title: string; message: string; type: 'goal_reminder' | 'coach_advice' | 'system' | 'milestone' | 'motivation' } {
-    
+
     // Test condition for 1:40 AM
-    if (hour === 2 && minutes === 1) {
+    if (hour === 2 && minutes === 8) {
         return {
             title: 'Test Notification 🧪',
             message: 'This is a test notification at 1:40 AM to verify the system is working!',
             type: 'system'
         }
     }
-    
+
     // Morning notifications (7-9 AM)
     if (hour >= 7 && hour < 9) {
         if (!hasLoggedToday) {
@@ -269,7 +269,7 @@ Deno.serve(async (req) => {
     try {
         const url = new URL(req.url)
         const isTestMode = url.searchParams.get('test') === 'true'
-        
+
         let apiBaseUrl = Deno.env.get('API_BASE_URL')
         if (!apiBaseUrl) {
             const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
@@ -330,7 +330,7 @@ Deno.serve(async (req) => {
                 const hour = parseInt(getPart('hour') || '0', 10)
                 const minutes = parseInt(getPart('minute') || '0', 10)
                 const userTodayDateString = `${getPart('year')}-${getPart('month')?.padStart(2, '0')}-${getPart('day')?.padStart(2, '0')}`
-                
+
                 // Validate time parsing
                 if (isNaN(hour) || isNaN(minutes)) {
                     results.errors++
@@ -378,7 +378,7 @@ Deno.serve(async (req) => {
 
                 // Schedule notifications at optimal meal times
                 // Test time: 1:40 AM (exact minute check - wider window for cron)
-                const isTestTime = (hour === 2 && minutes >= 1 && minutes < 5)
+                const isTestTime = (hour === 2 && minutes >= 8 && minutes < 12)
                 // Breakfast: 7-9 AM (check at 8 AM - wider window)
                 const isBreakfastTime = (hour === 8 && minutes < 10)
                 // Lunch: 12-2 PM (check at 1 PM - wider window)
@@ -393,13 +393,13 @@ Deno.serve(async (req) => {
                 const isLateNight = (hour === 23 && minutes >= 30 && minutes < 40)
 
                 // Determine if we should send a notification
-                const shouldSendNotification = isTestMode || 
+                const shouldSendNotification = isTestMode ||
                     isTestTime ||
-                    isBreakfastTime || 
-                    isLunchTime || 
-                    isAfternoonCheck || 
-                    isDinnerTime || 
-                    isEveningWrap || 
+                    isBreakfastTime ||
+                    isLunchTime ||
+                    isAfternoonCheck ||
+                    isDinnerTime ||
+                    isEveningWrap ||
                     isLateNight ||
                     (isBehind && (hour >= 12 && hour < 22)) // Send reminder if behind during active hours
 
@@ -456,9 +456,9 @@ Deno.serve(async (req) => {
                     const alreadySent = recentNotifs?.some(n => {
                         const notifDate = new Date(n.created_at)
                         // Same title and type, and sent within last 2 hours
-                        return notifDate > twoHoursAgo && 
-                               n.title === notification.title && 
-                               n.type === notification.type
+                        return notifDate > twoHoursAgo &&
+                            n.title === notification.title &&
+                            n.type === notification.type
                     })
 
                     if (alreadySent) {
@@ -478,7 +478,7 @@ Deno.serve(async (req) => {
                     results.errors++
                 } else {
                     results.notificationsSent++
-                    
+
                     // Send push notification if API base URL is available
                     if (apiBaseUrl) {
                         try {
@@ -499,7 +499,7 @@ Deno.serve(async (req) => {
                                     },
                                 }),
                             })
-                            
+
                             // Log push notification result for debugging
                             if (!pushResponse.ok) {
                                 const errorData = await pushResponse.json().catch(() => ({}))
@@ -517,7 +517,7 @@ Deno.serve(async (req) => {
             }
         }
 
-        return new Response(JSON.stringify({ 
+        return new Response(JSON.stringify({
             success: true,
             ...results,
             message: `Processed ${results.processed} users, sent ${results.notificationsSent} notifications`
