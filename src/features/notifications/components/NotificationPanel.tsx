@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useNotifications } from '../context/NotificationContext';
 import { NotificationItem } from './NotificationItem';
+import { PermissionDeniedHelp } from './PermissionDeniedHelp';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckIcon } from '@heroicons/react/24/outline';
 
@@ -14,6 +15,7 @@ interface NotificationPanelProps {
 
 export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }) => {
     const { notifications, unreadCount, markAllAsRead, markAsRead, removeNotification, addNotification, permission, requestPermission, hasPushSubscription, isSubscribing } = useNotifications();
+    const [showHelp, setShowHelp] = useState(false);
 
     return (
         <AnimatePresence>
@@ -39,13 +41,24 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, on
                                 <p className="text-xs text-gray-400">{unreadCount} unread messages</p>
                             </div>
                             {permission !== 'granted' && (
-                                <button
-                                    onClick={requestPermission}
-                                    disabled={isSubscribing}
-                                    className="text-xs bg-[var(--primary)] text-white px-2 py-1 rounded hover:opacity-90 transition-opacity disabled:opacity-50"
-                                >
-                                    {isSubscribing ? 'Enabling...' : 'Enable Push'}
-                                </button>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={requestPermission}
+                                        disabled={isSubscribing || permission === 'denied'}
+                                        className="text-xs bg-[var(--primary)] text-white px-2 py-1 rounded hover:opacity-90 transition-opacity disabled:opacity-50"
+                                    >
+                                        {isSubscribing ? 'Enabling...' : permission === 'denied' ? 'Blocked' : 'Enable Push'}
+                                    </button>
+                                    {permission === 'denied' && (
+                                        <button
+                                            onClick={() => setShowHelp(true)}
+                                            className="text-xs text-red-400 hover:text-red-300 underline"
+                                            title="How to enable notifications"
+                                        >
+                                            Help
+                                        </button>
+                                    )}
+                                </div>
                             )}
                             {permission === 'granted' && hasPushSubscription && (
                                 <span className="text-xs text-green-400 flex items-center gap-1">
@@ -108,6 +121,7 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, on
                     </motion.div>
                 </>
             )}
+            <PermissionDeniedHelp isOpen={showHelp} onClose={() => setShowHelp(false)} />
         </AnimatePresence>
     );
 };
