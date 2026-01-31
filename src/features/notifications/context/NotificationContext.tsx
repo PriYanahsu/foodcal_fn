@@ -135,6 +135,44 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 }
             }
 
+            // Check current permission first
+            const currentPermission = Notification.permission;
+            
+            // If already denied, we can't request again - show helpful message
+            if (currentPermission === 'denied') {
+                setIsSubscribing(false);
+                setPermission('denied');
+                
+                // Detect device type for better guidance
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                const isAndroid = /Android/.test(navigator.userAgent);
+                
+                let message = 'Notification permission was previously denied.\n\n';
+                
+                if (isIOS) {
+                    message += 'To enable on iOS:\n';
+                    message += '1. Tap the Share button (square with arrow)\n';
+                    message += '2. Select "Add to Home Screen"\n';
+                    message += '3. Open the app from home screen\n';
+                    message += '4. Then enable notifications\n\n';
+                    message += 'Or go to: Settings > Safari > Website Settings > Notifications';
+                } else if (isAndroid) {
+                    message += 'To enable on Android:\n';
+                    message += '1. Tap the menu (3 dots) in browser\n';
+                    message += '2. Go to Settings > Site Settings\n';
+                    message += '3. Find this website\n';
+                    message += '4. Enable Notifications';
+                } else {
+                    message += 'To enable:\n';
+                    message += '1. Click the lock icon in address bar\n';
+                    message += '2. Change Notifications to "Allow"\n';
+                    message += '3. Refresh the page';
+                }
+                
+                alert(message);
+                return;
+            }
+
             // Request notification permission
             const result = await Notification.requestPermission();
             setPermission(result);
@@ -142,7 +180,25 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             if (result !== 'granted') {
                 setIsSubscribing(false);
                 if (result === 'denied') {
-                    alert('Notification permission was denied. Please enable it in your browser settings.');
+                    // User just denied - provide immediate guidance
+                    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                    const isAndroid = /Android/.test(navigator.userAgent);
+                    
+                    let message = 'Notifications were blocked.\n\n';
+                    
+                    if (isIOS) {
+                        message += 'On iOS, you need to:\n';
+                        message += '1. Add this site to Home Screen first\n';
+                        message += '2. Then enable notifications\n\n';
+                        message += 'Or check: Settings > Safari > Website Settings';
+                    } else if (isAndroid) {
+                        message += 'To enable:\n';
+                        message += 'Browser Menu (⋮) > Settings > Site Settings > Notifications';
+                    } else {
+                        message += 'Click the lock icon in address bar and allow notifications.';
+                    }
+                    
+                    alert(message);
                 }
                 return;
             }

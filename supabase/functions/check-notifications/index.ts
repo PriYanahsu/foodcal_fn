@@ -99,11 +99,11 @@ function generateNotification(
     minutes: number
 ): { title: string; message: string; type: 'goal_reminder' | 'coach_advice' | 'system' | 'milestone' | 'motivation' } {
     
-    // Test condition for 1:23 AM
-    if (hour === 1 && minutes === 23) {
+    // Test condition for 1:40 AM
+    if (hour === 1 && minutes === 40) {
         return {
             title: 'Test Notification 🧪',
-            message: 'This is a test notification at 1:23 AM to verify the system is working!',
+            message: 'This is a test notification at 1:40 AM to verify the system is working!',
             type: 'system'
         }
     }
@@ -371,8 +371,8 @@ Deno.serve(async (req) => {
                 const caloriesNeeded = Math.max(0, profile.daily_calorie_target - currentStats.calories)
 
                 // Schedule notifications at optimal meal times
-                // Test time: 1:23 AM
-                const isTestTime = (hour === 1 && minutes === 23)
+                // Test time: 1:40 AM (exact minute check)
+                const isTestTime = (hour === 1 && minutes === 40)
                 // Breakfast: 7-9 AM (check at 8 AM)
                 const isBreakfastTime = (hour === 8 && minutes < 5)
                 // Lunch: 12-2 PM (check at 1 PM)
