@@ -204,7 +204,7 @@ Deno.serve(async (req) => {
                 const isAfternoon = (hour === 15 && minutes < 5)
                 const isEvening = (hour === 19 && minutes < 5)
                 // End of day: 12:10 AM (00:10) - midnight + 10 minutes
-                const isEndOfDay = (hour === 0 && minutes >= 10)
+                const isEndOfDay = (hour === 0 && minutes >= 20)
 
                 // ✅ SPECIFIC TEST WINDOW: 2:40 AM – 2:45 AM
                 const isTestWindow = (hour === 2 && minutes >= 40 && minutes < 45)
