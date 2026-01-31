@@ -42,6 +42,7 @@ self.addEventListener('push', function (event) {
         data: {
             url: self.location.origin + '/',
             timestamp: Date.now(),
+            notificationId: notificationData.data?.notificationId || null,
         },
     };
 
@@ -56,6 +57,7 @@ self.addEventListener('push', function (event) {
 self.addEventListener('notificationclick', function (event) {
     event.notification.close();
 
+    // Always open to dashboard
     const urlToOpen = event.notification.data?.url || self.location.origin + '/';
 
     event.waitUntil(
@@ -63,15 +65,22 @@ self.addEventListener('notificationclick', function (event) {
             type: 'window',
             includeUncontrolled: true,
         }).then(function (clientList) {
-            // Check if there's already a window/tab open
+            // Check if there's already a window/tab open with our origin
             for (let i = 0; i < clientList.length; i++) {
                 const client = clientList[i];
-                // Check if client URL matches our origin
-                if (client.url && client.url.startsWith(self.location.origin) && 'focus' in client) {
-                    return client.focus();
+                if (client.url && client.url.startsWith(self.location.origin)) {
+                    // Focus existing window and navigate to dashboard
+                    if ('focus' in client) {
+                        client.focus();
+                        // Navigate to dashboard if not already there
+                        if (client.url !== urlToOpen && 'navigate' in client) {
+                            client.navigate(urlToOpen);
+                        }
+                        return;
+                    }
                 }
             }
-            // If no window is open, open a new one
+            // If no window is open, open a new one to dashboard
             if (clients.openWindow) {
                 return clients.openWindow(urlToOpen);
             }

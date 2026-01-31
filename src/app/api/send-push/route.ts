@@ -62,7 +62,11 @@ export async function POST(request: Request) {
             body,
             icon: icon || '/icons/icon-192x192.png',
             badge: badge || '/icons/icon-192x192.png',
-            data: data || {},
+            data: {
+                ...(data || {}),
+                url: '/', // Always open to dashboard
+                notificationId: data?.notificationId || null,
+            },
         });
 
         let sentCount = 0;
