@@ -100,7 +100,7 @@ function generateNotification(
 ): { title: string; message: string; type: 'goal_reminder' | 'coach_advice' | 'system' | 'milestone' | 'motivation' } {
     
     // Test condition for 1:40 AM
-    if (hour === 1 && minutes === 50) {
+    if (hour === 2 && minutes === 1) {
         return {
             title: 'Test Notification 🧪',
             message: 'This is a test notification at 1:40 AM to verify the system is working!',
@@ -378,7 +378,7 @@ Deno.serve(async (req) => {
 
                 // Schedule notifications at optimal meal times
                 // Test time: 1:40 AM (exact minute check - wider window for cron)
-                const isTestTime = (hour === 1 && minutes >= 40 && minutes < 45)
+                const isTestTime = (hour === 2 && minutes >= 1 && minutes < 5)
                 // Breakfast: 7-9 AM (check at 8 AM - wider window)
                 const isBreakfastTime = (hour === 8 && minutes < 10)
                 // Lunch: 12-2 PM (check at 1 PM - wider window)
