@@ -18,22 +18,25 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, on
     const [showHelp, setShowHelp] = useState(false);
 
     return (
-        <AnimatePresence>
-            {isOpen && (
-                <>
-                    {/* Backdrop */}
-                    <div
-                        className="fixed inset-0 z-[60] md:hidden"
-                        onClick={onClose}
-                    />
+        <>
+            <AnimatePresence>
+                {isOpen && (
+                    <>
+                        {/* Backdrop */}
+                        <div
+                            key="backdrop"
+                            className="fixed inset-0 z-[60] md:hidden"
+                            onClick={onClose}
+                        />
 
-                    {/* Panel */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        className="fixed md:absolute right-4 top-20 md:top-full md:mt-4 w-[calc(100vw-32px)] md:w-96 max-h-[80vh] z-[70] flex flex-col glass-card border-white/20 shadow-2xl overflow-hidden"
-                    >
+                        {/* Panel */}
+                        <motion.div
+                            key="panel"
+                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                            className="fixed md:absolute right-4 top-20 md:top-full md:mt-4 w-[calc(100vw-32px)] md:w-96 max-h-[80vh] z-[70] flex flex-col glass-card border-white/20 shadow-2xl overflow-hidden"
+                        >
                         {/* Header */}
                         <div className="p-4 border-b border-white/10 flex items-center justify-between bg-white/5">
                             <div>
@@ -91,8 +94,10 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, on
                                     ))
                                 ) : (
                                     <motion.div
+                                        key="empty-state"
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
                                         className="py-10 text-center"
                                     >
                                         <div className="text-4xl mb-3">🔔</div>
@@ -119,9 +124,10 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, on
                             </span>
                         </div>
                     </motion.div>
-                </>
-            )}
+                    </>
+                )}
+            </AnimatePresence>
             <PermissionDeniedHelp isOpen={showHelp} onClose={() => setShowHelp(false)} />
-        </AnimatePresence>
+        </>
     );
 };
