@@ -198,12 +198,13 @@ Deno.serve(async (req) => {
                     hour
                 )
 
-                // Triggers
+                // Triggers - Using ranges to catch the time window more reliably
                 const isSystemCheck = (hour === 1 && minutes < 5)
                 const isMorningKickoff = (hour === 8 && minutes < 5)
                 const isAfternoon = (hour === 15 && minutes < 5)
                 const isEvening = (hour === 19 && minutes < 5)
-                const isEndOfDay = (hour === 23 && minutes >= 15)
+                // End of day: 12:10 AM (00:10) - midnight + 10 minutes
+                const isEndOfDay = (hour === 0 && minutes >= 10)
 
                 // ✅ SPECIFIC TEST WINDOW: 2:40 AM – 2:45 AM
                 const isTestWindow = (hour === 2 && minutes >= 40 && minutes < 45)
@@ -214,7 +215,9 @@ Deno.serve(async (req) => {
                 // Also check if user is behind on diet (regardless of time, but with some limits)
                 const shouldCheckDietCompletion = isBehind && (isTestMode || isAfternoon || isEvening || isEndOfDay || isTestWindow)
 
-                console.log(`User ${profile.id}: Local Time ${hour}:${minutes.toString().padStart(2, '0')} (${timeZone}) | Calories: ${currentStats.calories}/${profile.daily_calorie_target} (${Math.round(progressPercent)}%) | Behind: ${isBehind} | Should Check: ${shouldEvaluate || shouldCheckDietCompletion}`)
+                console.log(`User ${profile.id}: Local Time ${hour}:${minutes.toString().padStart(2, '0')} (${timeZone}) | Calories: ${currentStats.calories}/${profile.daily_calorie_target} (${Math.round(progressPercent)}%) | Behind: ${isBehind}`)
+                console.log(`  Time Checks: SystemCheck=${isSystemCheck}, Morning=${isMorningKickoff}, Afternoon=${isAfternoon}, Evening=${isEvening}, EndOfDay=${isEndOfDay}, TestWindow=${isTestWindow}`)
+                console.log(`  Should Evaluate: ${shouldEvaluate}, Should Check Diet: ${shouldCheckDietCompletion}`)
 
                 if (!shouldEvaluate && !shouldCheckDietCompletion) continue
 
@@ -222,7 +225,7 @@ Deno.serve(async (req) => {
                 let conditionMet = false
                 let title = ''
                 let message = ''
-                let notificationType: 'goal_reminder' | 'coach_advice' | 'system' = 'goal_reminder'
+                let notificationType: 'goal_reminder' | 'coach_advice' | 'system' | 'milestone' = 'goal_reminder'
 
                 if (isTestMode || isTestWindow) {
                     conditionMet = true
@@ -247,6 +250,27 @@ Deno.serve(async (req) => {
                         message = `You're currently at ${Math.round(progressPercent)}% of your daily calorie goal. Keep logging your meals!`
                     }
                     notificationType = 'coach_advice'
+                } else if (isEndOfDay) {
+                    // End of day notification - always send at 11:15 PM regardless of diet status
+                    conditionMet = true
+                    if (isBehind) {
+                        // User is behind - encourage them
+                        const caloriesNeeded = Math.max(0, profile.daily_calorie_target - currentStats.calories)
+                        title = 'Final Push! 💪'
+                        message = `You're at ${Math.round(progressPercent)}% of your daily goal. You still need ${Math.round(caloriesNeeded)} more calories. Don't give up - every calorie counts!`
+                        notificationType = 'coach_advice'
+                    } else if (progressPercent >= 100) {
+                        // User completed their goal - celebrate!
+                        title = 'Goal Achieved! 🎉'
+                        message = `Congratulations! You've reached ${Math.round(progressPercent)}% of your daily calorie goal. Great job staying on track today!`
+                        notificationType = 'milestone'
+                    } else {
+                        // User is on track but not quite there - gentle reminder
+                        const caloriesNeeded = Math.max(0, profile.daily_calorie_target - currentStats.calories)
+                        title = 'End of Day Check-in 📊'
+                        message = `You're at ${Math.round(progressPercent)}% of your daily goal. ${caloriesNeeded > 0 ? `Just ${Math.round(caloriesNeeded)} more calories to complete your day!` : 'You\'re doing great!'}`
+                        notificationType = 'goal_reminder'
+                    }
                 } else if (isSystemCheck) {
                     conditionMet = true
                     title = 'System Check 🛠️'
@@ -257,7 +281,10 @@ Deno.serve(async (req) => {
                     message = "Start your day with a win. Log your breakfast to stay on track!"
                 }
 
-                if (!conditionMet) continue
+                if (!conditionMet) {
+                    console.log(`User ${profile.id}: No condition met. Skipping notification.`)
+                    continue
+                }
 
                 // Get AI coaching advice if user is behind on diet
                 let suggestion: string | null = null
