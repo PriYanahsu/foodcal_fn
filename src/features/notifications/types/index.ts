@@ -1,4 +1,4 @@
-export type NotificationType = 'goal_reminder' | 'milestone' | 'coach_advice' | 'system';
+export type NotificationType = 'goal_reminder' | 'milestone' | 'coach_advice' | 'system' | 'motivation';
 
 export interface AppNotification {
     id: string;

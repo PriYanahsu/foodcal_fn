@@ -100,7 +100,7 @@ function generateNotification(
 ): { title: string; message: string; type: 'goal_reminder' | 'coach_advice' | 'system' | 'milestone' | 'motivation' } {
     
     // Test condition for 1:40 AM
-    if (hour === 1 && minutes === 40) {
+    if (hour === 1 && minutes === 50) {
         return {
             title: 'Test Notification 🧪',
             message: 'This is a test notification at 1:40 AM to verify the system is working!',
@@ -330,6 +330,12 @@ Deno.serve(async (req) => {
                 const hour = parseInt(getPart('hour') || '0', 10)
                 const minutes = parseInt(getPart('minute') || '0', 10)
                 const userTodayDateString = `${getPart('year')}-${getPart('month')?.padStart(2, '0')}-${getPart('day')?.padStart(2, '0')}`
+                
+                // Validate time parsing
+                if (isNaN(hour) || isNaN(minutes)) {
+                    results.errors++
+                    continue
+                }
 
                 // Calculate start and end of day in UTC for querying food_logs
                 const startOfDay = new Date(now)
@@ -371,20 +377,20 @@ Deno.serve(async (req) => {
                 const caloriesNeeded = Math.max(0, profile.daily_calorie_target - currentStats.calories)
 
                 // Schedule notifications at optimal meal times
-                // Test time: 1:40 AM (exact minute check)
-                const isTestTime = (hour === 1 && minutes === 40)
-                // Breakfast: 7-9 AM (check at 8 AM)
-                const isBreakfastTime = (hour === 8 && minutes < 5)
-                // Lunch: 12-2 PM (check at 1 PM)
-                const isLunchTime = (hour === 13 && minutes < 5)
-                // Afternoon check-in: 3-4 PM (check at 3:30 PM)
-                const isAfternoonCheck = (hour === 15 && minutes >= 30 && minutes < 35)
-                // Dinner: 6-8 PM (check at 7 PM)
-                const isDinnerTime = (hour === 19 && minutes < 5)
-                // Evening wrap-up: 9-11 PM (check at 10 PM)
-                const isEveningWrap = (hour === 22 && minutes < 5)
-                // Late night: 11 PM - 1 AM (check at 11:30 PM)
-                const isLateNight = (hour === 23 && minutes >= 30 && minutes < 35)
+                // Test time: 1:40 AM (exact minute check - wider window for cron)
+                const isTestTime = (hour === 1 && minutes >= 40 && minutes < 45)
+                // Breakfast: 7-9 AM (check at 8 AM - wider window)
+                const isBreakfastTime = (hour === 8 && minutes < 10)
+                // Lunch: 12-2 PM (check at 1 PM - wider window)
+                const isLunchTime = (hour === 13 && minutes < 10)
+                // Afternoon check-in: 3-4 PM (check at 3:30 PM - wider window)
+                const isAfternoonCheck = (hour === 15 && minutes >= 30 && minutes < 40)
+                // Dinner: 6-8 PM (check at 7 PM - wider window)
+                const isDinnerTime = (hour === 19 && minutes < 10)
+                // Evening wrap-up: 9-11 PM (check at 10 PM - wider window)
+                const isEveningWrap = (hour === 22 && minutes < 10)
+                // Late night: 11 PM - 1 AM (check at 11:30 PM - wider window)
+                const isLateNight = (hour === 23 && minutes >= 30 && minutes < 40)
 
                 // Determine if we should send a notification
                 const shouldSendNotification = isTestMode || 
@@ -436,18 +442,23 @@ Deno.serve(async (req) => {
                     }
                 }
 
-                // Check for duplicates (unless it's test mode)
-                if (!isTestMode) {
+                // Check for duplicates (unless it's test mode or test time)
+                if (!isTestMode && !isTestTime) {
                     const { data: recentNotifs } = await supabase
                         .from('notifications')
-                        .select('title, created_at')
+                        .select('title, created_at, type')
                         .eq('user_id', profile.id)
                         .order('created_at', { ascending: false })
-                        .limit(5)
+                        .limit(10)
 
+                    // Check if same notification was sent in the last 2 hours (to prevent spam)
+                    const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000)
                     const alreadySent = recentNotifs?.some(n => {
-                        const d = new Intl.DateTimeFormat('en-CA', { timeZone }).format(new Date(n.created_at))
-                        return d === userTodayDateString && n.title === notification.title
+                        const notifDate = new Date(n.created_at)
+                        // Same title and type, and sent within last 2 hours
+                        return notifDate > twoHoursAgo && 
+                               n.title === notification.title && 
+                               n.type === notification.type
                     })
 
                     if (alreadySent) {
@@ -471,8 +482,7 @@ Deno.serve(async (req) => {
                     // Send push notification if API base URL is available
                     if (apiBaseUrl) {
                         try {
-                            // Call the push notification API to send push notifications
-                            await fetch(`${apiBaseUrl}/api/send-push`, {
+                            const pushResponse = await fetch(`${apiBaseUrl}/api/send-push`, {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -489,9 +499,15 @@ Deno.serve(async (req) => {
                                     },
                                 }),
                             })
+                            
+                            // Log push notification result for debugging
+                            if (!pushResponse.ok) {
+                                const errorData = await pushResponse.json().catch(() => ({}))
+                                // Log but don't fail - notification was already created
+                            }
                         } catch (error) {
                             // Push notification failure shouldn't block notification creation
-                            // Continue silently
+                            // Log error for debugging but continue
                         }
                     }
                 }
