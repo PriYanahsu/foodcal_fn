@@ -274,3 +274,51 @@ create policy "Users can update their own notifications" -- e.g. marking as read
 -- Index for faster queries on user_id
 create index if not exists notifications_user_id_idx on public.notifications(user_id);
 create index if not exists notifications_created_at_idx on public.notifications(created_at);
+
+
+-- ==========================================
+-- 7. Push Notifications Subscriptions
+-- ==========================================
+
+create table if not exists public.push_subscriptions (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users not null,
+  endpoint text not null,
+  subscription jsonb not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  unique(user_id, endpoint)
+);
+
+-- Enable Row Level Security
+alter table public.push_subscriptions enable row level security;
+
+-- Policies
+create policy "Users can manage their own push subscriptions"
+  on public.push_subscriptions for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- Service role can read all subscriptions (for sending push notifications)
+create policy "Service role can read all push subscriptions"
+  on public.push_subscriptions for select
+  using (true);
+
+-- Indexes for faster lookups
+create index if not exists push_subscriptions_user_id_idx on public.push_subscriptions(user_id);
+create index if not exists push_subscriptions_endpoint_idx on public.push_subscriptions(endpoint);
+
+-- Function to automatically update updated_at timestamp
+create or replace function public.update_push_subscriptions_updated_at()
+returns trigger as $$
+begin
+  new.updated_at = timezone('utc'::text, now());
+  return new;
+end;
+$$ language plpgsql;
+
+-- Trigger to update updated_at on row update
+create trigger update_push_subscriptions_updated_at
+  before update on public.push_subscriptions
+  for each row
+  execute procedure public.update_push_subscriptions_updated_at();
