@@ -19,4 +19,6 @@ export interface NotificationContextType {
     addNotification: (notification: Omit<AppNotification, 'id' | 'timestamp' | 'isRead'>) => void;
     permission: NotificationPermission;
     requestPermission: () => Promise<void>;
+    hasPushSubscription: boolean;
+    isSubscribing: boolean;
 }

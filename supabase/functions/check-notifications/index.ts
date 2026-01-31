@@ -453,6 +453,33 @@ Deno.serve(async (req) => {
                     results.errors++
                 } else {
                     results.notificationsSent++
+                    
+                    // Send push notification if API base URL is available
+                    if (apiBaseUrl) {
+                        try {
+                            // Call the push notification API to send push notifications
+                            await fetch(`${apiBaseUrl}/api/send-push`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    userId: profile.id,
+                                    title: notification.title,
+                                    body: notification.message,
+                                    icon: '/icons/icon-192x192.png',
+                                    badge: '/icons/icon-192x192.png',
+                                    data: {
+                                        type: notification.type,
+                                        suggestion: suggestion,
+                                    },
+                                }),
+                            })
+                        } catch (error) {
+                            // Push notification failure shouldn't block notification creation
+                            // Continue silently
+                        }
+                    }
                 }
 
             } catch (e) {
