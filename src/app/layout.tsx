@@ -30,11 +30,33 @@ export default function RootLayout({
             __html: `
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js').then(function(registration) {
-                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                  }, function(err) {
-                    console.log('ServiceWorker registration failed: ', err);
-                  });
+                  navigator.serviceWorker.register('/sw.js', { scope: '/' })
+                    .then(function(registration) {
+                      console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                      // Update service worker if available
+                      registration.update();
+                    })
+                    .catch(function(err) {
+                      console.log('ServiceWorker registration failed: ', err);
+                    });
+                  
+                  // Also try to register immediately (for faster mobile support)
+                  if (navigator.serviceWorker.controller) {
+                    console.log('ServiceWorker already active');
+                  }
+                });
+                
+                // Re-register on focus (helps with mobile browsers)
+                window.addEventListener('focus', function() {
+                  if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistration().then(function(registration) {
+                      if (registration) {
+                        registration.update();
+                      } else {
+                        navigator.serviceWorker.register('/sw.js', { scope: '/' });
+                      }
+                    });
+                  }
                 });
               }
             `,

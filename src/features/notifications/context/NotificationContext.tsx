@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { AppNotification, NotificationContextType, NotificationType } from '../types';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
+import { getVapidPublicKey } from '@/lib/vapid-key';
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
@@ -114,72 +115,120 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }, [user]);
 
     const requestPermission = useCallback(async () => {
-        if (typeof window === 'undefined' || !('Notification' in window)) return;
+        if (typeof window === 'undefined' || !('Notification' in window)) {
+            alert('Notifications are not supported in this browser.');
+            return;
+        }
 
         setIsSubscribing(true);
 
         try {
+            // First, ensure service worker is registered
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registration = await navigator.serviceWorker.register('/sw.js');
+                    // Wait for service worker to be ready
+                    await navigator.serviceWorker.ready;
+                } catch (swError) {
+                    console.error('Service worker registration failed:', swError);
+                    // Continue anyway - some browsers might still work
+                }
+            }
+
             // Request notification permission
             const result = await Notification.requestPermission();
             setPermission(result);
 
             if (result !== 'granted') {
                 setIsSubscribing(false);
+                if (result === 'denied') {
+                    alert('Notification permission was denied. Please enable it in your browser settings.');
+                }
                 return;
             }
 
             // Check if push notifications are supported
             if ('serviceWorker' in navigator && 'PushManager' in window) {
-                const registration = await navigator.serviceWorker.ready;
-                
-                // Get VAPID public key
-                const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-                if (!vapidPublicKey) {
-                    setIsSubscribing(false);
-                    return;
-                }
+                try {
+                    const registration = await navigator.serviceWorker.ready;
+                    
+                    // Get VAPID public key - try multiple ways for mobile compatibility
+                    const vapidPublicKey = getVapidPublicKey();
+                    
+                    if (!vapidPublicKey) {
+                        console.error('VAPID public key not found');
+                        alert('Push notification configuration error. Please make sure VAPID keys are set in environment variables.');
+                        setIsSubscribing(false);
+                        return;
+                    }
 
-                // Convert VAPID key to Uint8Array
-                const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+                    // Convert VAPID key to Uint8Array
+                    const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
 
-                // Subscribe to push notifications
-                const pushSubscription = await registration.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: applicationServerKey as any,
-                });
-
-                // Prepare subscription data
-                const subscriptionData = {
-                    endpoint: pushSubscription.endpoint,
-                    keys: {
-                        p256dh: arrayBufferToBase64(pushSubscription.getKey('p256dh')!),
-                        auth: arrayBufferToBase64(pushSubscription.getKey('auth')!),
-                    },
-                };
-
-                // Save subscription to backend
-                const response = await fetch('/api/push-subscribe', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(subscriptionData),
-                });
-
-                if (response.ok) {
-                    setHasPushSubscription(true);
-                    new Notification('Push Notifications Enabled! 🎉', {
-                        body: 'You will now receive notifications even when the app is closed!',
-                        icon: '/icons/icon-192x192.png'
+                    // Subscribe to push notifications
+                    const pushSubscription = await registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: applicationServerKey as any,
                     });
+
+                    // Prepare subscription data
+                    const subscriptionData = {
+                        endpoint: pushSubscription.endpoint,
+                        keys: {
+                            p256dh: arrayBufferToBase64(pushSubscription.getKey('p256dh')!),
+                            auth: arrayBufferToBase64(pushSubscription.getKey('auth')!),
+                        },
+                    };
+
+                    // Save subscription to backend
+                    const response = await fetch('/api/push-subscribe', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(subscriptionData),
+                    });
+
+                    if (response.ok) {
+                        setHasPushSubscription(true);
+                        // Show success notification
+                        if (Notification.permission === 'granted') {
+                            new Notification('Push Notifications Enabled! 🎉', {
+                                body: 'You will now receive notifications even when the app is closed!',
+                                icon: '/icons/icon-192x192.png',
+                                badge: '/icons/icon-192x192.png',
+                                tag: 'push-enabled',
+                            });
+                        }
+                    } else {
+                        const errorData = await response.json();
+                        console.error('Failed to save subscription:', errorData);
+                        alert('Failed to enable push notifications. Please try again.');
+                    }
+                } catch (pushError: any) {
+                    console.error('Push subscription error:', pushError);
+                    let errorMessage = 'Failed to enable push notifications. ';
+                    
+                    if (pushError.message?.includes('VAPID')) {
+                        errorMessage += 'Configuration error.';
+                    } else if (pushError.message?.includes('permission')) {
+                        errorMessage += 'Permission denied.';
+                    } else {
+                        errorMessage += 'Please try again.';
+                    }
+                    
+                    alert(errorMessage);
                 }
             } else {
                 // Fallback: regular notifications
-                new Notification('Notifications Enabled! 🎉', {
-                    body: 'You will now receive updates synced with your account.',
-                    icon: '/icons/icon-192x192.png'
-                });
+                if (Notification.permission === 'granted') {
+                    new Notification('Notifications Enabled! 🎉', {
+                        body: 'You will now receive updates synced with your account.',
+                        icon: '/icons/icon-192x192.png'
+                    });
+                }
             }
-        } catch (error) {
-            // Error handling
+        } catch (error: any) {
+            console.error('Notification permission error:', error);
+            alert('An error occurred while enabling notifications. Please try again.');
         } finally {
             setIsSubscribing(false);
         }

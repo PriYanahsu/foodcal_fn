@@ -95,8 +95,18 @@ function generateNotification(
     caloriesNeeded: number,
     hasLoggedToday: boolean,
     isGoalAchieved: boolean,
-    hour: number
+    hour: number,
+    minutes: number
 ): { title: string; message: string; type: 'goal_reminder' | 'coach_advice' | 'system' | 'milestone' | 'motivation' } {
+    
+    // Test condition for 1:23 AM
+    if (hour === 1 && minutes === 23) {
+        return {
+            title: 'Test Notification 🧪',
+            message: 'This is a test notification at 1:23 AM to verify the system is working!',
+            type: 'system'
+        }
+    }
     
     // Morning notifications (7-9 AM)
     if (hour >= 7 && hour < 9) {
@@ -361,6 +371,8 @@ Deno.serve(async (req) => {
                 const caloriesNeeded = Math.max(0, profile.daily_calorie_target - currentStats.calories)
 
                 // Schedule notifications at optimal meal times
+                // Test time: 1:23 AM
+                const isTestTime = (hour === 1 && minutes === 23)
                 // Breakfast: 7-9 AM (check at 8 AM)
                 const isBreakfastTime = (hour === 8 && minutes < 5)
                 // Lunch: 12-2 PM (check at 1 PM)
@@ -376,6 +388,7 @@ Deno.serve(async (req) => {
 
                 // Determine if we should send a notification
                 const shouldSendNotification = isTestMode || 
+                    isTestTime ||
                     isBreakfastTime || 
                     isLunchTime || 
                     isAfternoonCheck || 
@@ -394,7 +407,8 @@ Deno.serve(async (req) => {
                     caloriesNeeded,
                     hasLoggedToday,
                     isGoalAchieved,
-                    hour
+                    hour,
+                    minutes
                 )
 
                 // Get AI coaching advice if user is behind on diet
