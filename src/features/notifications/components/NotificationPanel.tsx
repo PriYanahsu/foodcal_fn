@@ -13,7 +13,7 @@ interface NotificationPanelProps {
 }
 
 export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, onClose }) => {
-    const { notifications, unreadCount, markAllAsRead, markAsRead, removeNotification, addNotification, permission, requestPermission } = useNotifications();
+    const { notifications, unreadCount, markAllAsRead, markAsRead, removeNotification, addNotification, permission, requestPermission, hasPushSubscription, isSubscribing } = useNotifications();
 
     return (
         <AnimatePresence>
@@ -38,13 +38,20 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, on
                                 <h3 className="font-bold text-lg">Notifications</h3>
                                 <p className="text-xs text-gray-400">{unreadCount} unread messages</p>
                             </div>
-                            {permission === 'default' && (
+                            {permission !== 'granted' && (
                                 <button
                                     onClick={requestPermission}
-                                    className="text-xs bg-[var(--primary)] text-white px-2 py-1 rounded hover:opacity-90 transition-opacity"
+                                    disabled={isSubscribing}
+                                    className="text-xs bg-[var(--primary)] text-white px-2 py-1 rounded hover:opacity-90 transition-opacity disabled:opacity-50"
                                 >
-                                    Enable Push
+                                    {isSubscribing ? 'Enabling...' : 'Enable Push'}
                                 </button>
+                            )}
+                            {permission === 'granted' && hasPushSubscription && (
+                                <span className="text-xs text-green-400 flex items-center gap-1">
+                                    <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                                    Push Enabled
+                                </span>
                             )}
                             {unreadCount > 0 && (
                                 <button
@@ -97,16 +104,6 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, on
                             <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">
                                 AI Fitness Assistant
                             </span>
-                            <button
-                                onClick={() => addNotification({
-                                    title: "Test Notification 🔔",
-                                    message: "This is a test to verify your new notification system is working perfectly!",
-                                    type: "system"
-                                })}
-                                className="text-[10px] bg-white/5 hover:bg-white/10 text-gray-400 py-1 px-2 rounded transition-colors"
-                            >
-                                Test Notification
-                            </button>
                         </div>
                     </motion.div>
                 </>

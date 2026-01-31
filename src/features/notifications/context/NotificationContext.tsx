@@ -100,29 +100,119 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }, [user, supabase]);
 
     const [permission, setPermission] = useState<NotificationPermission>('default');
+    const [hasPushSubscription, setHasPushSubscription] = useState(false);
+    const [isSubscribing, setIsSubscribing] = useState(false);
+
+    // Check for existing push subscription
+    useEffect(() => {
+        if (typeof window !== 'undefined' && 'serviceWorker' in navigator && user) {
+            navigator.serviceWorker.ready.then(async (registration) => {
+                const subscription = await registration.pushManager.getSubscription();
+                setHasPushSubscription(!!subscription);
+            });
+        }
+    }, [user]);
 
     const requestPermission = useCallback(async () => {
-        if (typeof window !== 'undefined' && 'Notification' in window) {
+        if (typeof window === 'undefined' || !('Notification' in window)) return;
+
+        setIsSubscribing(true);
+
+        try {
+            // Request notification permission
             const result = await Notification.requestPermission();
             setPermission(result);
-            if (result === 'granted') {
+
+            if (result !== 'granted') {
+                setIsSubscribing(false);
+                return;
+            }
+
+            // Check if push notifications are supported
+            if ('serviceWorker' in navigator && 'PushManager' in window) {
+                const registration = await navigator.serviceWorker.ready;
+                
+                // Get VAPID public key
+                const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+                if (!vapidPublicKey) {
+                    setIsSubscribing(false);
+                    return;
+                }
+
+                // Convert VAPID key to Uint8Array
+                const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+
+                // Subscribe to push notifications
+                const pushSubscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: applicationServerKey as any,
+                });
+
+                // Prepare subscription data
+                const subscriptionData = {
+                    endpoint: pushSubscription.endpoint,
+                    keys: {
+                        p256dh: arrayBufferToBase64(pushSubscription.getKey('p256dh')!),
+                        auth: arrayBufferToBase64(pushSubscription.getKey('auth')!),
+                    },
+                };
+
+                // Save subscription to backend
+                const response = await fetch('/api/push-subscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(subscriptionData),
+                });
+
+                if (response.ok) {
+                    setHasPushSubscription(true);
+                    new Notification('Push Notifications Enabled! 🎉', {
+                        body: 'You will now receive notifications even when the app is closed!',
+                        icon: '/icons/icon-192x192.png'
+                    });
+                }
+            } else {
+                // Fallback: regular notifications
                 new Notification('Notifications Enabled! 🎉', {
                     body: 'You will now receive updates synced with your account.',
                     icon: '/icons/icon-192x192.png'
                 });
             }
+        } catch (error) {
+            // Error handling
+        } finally {
+            setIsSubscribing(false);
         }
     }, []);
 
     useEffect(() => {
         if (typeof window !== 'undefined' && 'Notification' in window) {
             setPermission(Notification.permission);
-            // Proactively ask if not yet decided
-            if (Notification.permission === 'default' && user) {
-                requestPermission();
-            }
         }
-    }, [user, requestPermission]);
+    }, []);
+
+    // Helper functions
+    function urlBase64ToUint8Array(base64String: string): Uint8Array {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding)
+            .replace(/\-/g, '+')
+            .replace(/_/g, '/');
+        const rawData = atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    }
+
+    function arrayBufferToBase64(buffer: ArrayBuffer): string {
+        const bytes = new Uint8Array(buffer);
+        let binary = '';
+        for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary);
+    }
 
     const addNotification = useCallback(async (notif: Omit<AppNotification, 'id' | 'timestamp' | 'isRead'>) => {
         // Insert into DB. Realtime will handle the state update and UI trigger.
@@ -180,7 +270,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             removeNotification,
             addNotification,
             permission,
-            requestPermission
+            requestPermission,
+            hasPushSubscription,
+            isSubscribing,
         }}>
             {children}
         </NotificationContext.Provider>
