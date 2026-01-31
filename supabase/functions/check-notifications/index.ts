@@ -33,14 +33,12 @@ async function getCoachingAdvice(
         })
 
         if (!response.ok) {
-            console.error(`Fitness consultant API error: ${response.status}`)
             return null
         }
 
         const data = await response.json()
         return data.data?.advice || null
     } catch (error) {
-        console.error('Error calling fitness-consultant API:', error)
         return null
     }
 }
@@ -50,9 +48,9 @@ function checkDietCompletion(
     currentCalories: number,
     targetCalories: number,
     hour: number
-): { isBehind: boolean; progressPercent: number; timeOfDay: string } {
+): { isBehind: boolean; progressPercent: number; timeOfDay: string; mealType: string } {
     if (!targetCalories || targetCalories === 0) {
-        return { isBehind: false, progressPercent: 0, timeOfDay: 'unknown' }
+        return { isBehind: false, progressPercent: 0, timeOfDay: 'unknown', mealType: 'unknown' }
     }
 
     const progressPercent = (currentCalories / targetCalories) * 100
@@ -60,28 +58,197 @@ function checkDietCompletion(
     // Expected progress thresholds based on time of day
     let expectedProgress = 0
     let timeOfDay = 'morning'
+    let mealType = 'breakfast'
 
     if (hour >= 6 && hour < 12) {
         // Morning: Should have ~25% of daily calories (breakfast)
         expectedProgress = 25
         timeOfDay = 'morning'
+        mealType = 'breakfast'
     } else if (hour >= 12 && hour < 18) {
         // Afternoon: Should have ~60% of daily calories (breakfast + lunch)
         expectedProgress = 60
         timeOfDay = 'afternoon'
+        mealType = 'lunch'
     } else if (hour >= 18 && hour < 22) {
         // Evening: Should have ~85% of daily calories (breakfast + lunch + dinner)
         expectedProgress = 85
         timeOfDay = 'evening'
+        mealType = 'dinner'
     } else {
         // Night/End of Day: Should have ~100% of daily calories
         expectedProgress = 95
         timeOfDay = 'night'
+        mealType = 'snack'
     }
 
     const isBehind = progressPercent < expectedProgress - 10 // 10% tolerance
 
-    return { isBehind, progressPercent, timeOfDay }
+    return { isBehind, progressPercent, timeOfDay, mealType }
+}
+
+// Generate positive, motivating notification messages
+function generateNotification(
+    timeOfDay: string,
+    mealType: string,
+    progressPercent: number,
+    caloriesNeeded: number,
+    hasLoggedToday: boolean,
+    isGoalAchieved: boolean,
+    hour: number
+): { title: string; message: string; type: 'goal_reminder' | 'coach_advice' | 'system' | 'milestone' | 'motivation' } {
+    
+    // Morning notifications (7-9 AM)
+    if (hour >= 7 && hour < 9) {
+        if (!hasLoggedToday) {
+            return {
+                title: 'Good Morning, Champion! 🌅',
+                message: 'Rise and shine! Your journey to greatness starts with a healthy breakfast. Ready to fuel your day?',
+                type: 'motivation'
+            }
+        }
+        if (progressPercent < 20) {
+            return {
+                title: 'Morning Fuel-Up! ⚡',
+                message: `You're off to a great start! Let's keep the momentum going. You've got ${Math.round(100 - progressPercent)}% of your day ahead - make it count!`,
+                type: 'motivation'
+            }
+        }
+        return {
+            title: 'You\'re Crushing It! 🔥',
+            message: `Amazing start to your day! You're already at ${Math.round(progressPercent)}% of your goal. Keep this energy going!`,
+            type: 'milestone'
+        }
+    }
+
+    // Lunch notifications (12-2 PM)
+    if (hour >= 12 && hour < 14) {
+        if (!hasLoggedToday) {
+            return {
+                title: 'Lunch Time, Hero! 🍽️',
+                message: 'Your body is asking for fuel! Time to log that delicious lunch and keep your progress on track. You\'ve got this!',
+                type: 'motivation'
+            }
+        }
+        if (progressPercent < 50) {
+            return {
+                title: 'Midday Momentum! 💪',
+                message: `You're at ${Math.round(progressPercent)}% - that's solid progress! A balanced lunch will power you through the afternoon. Let's do this!`,
+                type: 'coach_advice'
+            }
+        }
+        return {
+            title: 'You\'re On Fire! 🔥',
+            message: `Wow! ${Math.round(progressPercent)}% already? You're absolutely killing it today. Keep up this incredible pace!`,
+            type: 'milestone'
+        }
+    }
+
+    // Afternoon check-in (3-4 PM)
+    if (hour >= 15 && hour < 16) {
+        if (!hasLoggedToday) {
+            return {
+                title: 'Afternoon Check-In! ☀️',
+                message: 'Hey there! Don\'t forget to log your meals today. Every entry brings you closer to your goals. You\'re doing amazing!',
+                type: 'goal_reminder'
+            }
+        }
+        if (progressPercent < 60) {
+            return {
+                title: 'Keep Going Strong! 💪',
+                message: `You're at ${Math.round(progressPercent)}% - you've got this! A healthy snack or meal will keep your energy levels perfect.`,
+                type: 'coach_advice'
+            }
+        }
+        return {
+            title: 'Incredible Progress! 🌟',
+            message: `Look at you go! ${Math.round(progressPercent)}% already? You're making this look easy. Keep it up!`,
+            type: 'milestone'
+        }
+    }
+
+    // Dinner notifications (6-8 PM)
+    if (hour >= 18 && hour < 20) {
+        if (!hasLoggedToday) {
+            return {
+                title: 'Evening Excellence! 🌙',
+                message: 'Time for dinner! Log your meal and celebrate another day of progress. You\'re building something amazing!',
+                type: 'motivation'
+            }
+        }
+        if (progressPercent < 80) {
+            return {
+                title: 'Almost There! 🎯',
+                message: `You're at ${Math.round(progressPercent)}% - so close! A nutritious dinner will help you finish strong. You've got this!`,
+                type: 'coach_advice'
+            }
+        }
+        return {
+            title: 'Outstanding Work! ⭐',
+            message: `${Math.round(progressPercent)}%? You're absolutely incredible! Finish strong with a great dinner.`,
+            type: 'milestone'
+        }
+    }
+
+    // End of day (9-11 PM)
+    if (hour >= 21 && hour < 23) {
+        if (isGoalAchieved) {
+            return {
+                title: 'Goal Achieved! 🎉',
+                message: `Congratulations, superstar! You've crushed your daily goal with ${Math.round(progressPercent)}%! This is what dedication looks like. Rest well, champion!`,
+                type: 'milestone'
+            }
+        }
+        if (progressPercent >= 90) {
+            return {
+                title: 'So Close! 🌟',
+                message: `You're at ${Math.round(progressPercent)}% - absolutely incredible! You're so close to perfection. Every step counts!`,
+                type: 'milestone'
+            }
+        }
+        if (progressPercent >= 70) {
+            return {
+                title: 'Great Day! 💫',
+                message: `You've reached ${Math.round(progressPercent)}% today - that's fantastic progress! Consistency is key, and you're showing it.`,
+                type: 'milestone'
+            }
+        }
+        if (!hasLoggedToday) {
+            return {
+                title: 'Don\'t Miss Out! 🌙',
+                message: 'It\'s not too late! Log your meals and end your day on a high note. Every entry matters in your journey!',
+                type: 'goal_reminder'
+            }
+        }
+        return {
+            title: 'End of Day Reflection 📊',
+            message: `You're at ${Math.round(progressPercent)}% today. Progress, not perfection! Tomorrow is another opportunity to shine.`,
+            type: 'goal_reminder'
+        }
+    }
+
+    // Late night (11 PM - 1 AM)
+    if (hour >= 23 || hour < 1) {
+        if (isGoalAchieved) {
+            return {
+                title: 'Perfect Day Complete! ✨',
+                message: `You did it! ${Math.round(progressPercent)}% achieved. Rest well knowing you gave it your all today.`,
+                type: 'milestone'
+            }
+        }
+        return {
+            title: 'Rest Well, Warrior! 🌙',
+            message: 'Another day of progress in the books. Rest up and recharge - tomorrow is full of new possibilities!',
+            type: 'motivation'
+        }
+    }
+
+    // Default fallback
+    return {
+        title: 'Keep Going! 💪',
+        message: `You're at ${Math.round(progressPercent)}% of your goal. Every moment is a chance to make progress. You've got this!`,
+        type: 'motivation'
+    }
 }
 
 Deno.serve(async (req) => {
@@ -93,18 +260,12 @@ Deno.serve(async (req) => {
         const url = new URL(req.url)
         const isTestMode = url.searchParams.get('test') === 'true'
         
-        // Try to get API base URL from environment, or construct from request
-        // In production, this should be set to your Next.js app URL
         let apiBaseUrl = Deno.env.get('API_BASE_URL')
         if (!apiBaseUrl) {
-            // Fallback: try to construct from Supabase URL (for local dev)
             const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
-            // Remove /functions path if present and use as base
             apiBaseUrl = supabaseUrl.replace(/\/functions\/.*$/, '')
-            // For local development, you might need to set this manually
             if (!apiBaseUrl || apiBaseUrl === supabaseUrl) {
-                console.warn('API_BASE_URL not set. AI coaching advice will be disabled.')
-                apiBaseUrl = '' // Will skip AI advice calls
+                apiBaseUrl = ''
             }
         }
 
@@ -124,8 +285,6 @@ Deno.serve(async (req) => {
 
         if (profilesError) throw profilesError
 
-        console.log(`Checking notifications for ${profiles?.length || 0} users. Test Mode: ${isTestMode}`)
-
         const results = {
             processed: 0,
             notificationsSent: 0,
@@ -138,7 +297,6 @@ Deno.serve(async (req) => {
 
                 // Skip if no calorie target set
                 if (!profile.daily_calorie_target || profile.daily_calorie_target === 0) {
-                    console.log(`User ${profile.id}: No calorie target set, skipping`)
                     continue
                 }
 
@@ -172,13 +330,12 @@ Deno.serve(async (req) => {
                 // Get today's food logs
                 const { data: foodLogs, error: logsError } = await supabase
                     .from('food_logs')
-                    .select('calories, protein, carbs, fats')
+                    .select('calories, protein, carbs, fats, created_at')
                     .eq('user_id', profile.id)
                     .gte('created_at', startOfDay.toISOString())
                     .lte('created_at', endOfDay.toISOString())
 
                 if (logsError) {
-                    console.error(`Error fetching food logs for user ${profile.id}:`, logsError)
                     results.errors++
                     continue
                 }
@@ -191,104 +348,58 @@ Deno.serve(async (req) => {
                     fats: foodLogs?.reduce((sum, log) => sum + (log.fats || 0), 0) || 0,
                 }
 
+                const hasLoggedToday = (foodLogs?.length || 0) > 0
+                const isGoalAchieved = currentStats.calories >= profile.daily_calorie_target
+
                 // Check diet completion
-                const { isBehind, progressPercent, timeOfDay } = checkDietCompletion(
+                const { isBehind, progressPercent, timeOfDay, mealType } = checkDietCompletion(
                     currentStats.calories,
                     profile.daily_calorie_target,
                     hour
                 )
 
-                // Triggers - Using ranges to catch the time window more reliably
-                const isSystemCheck = (hour === 1 && minutes < 5)
-                const isMorningKickoff = (hour === 8 && minutes < 5)
-                const isAfternoon = (hour === 15 && minutes < 5)
-                const isEvening = (hour === 19 && minutes < 5)
-                // End of day: 12:10 AM (00:10) - midnight + 10 minutes
-                const isEndOfDay = (hour === 0 && minutes >= 20)
+                const caloriesNeeded = Math.max(0, profile.daily_calorie_target - currentStats.calories)
 
-                // ✅ SPECIFIC TEST WINDOW: 2:40 AM – 2:45 AM
-                const isTestWindow = (hour === 2 && minutes >= 40 && minutes < 45)
+                // Schedule notifications at optimal meal times
+                // Breakfast: 7-9 AM (check at 8 AM)
+                const isBreakfastTime = (hour === 8 && minutes < 5)
+                // Lunch: 12-2 PM (check at 1 PM)
+                const isLunchTime = (hour === 13 && minutes < 5)
+                // Afternoon check-in: 3-4 PM (check at 3:30 PM)
+                const isAfternoonCheck = (hour === 15 && minutes >= 30 && minutes < 35)
+                // Dinner: 6-8 PM (check at 7 PM)
+                const isDinnerTime = (hour === 19 && minutes < 5)
+                // Evening wrap-up: 9-11 PM (check at 10 PM)
+                const isEveningWrap = (hour === 22 && minutes < 5)
+                // Late night: 11 PM - 1 AM (check at 11:30 PM)
+                const isLateNight = (hour === 23 && minutes >= 30 && minutes < 35)
 
-                // Evaluate if we should check (time-based OR diet completion check)
-                let shouldEvaluate = isTestMode || isSystemCheck || isMorningKickoff || isAfternoon || isEvening || isEndOfDay || isTestWindow
+                // Determine if we should send a notification
+                const shouldSendNotification = isTestMode || 
+                    isBreakfastTime || 
+                    isLunchTime || 
+                    isAfternoonCheck || 
+                    isDinnerTime || 
+                    isEveningWrap || 
+                    isLateNight ||
+                    (isBehind && (hour >= 12 && hour < 22)) // Send reminder if behind during active hours
 
-                // Also check if user is behind on diet (regardless of time, but with some limits)
-                const shouldCheckDietCompletion = isBehind && (isTestMode || isAfternoon || isEvening || isEndOfDay || isTestWindow)
+                if (!shouldSendNotification) continue
 
-                console.log(`User ${profile.id}: Local Time ${hour}:${minutes.toString().padStart(2, '0')} (${timeZone}) | Calories: ${currentStats.calories}/${profile.daily_calorie_target} (${Math.round(progressPercent)}%) | Behind: ${isBehind}`)
-                console.log(`  Time Checks: SystemCheck=${isSystemCheck}, Morning=${isMorningKickoff}, Afternoon=${isAfternoon}, Evening=${isEvening}, EndOfDay=${isEndOfDay}, TestWindow=${isTestWindow}`)
-                console.log(`  Should Evaluate: ${shouldEvaluate}, Should Check Diet: ${shouldCheckDietCompletion}`)
-
-                if (!shouldEvaluate && !shouldCheckDietCompletion) continue
-
-                // Condition Logic
-                let conditionMet = false
-                let title = ''
-                let message = ''
-                let notificationType: 'goal_reminder' | 'coach_advice' | 'system' | 'milestone' = 'goal_reminder'
-
-                if (isTestMode || isTestWindow) {
-                    conditionMet = true
-                    title = 'Night Owl Check! 🦉'
-                    message = `It's ${hour}:${minutes.toString().padStart(2, '0')}. Just checking in — don't forget rest is part of progress.`
-                } else if (shouldCheckDietCompletion && isBehind) {
-                    // User is behind on diet - this is the main feature!
-                    conditionMet = true
-                    const caloriesNeeded = Math.max(0, profile.daily_calorie_target - currentStats.calories)
-                    
-                    if (timeOfDay === 'afternoon') {
-                        title = 'Energy Boost Needed! ⚡'
-                        message = `You're at ${Math.round(progressPercent)}% of your daily goal. You need about ${Math.round(caloriesNeeded)} more calories to stay on track.`
-                    } else if (timeOfDay === 'evening') {
-                        title = 'Almost There! 🌙'
-                        message = `You're at ${Math.round(progressPercent)}% of your daily goal. Just ${Math.round(caloriesNeeded)} more calories to complete your day strong!`
-                    } else if (timeOfDay === 'night') {
-                        title = 'Final Push! 💪'
-                        message = `You're at ${Math.round(progressPercent)}% of your daily goal. Don't give up now - you're so close!`
-                    } else {
-                        title = 'Stay on Track! 📊'
-                        message = `You're currently at ${Math.round(progressPercent)}% of your daily calorie goal. Keep logging your meals!`
-                    }
-                    notificationType = 'coach_advice'
-                } else if (isEndOfDay) {
-                    // End of day notification - always send at 11:15 PM regardless of diet status
-                    conditionMet = true
-                    if (isBehind) {
-                        // User is behind - encourage them
-                        const caloriesNeeded = Math.max(0, profile.daily_calorie_target - currentStats.calories)
-                        title = 'Final Push! 💪'
-                        message = `You're at ${Math.round(progressPercent)}% of your daily goal. You still need ${Math.round(caloriesNeeded)} more calories. Don't give up - every calorie counts!`
-                        notificationType = 'coach_advice'
-                    } else if (progressPercent >= 100) {
-                        // User completed their goal - celebrate!
-                        title = 'Goal Achieved! 🎉'
-                        message = `Congratulations! You've reached ${Math.round(progressPercent)}% of your daily calorie goal. Great job staying on track today!`
-                        notificationType = 'milestone'
-                    } else {
-                        // User is on track but not quite there - gentle reminder
-                        const caloriesNeeded = Math.max(0, profile.daily_calorie_target - currentStats.calories)
-                        title = 'End of Day Check-in 📊'
-                        message = `You're at ${Math.round(progressPercent)}% of your daily goal. ${caloriesNeeded > 0 ? `Just ${Math.round(caloriesNeeded)} more calories to complete your day!` : 'You\'re doing great!'}`
-                        notificationType = 'goal_reminder'
-                    }
-                } else if (isSystemCheck) {
-                    conditionMet = true
-                    title = 'System Check 🛠️'
-                    message = "Ready for the day? Your coach is standing by."
-                } else if (isMorningKickoff) {
-                    conditionMet = true
-                    title = 'Rise and Shine! ☀️'
-                    message = "Start your day with a win. Log your breakfast to stay on track!"
-                }
-
-                if (!conditionMet) {
-                    console.log(`User ${profile.id}: No condition met. Skipping notification.`)
-                    continue
-                }
+                // Generate notification based on context
+                const notification = generateNotification(
+                    timeOfDay,
+                    mealType,
+                    progressPercent,
+                    caloriesNeeded,
+                    hasLoggedToday,
+                    isGoalAchieved,
+                    hour
+                )
 
                 // Get AI coaching advice if user is behind on diet
                 let suggestion: string | null = null
-                if (shouldCheckDietCompletion && isBehind && apiBaseUrl) {
+                if (isBehind && apiBaseUrl && (hour >= 12 && hour < 22)) {
                     try {
                         suggestion = await getCoachingAdvice(
                             apiBaseUrl,
@@ -307,8 +418,7 @@ Deno.serve(async (req) => {
                             }
                         )
                     } catch (error) {
-                        console.error(`Failed to get coaching advice for user ${profile.id}:`, error)
-                        // Continue without suggestion - notification will still be sent
+                        // Continue without suggestion
                     }
                 }
 
@@ -323,33 +433,29 @@ Deno.serve(async (req) => {
 
                     const alreadySent = recentNotifs?.some(n => {
                         const d = new Intl.DateTimeFormat('en-CA', { timeZone }).format(new Date(n.created_at))
-                        return d === userTodayDateString && n.title === title
+                        return d === userTodayDateString && n.title === notification.title
                     })
 
                     if (alreadySent) {
-                        console.log(`User ${profile.id}: Already sent '${title}' today. skipping.`)
                         continue
                     }
                 }
 
-                console.log(`User ${profile.id}: Sending notification: ${title}`)
                 const { error: insertError } = await supabase.from('notifications').insert({
                     user_id: profile.id,
-                    title,
-                    message,
-                    type: notificationType,
+                    title: notification.title,
+                    message: notification.message,
+                    type: notification.type,
                     suggestion: suggestion || undefined,
                 })
 
                 if (insertError) {
-                    console.error(`User ${profile.id}: Insert failed!`, insertError)
                     results.errors++
                 } else {
                     results.notificationsSent++
                 }
 
             } catch (e) {
-                console.error(`Error processing profile ${profile.id}:`, e)
                 results.errors++
             }
         }
