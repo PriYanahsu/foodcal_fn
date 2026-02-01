@@ -1,16 +1,20 @@
 {
-    "name": "FoodCal - AI Nutrition Tracker",
+    "id": "com.krixen.foodcal",
+    "name": "FoodCal",
     "short_name": "FoodCal",
-    "description": "Track your nutrition instantly with AI",
+    "description": "Premium AI Nutrition & Fitness Coach",
     "start_url": "/",
+    "scope": "/",
     "display": "standalone",
-    "background_color": "#ffffff",
+    "orientation": "portrait",
+    "background_color": "#000000",
     "theme_color": "#000000",
     "icons": [
         {
             "src": "/foodCalLogo.jpeg",
             "sizes": "192x192 512x512",
-            "type": "image/jpeg"
+            "type": "image/jpeg",
+            "purpose": "any maskable"
         }
     ]
 }

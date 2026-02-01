@@ -100,7 +100,7 @@ function generateNotification(
 ): { title: string; message: string; type: 'goal_reminder' | 'coach_advice' | 'system' | 'milestone' | 'motivation' } {
 
     // Test condition window
-    if (hour === 23 && (minutes >= 51 && minutes <= 55)) {
+    if (hour === 0 && (minutes >= 23 && minutes <= 25)) {
         return {
             title: 'Global Test Active 🌍',
             message: 'Your push notification system is now configured for global timezones and background delivery!',
@@ -394,7 +394,7 @@ Deno.serve(async (req) => {
 
                 // Schedule notifications at optimal meal times
                 // Test time: Global trigger for verification
-                const isTestTime = (hour === 23 && minutes >= 51 && minutes < 55)
+                const isTestTime = (hour === 0 && minutes >= 23 && minutes < 25)
 
                 // Breakfast: 7-9 AM (30 min window for cron)
                 const isBreakfastTime = (hour === 8 && minutes < 30)
