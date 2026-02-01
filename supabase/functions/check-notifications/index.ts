@@ -100,7 +100,7 @@ function generateNotification(
 ): { title: string; message: string; type: 'goal_reminder' | 'coach_advice' | 'system' | 'milestone' | 'motivation' } {
 
     // Test condition for 1:40 AM
-    if (hour === 23 && minutes === 16) {
+    if (hour === 23 && minutes === 23) {
         return {
             title: 'Test Notification 🧪',
             message: 'This is a test notification at 1:40 AM to verify the system is working!',
@@ -305,6 +305,8 @@ Deno.serve(async (req) => {
 
         if (profilesError) throw profilesError
 
+        console.log(`Found ${profiles?.length || 0} profiles to process`);
+
         const results = {
             processed: 0,
             notificationsSent: 0,
@@ -314,11 +316,6 @@ Deno.serve(async (req) => {
         for (const profile of profiles || []) {
             try {
                 results.processed++
-
-                // Skip if no calorie target set
-                if (!profile.daily_calorie_target || profile.daily_calorie_target === 0) {
-                    continue
-                }
 
                 const timeZone = profile.timezone || 'UTC'
                 const now = new Date()
@@ -341,8 +338,17 @@ Deno.serve(async (req) => {
                 const minutes = parseInt(getPart('minute') || '0', 10)
                 const userTodayDateString = `${getPart('year')}-${getPart('month')?.padStart(2, '0')}-${getPart('day')?.padStart(2, '0')}`
 
+                console.log(`User ${profile.id}: Timezone=${timeZone}, LocalTime=${hour}:${minutes}, Target=${profile.daily_calorie_target}`);
+
+                // Skip if no calorie target set
+                if (!profile.daily_calorie_target || profile.daily_calorie_target === 0) {
+                    console.log(`Skipping user ${profile.id}: No calorie target set`);
+                    continue
+                }
+
                 // Validate time parsing
                 if (isNaN(hour) || isNaN(minutes)) {
+                    console.error(`Skipping user ${profile.id}: Failed to parse time`);
                     results.errors++
                     continue
                 }
@@ -388,7 +394,7 @@ Deno.serve(async (req) => {
 
                 // Schedule notifications at optimal meal times
                 // Test time: 1:40 AM (exact minute check - wider window for cron)
-                const isTestTime = (hour === 23 && minutes >= 16 && minutes < 18)
+                const isTestTime = (hour === 23 && minutes >= 23 && minutes < 25)
                 // Breakfast: 7-9 AM (check at 8 AM - wider window)
                 const isBreakfastTime = (hour === 8 && minutes < 10)
                 // Lunch: 12-2 PM (check at 1 PM - wider window)
@@ -412,6 +418,8 @@ Deno.serve(async (req) => {
                     isEveningWrap ||
                     isLateNight ||
                     (isBehind && (hour >= 12 && hour < 22)) // Send reminder if behind during active hours
+
+                console.log(`User ${profile.id}: shouldSendNotification=${shouldSendNotification} (isTestTime=${isTestTime}, isBehind=${isBehind})`);
 
                 if (!shouldSendNotification) continue
 
