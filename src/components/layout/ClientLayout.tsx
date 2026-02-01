@@ -7,8 +7,8 @@ import { NotificationProvider } from '@/features/notifications/context/Notificat
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 import { NotificationToast } from '@/features/notifications/components/NotificationToast';
 import { NotificationPrompt } from '@/features/notifications/components/NotificationPrompt';
-import { PushTest } from '@/features/notifications/components/PushTest';
 import { StepTrackerProvider } from '@/features/activity/context/StepTrackerContext';
+import { BRAND_ASSETS } from '@/lib/brand-config';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -33,15 +33,14 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                                     <NotificationToast />
                                 </div>
                                 <NotificationPrompt />
-                                <PushTest />
                             </>
                         )}
 
                         {/* Mobile Brand Header (Global) */}
                         <div className="md:hidden absolute top-6 left-6 flex items-center gap-3 z-50">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)]"></div>
+                            <img src={BRAND_ASSETS.logo} alt="" className="w-8 h-8 rounded-lg object-contain" />
                             <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
-                                FoodCal
+                                {BRAND_ASSETS.name}
                             </h1>
                         </div>
                         {children}

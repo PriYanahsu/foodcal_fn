@@ -223,10 +223,24 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                     const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
 
                     // Subscribe to push notifications
-                    const pushSubscription = await registration.pushManager.subscribe({
-                        userVisibleOnly: true,
-                        applicationServerKey: applicationServerKey as any,
-                    });
+                    let pushSubscription;
+                    try {
+                        pushSubscription = await registration.pushManager.subscribe({
+                            userVisibleOnly: true,
+                            applicationServerKey: applicationServerKey as any,
+                        });
+                    } catch (subErr: any) {
+                        console.error('Subscription call failed, trying reset:', subErr);
+                        // Try to clean up existing sub and try one more time
+                        const existingSub = await registration.pushManager.getSubscription();
+                        if (existingSub) {
+                            await existingSub.unsubscribe();
+                        }
+                        pushSubscription = await registration.pushManager.subscribe({
+                            userVisibleOnly: true,
+                            applicationServerKey: applicationServerKey as any,
+                        });
+                    }
 
                     // Prepare subscription data
                     const subscriptionData = {
@@ -237,6 +251,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                         },
                     };
 
+                    console.log('Push subscription created, saving to backend...');
+
                     // Save subscription to backend
                     const response = await fetch('/api/push-subscribe', {
                         method: 'POST',
@@ -246,6 +262,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
                     if (response.ok) {
                         setHasPushSubscription(true);
+                        console.log('Push subscription saved successfully');
                         // Show success notification
                         if (Notification.permission === 'granted') {
                             new Notification('Push Notifications Enabled! 🎉', {
@@ -256,23 +273,27 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                             });
                         }
                     } else {
-                        const errorData = await response.json();
+                        const errorData = await response.json().catch(() => ({}));
                         console.error('Failed to save subscription:', errorData);
-                        alert('Failed to enable push notifications. Please try again.');
+                        alert(`Server Error: ${errorData.error || 'Failed to sync with account'}`);
+                        setIsSubscribing(false);
                     }
                 } catch (pushError: any) {
-                    console.error('Push subscription error:', pushError);
+                    console.error('Push subscription error details:', pushError);
                     let errorMessage = 'Failed to enable push notifications. ';
 
-                    if (pushError.message?.includes('VAPID')) {
-                        errorMessage += 'Configuration error.';
-                    } else if (pushError.message?.includes('permission')) {
-                        errorMessage += 'Permission denied.';
+                    if (pushError.name === 'NotAllowedError') {
+                        errorMessage += 'Permission was denied by your system/browser.';
+                    } else if (pushError.name === 'AbortError') {
+                        errorMessage += 'The operation was aborted. Please check your internet.';
+                    } else if (pushError.message?.includes('VAPID')) {
+                        errorMessage += 'Security key configuration error.';
                     } else {
-                        errorMessage += 'Please try again.';
+                        errorMessage += pushError.message || 'Please try again.';
                     }
 
                     alert(errorMessage);
+                    setIsSubscribing(false);
                 }
             } else {
                 // Fallback: regular notifications

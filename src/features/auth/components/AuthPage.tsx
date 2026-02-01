@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/Card';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { BRAND_ASSETS } from '@/lib/brand-config';
 
 export const AuthPage: React.FC = () => {
   const [view, setView] = useState<'landing' | 'login' | 'signup'>('landing');
@@ -81,9 +82,9 @@ export const AuthPage: React.FC = () => {
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
-                    className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] rounded-2xl sm:rounded-3xl mx-auto flex items-center justify-center shadow-lg shadow-[var(--primary)]/20 transform rotate-3"
+                    className="w-20 h-20 sm:w-24 sm:h-24 bg-black/40 backdrop-blur-md rounded-2xl sm:rounded-3xl mx-auto flex items-center justify-center shadow-lg transform rotate-3 overflow-hidden border border-white/10"
                   >
-                    <span className="text-4xl sm:text-5xl">🥑</span>
+                    <img src={BRAND_ASSETS.logo} alt={BRAND_ASSETS.name} className="w-full h-full object-contain" />
                   </motion.div>
 
                   <div className="space-y-2">
@@ -93,7 +94,7 @@ export const AuthPage: React.FC = () => {
                       transition={{ delay: 0.2, type: "spring" }}
                       className="text-4xl sm:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] tracking-tight"
                     >
-                      FoodCal
+                      {BRAND_ASSETS.name}
                     </motion.h1>
                     <motion.p
                       initial={{ y: 20, opacity: 0 }}
