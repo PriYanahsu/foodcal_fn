@@ -12,9 +12,10 @@ self.addEventListener('push', function (event) {
             const data = event.data.json();
             notificationData = {
                 title: data.title || notificationData.title,
-                body: data.body || notificationData.body,
+                body: data.body || data.message || notificationData.body,
                 icon: data.icon || notificationData.icon,
                 badge: data.badge || notificationData.badge,
+                data: data.data || {},
             };
         } catch (e) {
             // If data is not JSON, try text
@@ -40,7 +41,7 @@ self.addEventListener('push', function (event) {
         silent: false,
         renotify: false,
         data: {
-            url: self.location.origin + '/',
+            url: notificationData.data?.url || self.location.origin + '/',
             timestamp: Date.now(),
             notificationId: notificationData.data?.notificationId || null,
         },
@@ -48,7 +49,7 @@ self.addEventListener('push', function (event) {
 
     event.waitUntil(
         self.registration.showNotification(notificationData.title, options)
-            .catch(function(error) {
+            .catch(function (error) {
                 console.error('Error showing notification:', error);
             })
     );
@@ -84,7 +85,7 @@ self.addEventListener('notificationclick', function (event) {
             if (clients.openWindow) {
                 return clients.openWindow(urlToOpen);
             }
-        }).catch(function(error) {
+        }).catch(function (error) {
             console.error('Error handling notification click:', error);
             // Fallback: try to open window directly
             if (clients.openWindow) {
