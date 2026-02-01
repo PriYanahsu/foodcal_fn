@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import ClientLayout from '@/components/layout/ClientLayout';
+import { BRAND_ASSETS } from '@/lib/brand-config';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -19,6 +20,8 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" href={BRAND_ASSETS.favicon} />
+        <link rel="apple-touch-icon" href={BRAND_ASSETS.appleTouchIcon} />
         <meta name="theme-color" content="#000000" />
       </head>
       <body>

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useNotifications } from '../context/NotificationContext';
+import { BRAND_ASSETS } from '@/lib/brand-config';
 
 export const PushTest: React.FC = () => {
     const { sendTestPush, hasPushSubscription, permission, requestPermission } = useNotifications();
@@ -30,6 +31,7 @@ export const PushTest: React.FC = () => {
     return (
         <div className="fixed bottom-4 right-4 z-50 p-4 bg-black/80 backdrop-blur-md rounded-2xl border border-white/10 shadow-2xl max-w-xs animate-in fade-in slide-in-from-bottom-4 duration-500">
             <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
+                <img src={BRAND_ASSETS.logo} alt="" className="w-5 h-5 object-contain" />
                 <span>Push Test Tool</span>
                 <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-500 rounded-full border border-yellow-500/20 uppercase tracking-wider">Debug</span>
             </h3>
