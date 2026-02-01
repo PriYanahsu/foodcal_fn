@@ -15,6 +15,7 @@ export const AuthPage: React.FC = () => {
   const router = useRouter();
   const supabase = createClient();
 
+
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -28,8 +29,11 @@ export const AuthPage: React.FC = () => {
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -10 }}
+      whileHover={{ scale: 1.05, x: -2 }}
+      whileTap={{ scale: 0.95 }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
       onClick={() => setView('landing')}
-      className="absolute top-6 left-6 text-[var(--text-muted)] hover:text-white flex items-center gap-2 transition-colors z-20 group text-sm font-semibold py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 backdrop-blur-md"
+      className="mb-6 text-[var(--text-muted)] hover:text-white flex items-center gap-2 transition-colors group text-sm font-semibold py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 backdrop-blur-md w-fit"
     >
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-x-1 transition-transform">
         <path d="M19 12H5" /><path d="m12 19l-7-7 7-7" />
@@ -157,9 +161,10 @@ export const AuthPage: React.FC = () => {
                 {view === 'landing' && (
                   <motion.div
                     key="landing"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
                     className="space-y-8"
                   >
                     <div className="text-center">
@@ -168,19 +173,27 @@ export const AuthPage: React.FC = () => {
                     </div>
 
                     <div className="space-y-3">
-                      <button
+                      <motion.button
                         onClick={() => setView('login')}
-                        className="w-full py-4 px-6 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-black font-black text-lg rounded-2xl shadow-[0_10px_30px_-10px_#00ff8866] transition-all transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
+                        whileHover={{ scale: 1.02, y: -2 }}
+                        whileTap={{ scale: 0.98 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                        className="w-full py-4 px-6 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-black font-black text-lg rounded-2xl shadow-[0_10px_30px_-10px_#00ff8866] hover:shadow-[0_20px_40px_-10px_#00ff88aa] transition-all flex items-center justify-center gap-2"
                       >
                         Sign In
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
-                      </button>
-                      <button
+                      </motion.button>
+                      <motion.button
                         onClick={() => setView('signup')}
-                        className="w-full py-4 px-6 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold text-lg rounded-2xl transition-all"
+                        whileHover={{ scale: 1.02, y: -2 }}
+                        whileTap={{ scale: 0.98 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                        className="w-full py-4 px-6 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white font-bold text-lg rounded-2xl transition-all"
                       >
                         Create Free Account
-                      </button>
+                      </motion.button>
+
+
                     </div>
                   </motion.div>
                 )}
@@ -188,12 +201,13 @@ export const AuthPage: React.FC = () => {
                 {view === 'login' && (
                   <motion.div
                     key="login"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
+                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                    transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
                   >
                     <BackButton />
-                    <div className="text-center mb-10 mt-6">
+                    <div className="text-center mb-8">
                       <h2 className="text-3xl font-black mb-2 text-white">Welcome Back</h2>
                       <p className="text-gray-500 text-sm">Sign in to your intelligent coach</p>
                     </div>
@@ -204,12 +218,13 @@ export const AuthPage: React.FC = () => {
                 {view === 'signup' && (
                   <motion.div
                     key="signup"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
+                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                    transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
                   >
                     <BackButton />
-                    <div className="text-center mb-10 mt-6">
+                    <div className="text-center mb-8">
                       <h2 className="text-3xl font-black mb-2 text-white">Join {BRAND_ASSETS.name}</h2>
                       <p className="text-gray-500 text-sm">Your transformation starts today</p>
                     </div>
