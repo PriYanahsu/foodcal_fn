@@ -5,7 +5,12 @@ import { useNotifications } from '../context/NotificationContext';
 
 export const PushTest: React.FC = () => {
     const { sendTestPush, hasPushSubscription, permission, requestPermission } = useNotifications();
+    const [mounted, setMounted] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const handleTest = async () => {
         setIsLoading(true);
@@ -15,6 +20,8 @@ export const PushTest: React.FC = () => {
             setIsLoading(false);
         }
     };
+
+    if (!mounted) return null;
 
     if (process.env.NODE_ENV === 'production' && !window.location.search.includes('debug=true')) {
         return null;
@@ -42,6 +49,13 @@ export const PushTest: React.FC = () => {
                     </span>
                 </div>
 
+                <div className="flex justify-between text-xs">
+                    <span className="text-white/60">VAPID Key:</span>
+                    <span className={`font-mono ${process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ? 'text-green-400' : 'text-red-400'}`}>
+                        {process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ? 'Detected' : 'Missing'}
+                    </span>
+                </div>
+
                 {!hasPushSubscription ? (
                     <button
                         onClick={() => requestPermission()}
@@ -60,7 +74,10 @@ export const PushTest: React.FC = () => {
                 )}
 
                 <p className="text-[10px] text-white/40 italic">
-                    Tip: Close the tab after clicking "Send Test Push" to verify it works outside the website.
+                    <strong>Testing background push:</strong><br />
+                    1. Click "Send Test Push"<br />
+                    2. Immediately close the browser/tab<br />
+                    3. Wait on your device's home screen
                 </p>
             </div>
         </div>
