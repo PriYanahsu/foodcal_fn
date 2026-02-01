@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { CalendarDaysIcon, CameraIcon } from '@heroicons/react/24/outline';
+import { CameraIcon, SparklesIcon, ChevronRightIcon, XMarkIcon, ChevronLeftIcon } from '@heroicons/react/24/outline';
 import AvatarUpload from '@/features/userProfile/components/AvatarUpload';
 import { ROUTES } from '@/constants/routes';
 import { StatCard } from '@/components/dashboard/StatCard';
@@ -10,11 +10,9 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useDailyStats } from '@/features/dashboard/hooks/useDailyStats';
 import { createClient } from '@/lib/supabase/client';
 import FitnessSetupWizard from '@/features/fitnessProfile/components/setup/FitnessSetupWizard';
-import WeightProgressWidget from '@/features/fitnessProfile/components/WeightProgressWidget';
 import { StepTracker } from '@/features/activity/components/StepTracker';
-import { SparklesIcon, TrophyIcon, ChevronRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
-
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,11 +32,7 @@ export default function Dashboard() {
   const supabase = createClient();
   const { user } = useAuth();
 
-  // State for the selected date filter
-  // Initialize with today's date formatted as YYYY-MM-DD for the input
-  // We use a safe default that doesn't rely on hydration-sensitive calculations if possible, 
-  // but for the input 'value', YYYY-MM-DD is standard.
-  // We will handle the display text separately.
+  // Date State
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toLocaleDateString('en-CA'));
   const [mounted, setMounted] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
@@ -47,8 +41,6 @@ export default function Dashboard() {
     setMounted(true);
   }, []);
 
-  // We now pass the string directly (with time component to ensure local start of day) 
-  // to the updated hook which handles dependencies correctly.
   const { stats, recentLogs, loading } = useDailyStats(selectedDate + 'T00:00:00');
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
@@ -82,10 +74,8 @@ export default function Dashboard() {
   }, [user]);
 
   const completionPercentage = calculateProfileCompletion(profile);
-
   const userName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
 
-  // Goals from profile or defaults
   const goals = {
     calories: profile?.daily_calorie_target || 2200,
     protein: profile?.daily_protein_target || 150,
@@ -93,35 +83,74 @@ export default function Dashboard() {
     fats: profile?.daily_fats_target || 70,
   };
 
+  // Date Navigation Handlers
+  const handleDateChange = (days: number) => {
+    const date = new Date(selectedDate);
+    date.setDate(date.getDate() + days);
+    setSelectedDate(date.toLocaleDateString('en-CA'));
+  };
+
+  const isToday = selectedDate === new Date().toLocaleDateString('en-CA');
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
+
   return (
-    <div className="p-4 md:p-6 lg:p-10 max-w-7xl mx-auto space-y-8 md:space-y-10">
+    <motion.div
+      initial="hidden"
+      animate="show"
+      variants={containerVariants}
+      className="p-4 md:p-8 lg:p-12 max-w-7xl mx-auto space-y-10 min-h-screen relative"
+    >
+      {/* Background Decor */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+        <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-[var(--primary)]/5 blur-[100px]" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-blue-500/5 blur-[100px]" />
+      </div>
 
       {showReminder && (
-        <div className="animate-slide-up">
-          <div className="glass-card px-3 sm:px-4 py-2 flex items-start gap-3 border-[var(--primary)]/20 relative pr-10">
-            <SparklesIcon className="w-5 h-5 text-[var(--primary)] shrink-0 mt-0.5" />
-            <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm font-medium leading-relaxed">
+        <motion.div variants={itemVariants} className="relative z-20">
+          <div className="glass-card px-4 py-3 flex items-center justify-between gap-4 border-[var(--primary)]/20 shadow-[0_4px_20px_-5px_rgba(var(--primary-rgb),0.2)]">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-[var(--primary)]/10 rounded-full text-[var(--primary)]">
+                <SparklesIcon className="w-5 h-5" />
+              </div>
+              <p className="text-sm font-medium">
                 Profile Incomplete ({completionPercentage}%) —
-                <Link href="/profile" className="text-[var(--primary)] hover:underline ml-1 inline-flex items-center gap-1">
-                  Complete now <span className="hidden xs:inline">for better AI results</span>
+                <Link href="/profile" className="text-[var(--primary)] hover:underline ml-1 font-bold">
+                  Complete setup
                 </Link>
               </p>
             </div>
             <button
               onClick={() => setShowReminder(false)}
-              className="absolute right-3 top-2.5 text-[var(--text-muted)] hover:text-white transition-colors p-1"
+              className="text-[var(--text-muted)] hover:text-white transition-colors p-1"
             >
-              <XMarkIcon className="w-4 h-4" />
+              <XMarkIcon className="w-5 h-5" />
             </button>
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Hero Section */}
-      <section className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-6 animate-fade-in-up overflow-hidden">
-        <div className="flex items-center gap-4 max-w-full">
-          <div className="premium-ring shrink-0">
+      <motion.section variants={itemVariants} className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-8">
+        <div className="flex flex-col sm:flex-row items-center gap-6 w-full xl:w-auto">
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            className=" shrink-0 p-1 rounded-full"
+          >
             <AvatarUpload
               uid={user?.id || ''}
               url={profile?.avatar_url ?? null}
@@ -130,218 +159,291 @@ export default function Dashboard() {
                 supabase.from('profiles').update({ avatar_url: url }).eq('id', user?.id).then();
                 setProfile(prev => prev ? { ...prev, avatar_url: url } : null);
               }}
-              size={60}
+              size={72}
             />
-          </div>
-          <div className="flex flex-col min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight truncate">
-              Hello, <span className="text-[var(--primary)]">{userName}</span>
+          </motion.div>
+          <div className="text-center sm:text-left">
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white mb-1">
+              Hello, <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-blue-400">{userName}</span>
             </h1>
-            <p className="text-[var(--text-muted)] text-[10px] sm:text-xs font-medium truncate">
-              {loading ? 'Fetching stats...' : profile?.goal ? `Target: ${profile.goal}` : "Set your targets to begin."}
+            <p className="text-[var(--text-muted)] font-medium">
+              {loading ? 'Crunching the numbers...' : profile?.goal ? `Target: ${profile.goal}` : "Let's hit your macro goals today."}
             </p>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full xl:w-auto">
-          {!profileLoading && !profile?.goal && (
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full xl:w-auto">
+          {/* Custom Date Navigator */}
+          <div className="flex items-center bg-[var(--card-bg)]/50 backdrop-blur-md border border-[var(--card-border)] rounded-2xl p-1 shadow-lg w-full sm:w-auto justify-between sm:justify-start relative z-10">
             <button
-              onClick={() => setShowWizard(true)}
-              className="btn-secondary group flex items-center justify-center gap-2 border-[var(--primary)]/30 text-[var(--primary)] hover:bg-[var(--primary)]/5 py-2 px-4 h-10"
+              onClick={() => handleDateChange(-1)}
+              className="p-3 hover:bg-white/5 rounded-xl transition-colors text-[var(--text-muted)] hover:text-white shrink-0"
             >
-              <SparklesIcon className="w-4 h-4" />
-              <span className="text-xs">Consult Coach</span>
+              <ChevronLeftIcon className="w-5 h-5" />
             </button>
-          )}
 
-          <div className="relative">
-            <CalendarDaysIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--primary)] pointer-events-none" />
-            <input
-              type="date"
-              name="dateFilter"
-              id="dateFilter"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              style={{ colorScheme: 'dark' }}
-              className="w-full sm:w-auto h-10 pl-9 pr-4 text-xs rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] focus:border-[var(--primary)] transition-all outline-none cursor-pointer text-white font-medium"
-            />
+            <div
+              className="px-2 sm:px-6 text-center min-w-[120px] sm:min-w-[140px] relative cursor-pointer group flex-1 sm:flex-none"
+              onClick={() => {
+                // Explicitly show picker for better reliable interaction
+                const input = document.getElementById('date-picker-input') as HTMLInputElement | null;
+                if (input) {
+                  if ('showPicker' in (input as any)) {
+                    (input as any).showPicker();
+                  } else {
+                    input.click();
+                  }
+                }
+              }}
+            >
+              {/* Hidden Date Trigger */}
+              <input
+                id="date-picker-input"
+                type="date"
+                value={selectedDate}
+                onChange={(e) => {
+                  if (e.target.value) setSelectedDate(e.target.value);
+                }}
+                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-20"
+                style={{ colorScheme: 'dark' }}
+              />
+              <span className="text-xs text-[var(--text-muted)] font-bold uppercase tracking-wider block mb-0.5 group-hover:text-[var(--primary)] transition-colors pointer-events-none">
+                {isToday ? 'Today' : 'Viewing Log'}
+              </span>
+              <span className="text-sm font-bold text-white group-hover:text-[var(--primary)] transition-colors flex items-center justify-center gap-1 pointer-events-none">
+                {mounted ? new Date(selectedDate + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '...'}
+                <span className="text-[10px] opacity-50">▼</span>
+              </span>
+            </div>
+
+            <button
+              onClick={() => handleDateChange(1)}
+              disabled={isToday}
+              className={`p-3 rounded-xl transition-colors shrink-0 ${isToday ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/5 text-[var(--text-muted)] hover:text-white'}`}
+            >
+              <ChevronRightIcon className="w-5 h-5" />
+            </button>
           </div>
 
           <Link href={ROUTES.SCAN}>
-            <button className="btn-primary flex items-center justify-center gap-2 h-10 px-6 text-xs w-full sm:w-auto">
-              <CameraIcon className="w-4 h-4" />
-              <span className="font-bold">Log Meal</span>
-            </button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="btn-primary flex items-center justify-center gap-2 h-14 px-8 rounded-2xl transition-all w-full sm:w-auto"
+            >
+              <CameraIcon className="w-6 h-6" />
+              <span className="font-black tracking-wide">LOG MEAL</span>
+            </motion.button>
           </Link>
         </div>
-      </section>
+      </motion.section>
 
       {/* Stats Grid */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <StatCard
           label="Calories"
           value={Math.round(stats.calories)}
-          unit={`/ ${goals.calories} kcal`}
+          unit={`/ ${goals.calories}`}
           icon="🔥"
           color="#ff4757"
           progress={Math.min((stats.calories / goals.calories) * 100, 100)}
+          delay={0.1}
         />
         <StatCard
           label="Protein"
           value={Math.round(stats.protein)}
-          unit={`/ ${goals.protein} g`}
+          unit={`/ ${goals.protein}g`}
           icon="🥩"
           color="#00ff88"
           progress={Math.min((stats.protein / goals.protein) * 100, 100)}
+          delay={0.2}
         />
         <StatCard
           label="Carbs"
           value={Math.round(stats.carbs)}
-          unit={`/ ${goals.carbs} g`}
+          unit={`/ ${goals.carbs}g`}
           icon="🍞"
           color="#2f81f7"
           progress={Math.min((stats.carbs / goals.carbs) * 100, 100)}
+          delay={0.3}
         />
         <StatCard
           label="Fats"
           value={Math.round(stats.fats)}
-          unit={`/ ${goals.fats} g`}
+          unit={`/ ${goals.fats}g`}
           icon="🥑"
           color="#bd34fe"
           progress={Math.min((stats.fats / goals.fats) * 100, 100)}
+          delay={0.4}
         />
       </section>
 
       {/* Main Content Split */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
         {/* Recent Activity */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="flex flex-wrap justify-between items-center gap-4">
-            {/* Prevent hydration mismatch by only showing formatted date after mount */}
-            <h2 className="text-xl md:text-2xl font-bold">
-              Log for {mounted ? new Date(selectedDate + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' }) : '...'}
-            </h2>
-            <Link href={ROUTES.HISTORY} className="text-[var(--primary)] hover:underline text-sm md:text-base">View All History</Link>
+        <motion.div variants={itemVariants} className="lg:col-span-2 space-y-6">
+          <div className="flex flex-wrap justify-between items-end gap-4 p-2">
+            <div>
+              <h2 className="text-2xl font-bold flex items-center gap-3">
+                Daily Log
+                <span className="text-xs font-normal text-[var(--text-muted)] bg-white/5 px-2 py-1 rounded-lg border border-white/5">
+                  {recentLogs.length} Items
+                </span>
+              </h2>
+            </div>
+            <Link href={ROUTES.HISTORY} className="text-[var(--primary)] hover:text-[var(--primary-hover)] text-sm font-bold flex items-center gap-1 group">
+              Full History
+              <ChevronRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
           </div>
 
-          <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+          <div className="space-y-3 min-h-[300px]">
             {loading ? (
-              // Skeleton Loader to prevent flickering
-              <div className="space-y-4 animate-pulse">
+              <div className="space-y-4">
                 {[...Array(3)].map((_, i) => (
-                  <div key={i} className="h-24 bg-white/5 rounded-2xl border border-white/10" />
+                  <div key={i} className="h-24 bg-white/5 rounded-2xl animate-pulse" />
                 ))}
               </div>
             ) : recentLogs.length === 0 ? (
-              // Premium Empty State
-              <div className="flex flex-col items-center justify-center py-12 px-6 bg-[var(--card-bg)]/30 backdrop-blur-md rounded-3xl border border-[var(--card-border)] border-dashed">
-                <div className="w-16 h-16 mb-4 rounded-full bg-[var(--card-bg)] flex items-center justify-center text-3xl shadow-inner">
-                  📅
+              <div className="flex flex-col items-center justify-center py-16 px-6 bg-[var(--card-bg)]/30 backdrop-blur-md rounded-3xl border border-[var(--card-border)] border-dashed text-center">
+                <div className="w-20 h-20 mb-6 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-4xl shadow-inner border border-white/5">
+                  🍽️
                 </div>
-                <h3 className="text-xl font-bold mb-2 text-center">No Data Entered For This Day</h3>
-                <p className="text-[var(--text-muted)] text-center max-w-sm mb-6">
-                  It looks like you didn't log any meals on this date. Select another date or log a meal now!
+                <h3 className="text-xl font-bold mb-2 text-white">Empty Plate?</h3>
+                <p className="text-[var(--text-muted)] max-w-sm mb-8">
+                  You haven't logged any meals for this day yet.
+                  {isToday ? " Start tracking now to hit your goals!" : " Select another date to view history."}
                 </p>
-                {selectedDate === new Date().toLocaleDateString('en-CA') && (
+                {isToday && (
                   <Link href={ROUTES.SCAN}>
-                    <button className="px-6 py-2 bg-[var(--card-bg)] hover:bg-white/10 border border-white/10 rounded-full transition-colors font-medium">
-                      Log a Meal Now
-                    </button>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="px-8 py-3 bg-[var(--primary)] text-black font-bold rounded-xl shadow-[0_4px_20px_-5px_rgba(0,0,0,0.5)]"
+                    >
+                      Scan First Meal
+                    </motion.button>
                   </Link>
                 )}
               </div>
             ) : (
-              recentLogs.map((log) => {
-                return (
-                  <Link href={`/history/${new Date(log.created_at).toLocaleDateString('en-CA')}/${log.id}`} key={log.id}>
-                    <div className="bg-[var(--card-bg)]/80 backdrop-blur-md border border-[var(--card-border)] rounded-2xl shadow-xl p-4 flex items-center justify-between gap-4 hover:bg-white/5 transition-colors cursor-pointer group">
-                      <div className="flex items-center gap-4 flex-1 min-w-0">
-                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gray-800/50 group-hover:bg-gray-800 transition-colors flex items-center justify-center text-xl md:text-2xl overflow-hidden shrink-0">
-                          {/* Simple fallback icon based on meal type or generic */}
-                          🍽️
+              <div className="grid grid-cols-1 gap-3">
+                <AnimatePresence>
+                  {recentLogs.map((log, i) => (
+                    <motion.div
+                      key={log.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                    >
+                      <Link href={`/history/${new Date(log.created_at).toLocaleDateString('en-CA')}/${log.id}`}>
+                        <div className="bg-[var(--card-bg)]/60 hover:bg-[var(--card-bg)] backdrop-blur-md border border-[var(--card-border)] hover:border-[var(--primary)]/30 rounded-2xl p-4 flex items-center justify-between gap-5 transition-all group shadow-sm hover:shadow-md">
+                          <div className="flex items-center gap-5 flex-1 min-w-0">
+                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 group-hover:from-[var(--primary)]/10 group-hover:to-[var(--primary)]/5 transition-all flex items-center justify-center text-2xl border border-white/5 group-hover:border-[var(--primary)]/20 shadow-inner">
+                              {/* Dynamic icon could go here if available */}
+                              🥗
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <h3 className="font-bold truncate text-lg group-hover:text-[var(--primary)] transition-colors">{log.food_name}</h3>
+                              <p className="text-xs font-medium text-[var(--text-muted)] flex items-center gap-2">
+                                <span>{mounted ? new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                                <span className="w-1 h-1 rounded-full bg-gray-600" />
+                                <span>{Math.round(log.protein)}g Protein</span>
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right shrink-0 bg-black/20 px-4 py-2 rounded-xl">
+                            <span className="block font-black text-xl text-white">+{Math.round(log.calories)}</span>
+                            <span className="text-[10px] uppercase font-bold text-[var(--text-muted)] tracking-wider">kcal</span>
+                          </div>
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <h3 className="font-semibold truncate pr-2">{log.food_name}</h3>
-                          <p className="text-xs md:text-sm text-[var(--text-muted)]">
-                            {mounted ? new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <span className="block font-bold text-[var(--primary)] text-sm md:text-base">+{Math.round(log.calories)}</span>
-                        <span className="text-xs text-[var(--text-muted)]">kcal</span>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })
+                      </Link>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
             )}
           </div>
-        </div>
+        </motion.div>
 
-        {/* Fitness Quick Link */}
-        <div className="space-y-6">
+        {/* Sidebar Widgets */}
+        <motion.div variants={itemVariants} className="space-y-6">
+
+          {/* Fitness Hub Card */}
           <Link href="/fitness" className="block group">
-            <div className="bg-gradient-to-br from-[var(--primary)]/20 to-[var(--secondary)]/10 backdrop-blur-md border border-[var(--primary)]/30 rounded-2xl p-6 shadow-xl transition-all hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(0,255,136,0.2)]">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/20 flex items-center justify-center text-[var(--primary)] transition-transform group-hover:rotate-12">
+            <div className="bg-gradient-to-br from-[var(--primary)]/10 to-blue-500/5 backdrop-blur-xl border border-[var(--primary)]/20 rounded-3xl p-6 shadow-2xl relative overflow-hidden transition-all hover:scale-[1.02] hover:shadow-[0_0_30px_-10px_rgba(0,255,136,0.3)]">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--primary)]/10 blur-[50px] rounded-full pointer-events-none" />
+
+              <div className="flex items-center justify-between mb-6 relative z-10">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-[var(--primary)] text-black flex items-center justify-center shadow-lg shadow-[var(--primary)]/20">
                     <SparklesIcon className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg">Fitness Hub</h3>
-                    <p className="text-xs text-[var(--text-muted)] uppercase tracking-widest">AI Performance Coach</p>
+                    <h3 className="font-bold text-lg leading-tight text-white">Fitness Hub</h3>
+                    <p className="text-[10px] font-bold text-[var(--primary)] uppercase tracking-widest">AI Coach Active</p>
                   </div>
                 </div>
-                <ChevronRightIcon className="w-5 h-5 text-[var(--primary)] group-hover:translate-x-1 transition-transform" />
+                <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                  <ChevronRightIcon className="w-4 h-4 text-white" />
+                </div>
               </div>
 
-              <div className="space-y-3">
-                <p className="text-sm text-gray-300 line-clamp-2 italic">
-                  "{profile?.ai_coach_advice || "Log more meals and update your weight to get personalized coaching tips."}"
+              <div className="bg-black/20 rounded-xl p-4 border border-white/5 mb-4 backdrop-blur-sm">
+                <p className="text-sm text-gray-300 italic leading-relaxed">
+                  "{profile?.ai_coach_advice || "Log more meals to unlock personalized insights."}"
                 </p>
-                {profile?.target_weight && (
-                  <div className="flex justify-between items-center text-xs border-t border-white/5 pt-3">
-                    <span className="text-[var(--text-muted)]">Target: {profile.target_weight}kg</span>
-                    <span className="text-[var(--primary)] font-bold">View Progress</span>
-                  </div>
-                )}
               </div>
+
+              {profile?.target_weight && (
+                <div className="flex justify-between items-center text-xs font-medium text-gray-400">
+                  <span>Target: {profile.target_weight}kg</span>
+                  <span className="text-white group-hover:underline">View Progress</span>
+                </div>
+              )}
             </div>
           </Link>
 
           <StepTracker />
 
-          <h2 className="text-xl md:text-2xl font-bold">Daily Goals</h2>
-          <div className="bg-[var(--card-bg)]/80 backdrop-blur-md border border-[var(--card-border)] rounded-2xl shadow-xl p-6 space-y-6">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">💧</div>
-              <div className="flex-1">
-                <div className="flex justify-between mb-1">
-                  <span className="font-medium">Water Intake</span>
-                  <span className="text-sm text-[var(--text-muted)]">1.5 / 3 L</span>
+          {/* Quick Goals */}
+          <div className="bg-[var(--card-bg)]/40 backdrop-blur-md border border-[var(--card-border)] rounded-3xl p-6 shadow-xl space-y-6">
+            <h3 className="font-bold text-lg">Daily Habits</h3>
+
+            <div className="space-y-5">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0 shadow-[0_0_15px_-5px_rgba(59,130,246,0.3)]">
+                  🌊
                 </div>
-                <div className="w-full bg-gray-700 h-2 rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-500 w-1/2"></div>
+                <div className="flex-1">
+                  <div className="flex justify-between mb-1.5">
+                    <span className="font-bold text-sm">Hydration</span>
+                    <span className="text-xs font-medium text-blue-400">1.5 / 3 L</span>
+                  </div>
+                  <div className="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-500 w-1/2 shadow-[0_0_10px_rgba(59,130,246,0.5)] rounded-full"></div>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400 shrink-0">💤</div>
-              <div className="flex-1">
-                <div className="flex justify-between mb-1">
-                  <span className="font-medium">Sleep</span>
-                  <span className="text-sm text-[var(--text-muted)]">6 / 8 hrs</span>
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shrink-0 shadow-[0_0_15px_-5px_rgba(168,85,247,0.3)]">
+                  💤
                 </div>
-                <div className="w-full bg-gray-700 h-2 rounded-full overflow-hidden">
-                  <div className="h-full bg-orange-500 w-3/4"></div>
+                <div className="flex-1">
+                  <div className="flex justify-between mb-1.5">
+                    <span className="font-bold text-sm">Sleep</span>
+                    <span className="text-xs font-medium text-purple-400">6 / 8 hrs</span>
+                  </div>
+                  <div className="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+                    <div className="h-full bg-purple-500 w-3/4 shadow-[0_0_10px_rgba(168,85,247,0.5)] rounded-full"></div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+
+        </motion.div>
       </section>
 
       {showWizard && user && (
@@ -350,10 +452,10 @@ export default function Dashboard() {
           onCancel={() => setShowWizard(false)}
           onComplete={() => {
             setShowWizard(false);
-            window.location.reload(); // Refresh to show new targets
+            window.location.reload();
           }}
         />
       )}
-    </div>
+    </motion.div>
   );
 }

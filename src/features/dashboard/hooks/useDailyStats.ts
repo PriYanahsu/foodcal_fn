@@ -16,6 +16,9 @@ export interface FoodLog {
     created_at: string;
     meal_type: string;
     image_path: string | null;
+    protein: number;
+    carbs: number;
+    fats: number;
 }
 
 export const useDailyStats = (dateInput: string | Date = new Date()) => { // Accept string or Date
