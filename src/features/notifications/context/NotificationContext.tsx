@@ -5,6 +5,7 @@ import { AppNotification, NotificationContextType, NotificationType } from '../t
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
 import { getVapidPublicKey } from '@/lib/vapid-key';
+import { BRAND_ASSETS } from '@/lib/brand-config';
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
@@ -249,8 +250,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                         if (Notification.permission === 'granted') {
                             new Notification('Push Notifications Enabled! 🎉', {
                                 body: 'You will now receive notifications even when the app is closed!',
-                                icon: '/icons/icon-192x192.png',
-                                badge: '/icons/icon-192x192.png',
+                                icon: BRAND_ASSETS.logo,
+                                badge: BRAND_ASSETS.logo,
                                 tag: 'push-enabled',
                             });
                         }

@@ -5,8 +5,8 @@ self.addEventListener('push', function (event) {
     let notificationData = {
         title: 'New Notification',
         body: 'You have a new notification',
-        icon: '/icons/icon-192x192.png',
-        badge: '/icons/icon-192x192.png',
+        icon: '/foodCalLogo.jpeg',
+        badge: '/foodCalLogo.jpeg',
     };
 
     if (event.data) {
@@ -55,7 +55,7 @@ self.addEventListener('push', function (event) {
             {
                 action: 'open',
                 title: 'View Details',
-                icon: '/icons/icon-192x192.png'
+                icon: '/foodCalLogo.jpeg'
             }
         ]
     };

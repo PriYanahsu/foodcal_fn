@@ -99,11 +99,11 @@ function generateNotification(
     minutes: number
 ): { title: string; message: string; type: 'goal_reminder' | 'coach_advice' | 'system' | 'milestone' | 'motivation' } {
 
-    // Test condition for 1:40 AM
-    if (hour === 23 && minutes === 23) {
+    // Test condition window
+    if (hour === 23 && (minutes >= 51 && minutes <= 55)) {
         return {
-            title: 'Test Notification 🧪',
-            message: 'This is a test notification at 1:40 AM to verify the system is working!',
+            title: 'Global Test Active 🌍',
+            message: 'Your push notification system is now configured for global timezones and background delivery!',
             type: 'system'
         }
     }
@@ -393,22 +393,24 @@ Deno.serve(async (req) => {
                 const caloriesNeeded = Math.max(0, profile.daily_calorie_target - currentStats.calories)
 
                 // Schedule notifications at optimal meal times
-                // Test time: 1:40 AM (exact minute check - wider window for cron)
-                const isTestTime = (hour === 23 && minutes >= 23 && minutes < 25)
-                // Breakfast: 7-9 AM (check at 8 AM - wider window)
-                const isBreakfastTime = (hour === 8 && minutes < 10)
-                // Lunch: 12-2 PM (check at 1 PM - wider window)
-                const isLunchTime = (hour === 13 && minutes < 10)
-                // Afternoon check-in: 3-4 PM (check at 3:30 PM - wider window)
-                const isAfternoonCheck = (hour === 15 && minutes >= 30 && minutes < 40)
-                // Dinner: 6-8 PM (check at 7 PM - wider window)
-                const isDinnerTime = (hour === 19 && minutes < 10)
-                // Evening wrap-up: 9-11 PM (check at 10 PM - wider window)
-                const isEveningWrap = (hour === 22 && minutes < 10)
-                // Late night: 11 PM - 1 AM (check at 11:30 PM - wider window)
-                const isLateNight = (hour === 23 && minutes >= 30 && minutes < 40)
+                // Test time: Global trigger for verification
+                const isTestTime = (hour === 23 && minutes >= 51 && minutes < 55)
+
+                // Breakfast: 7-9 AM (30 min window for cron)
+                const isBreakfastTime = (hour === 8 && minutes < 30)
+                // Lunch: 12-2 PM (30 min window for cron)
+                const isLunchTime = (hour === 13 && minutes < 30)
+                // Afternoon check-in: 3-4 PM (30 min window for cron)
+                const isAfternoonCheck = (hour === 15 && minutes >= 30)
+                // Dinner: 6-8 PM (30 min window for cron)
+                const isDinnerTime = (hour === 19 && minutes < 30)
+                // Evening wrap-up: 9-11 PM (30 min window for cron)
+                const isEveningWrap = (hour === 22 && minutes < 30)
+                // Late night: 11 PM - 1 AM (30 min window for cron)
+                const isLateNight = (hour === 23 && minutes >= 30)
 
                 // Determine if we should send a notification
+                // IF isTestMode is true (from URL), we ALWAYS send.
                 const shouldSendNotification = isTestMode ||
                     isTestTime ||
                     isBreakfastTime ||
@@ -439,6 +441,7 @@ Deno.serve(async (req) => {
                 let suggestion: string | null = null
                 if (isBehind && apiBaseUrl && (hour >= 12 && hour < 22)) {
                     try {
+                        console.log(`User ${profile.id}: Fetching coaching advice...`);
                         suggestion = await getCoachingAdvice(
                             apiBaseUrl,
                             currentStats,
@@ -455,11 +458,13 @@ Deno.serve(async (req) => {
                                 activity_level: profile.activity_level,
                             }
                         )
+                        console.log(`User ${profile.id}: Coaching advice received: ${suggestion ? 'Yes' : 'No'}`);
                     } catch (error) {
-                        // Continue without suggestion
+                        console.error(`User ${profile.id}: Coaching advice error:`, error);
                     }
                 }
 
+                // ... DUPLICATE CHECK LOGIC ...
                 // Check for duplicates (unless it's test mode or test time)
                 if (!isTestMode && !isTestTime) {
                     const { data: recentNotifs } = await supabase
@@ -480,10 +485,12 @@ Deno.serve(async (req) => {
                     })
 
                     if (alreadySent) {
+                        console.log(`User ${profile.id}: Skipping duplicate notification within 2 hours`);
                         continue
                     }
                 }
 
+                console.log(`User ${profile.id}: Inserting notification record...`);
                 const { error: insertError } = await supabase.from('notifications').insert({
                     user_id: profile.id,
                     title: notification.title,
@@ -493,8 +500,10 @@ Deno.serve(async (req) => {
                 })
 
                 if (insertError) {
+                    console.error(`CRITICAL: Database insert failed for user ${profile.id}:`, insertError);
                     results.errors++
                 } else {
+                    console.log(`User ${profile.id}: Notification record created successfully`);
                     results.notificationsSent++
 
                     // Send push notification if API base URL is available
@@ -504,8 +513,8 @@ Deno.serve(async (req) => {
                                 userId: profile.id,
                                 title: notification.title,
                                 body: notification.message,
-                                icon: '/icons/icon-192x192.png',
-                                badge: '/icons/icon-192x192.png',
+                                icon: '/foodCalLogo.jpeg',
+                                badge: '/foodCalLogo.jpeg',
                                 data: {
                                     type: notification.type,
                                     suggestion: suggestion,

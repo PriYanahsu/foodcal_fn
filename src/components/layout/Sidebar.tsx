@@ -37,6 +37,7 @@ const MENU_ITEMS = [
 
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { BRAND_ASSETS } from '@/lib/brand-config';
 
 export function Sidebar() {
     const pathname = usePathname();
@@ -89,7 +90,7 @@ export function Sidebar() {
                         >
                             <div className="flex flex-col h-full p-6">
                                 <div className="mb-10 flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)]"></div>
+                                    <img src={BRAND_ASSETS.logo} alt={`${BRAND_ASSETS.name} Logo`} className="w-8 h-8 rounded-lg object-contain" />
                                     <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
                                         FoodCal
                                     </h1>
@@ -149,7 +150,7 @@ export function Sidebar() {
             <div className="hidden md:block fixed inset-y-0 left-0 z-40 w-64 bg-[var(--card-bg)] border-r border-[var(--card-border)]">
                 <div className="flex flex-col h-full p-6">
                     <div className="mb-10 flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)]"></div>
+                        <img src={BRAND_ASSETS.logo} alt={`${BRAND_ASSETS.name} Logo`} className="w-8 h-8 rounded-lg object-contain" />
                         <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
                             FoodCal
                         </h1>

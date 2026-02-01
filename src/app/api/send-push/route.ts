@@ -74,11 +74,14 @@ export async function POST(request: Request) {
 
         console.log(`Found ${subscriptions.length} subscription(s) for user ${userId}`);
 
+        const pushIcon = icon || '/foodCalLogo.jpeg';
+        const pushBadge = badge || '/foodCalLogo.jpeg';
+
         const payload = JSON.stringify({
             title,
             body,
-            icon: icon || '/icons/icon-192x192.png',
-            badge: badge || '/icons/icon-192x192.png',
+            icon: pushIcon,
+            badge: pushBadge,
             data: {
                 ...(data || {}),
                 url: data?.url || '/', // Default to root if not provided
