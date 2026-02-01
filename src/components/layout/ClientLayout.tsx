@@ -37,12 +37,14 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                         )}
 
                         {/* Mobile Brand Header (Global) */}
-                        <div className="md:hidden absolute top-6 left-6 flex items-center gap-3 z-50">
-                            <img src={BRAND_ASSETS.logo} alt="" className="w-8 h-8 rounded-lg object-contain" />
-                            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
-                                {BRAND_ASSETS.name}
-                            </h1>
-                        </div>
+                        {!isAuthPage && (
+                            <div className="md:hidden absolute top-6 left-6 flex items-center gap-3 z-50">
+                                <img src={BRAND_ASSETS.logo} alt="" className="w-8 h-8 rounded-lg object-contain" />
+                                <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
+                                    {BRAND_ASSETS.name}
+                                </h1>
+                            </div>
+                        )}
                         {children}
                     </main>
                 </div>

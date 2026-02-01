@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { LoginForm } from './LoginForm';
 import { SignupForm } from './SignupForm';
 import { Card } from '@/components/ui/Card';
+import { AppDemo, DEMO_STEPS } from '@/features/landing/components/AppDemo';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -14,169 +15,248 @@ export const AuthPage: React.FC = () => {
   const router = useRouter();
   const supabase = createClient();
 
-  // Check if user already has an ID (is logged in)
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        router.push('/');
-      }
+      if (session) router.push('/');
     };
     checkSession();
   }, [router]);
 
-  // Back button component
   const BackButton = () => (
     <motion.button
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -10 }}
-      transition={{ delay: 0.2 }}
       onClick={() => setView('landing')}
-      className="absolute top-4 left-4 sm:top-6 sm:left-6 text-[var(--text-muted)] hover:text-white flex items-center gap-1.5 transition-colors z-20 group text-sm sm:text-base font-medium py-2 px-3 rounded-lg hover:bg-white/5"
+      className="absolute top-6 left-6 text-[var(--text-muted)] hover:text-white flex items-center gap-2 transition-colors z-20 group text-sm font-semibold py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 backdrop-blur-md"
     >
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-x-1 transition-transform">
-        <path d="M19 12H5" />
-        <path d="M12 19l-7-7 7-7" />
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-x-1 transition-transform">
+        <path d="M19 12H5" /><path d="m12 19l-7-7 7-7" />
       </svg>
       Back
     </motion.button>
   );
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-start sm:justify-center bg-[var(--background)] py-8 sm:py-12 px-4 sm:px-6 lg:px-8 relative overflow-x-hidden overflow-y-auto custom-scrollbar">
-      {/* Dynamic Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-72 sm:w-96 h-72 sm:h-96 bg-[var(--primary)]/15 rounded-full blur-[80px] sm:blur-[100px] animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-72 sm:w-96 h-72 sm:h-96 bg-[var(--secondary)]/15 rounded-full blur-[80px] sm:blur-[100px] animate-pulse delay-1000" />
+    <div className="min-h-screen w-full bg-[#050505] text-white flex flex-col overflow-x-hidden selection:bg-[var(--primary)] selection:text-black">
 
-        {/* Rotating Rings - Hide on very small screens to save performance/visual clutter */}
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-          className="hidden sm:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] lg:w-[800px] h-[600px] lg:h-[800px] rounded-full border border-white/5 opacity-20"
-        />
-        <motion.div
-          animate={{ rotate: -360 }}
-          transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
-          className="hidden sm:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] lg:w-[600px] h-[450px] lg:h-[600px] rounded-full border border-white/5 opacity-20"
-        />
-      </div>
+      {/* Desktop Side-by-Side Context */}
+      <main className="flex-1 flex flex-col lg:flex-row lg:min-h-screen relative">
 
-      <div className="w-full max-w-[440px] relative z-10 perspective-1000 my-auto">
-        <Card className="h-fit flex flex-col justify-center p-4 sm:p-10 bg-[var(--card-bg)]/85 backdrop-blur-xl border border-[var(--card-border)] shadow-2xl rounded-2xl sm:rounded-3xl relative overflow-hidden transition-all duration-300">
+        {/* Left Side: Branding & Premium Demo Context (Hidden on Mobile) */}
+        <div className="hidden lg:flex lg:w-1/2 flex-col justify-center p-16 relative overflow-hidden bg-[radial-gradient(circle_at_top_left,_var(--primary)_0%,_transparent_25%),_radial-gradient(circle_at_bottom_right,_var(--secondary)_0%,_transparent_25%)]">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
 
-          <AnimatePresence mode="wait" initial={false}>
-            {/* Landing View */}
+          <div className="relative z-10 space-y-10">
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-4"
+            >
+              <img src={BRAND_ASSETS.logo} className="w-12 h-12 object-contain rounded-xl shadow-xl" alt="" />
+              <h2 className="text-3xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
+                {BRAND_ASSETS.name}
+              </h2>
+            </motion.div>
+
+            <div className="space-y-4">
+              <motion.h1
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+                className="text-4xl xl:text-5xl font-black leading-tight tracking-tight"
+              >
+                Your Personal <br />
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] via-white to-[var(--secondary)]">
+                  AI Health Coach
+                </span>
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className="text-lg text-gray-400 max-w-md leading-relaxed"
+              >
+                {BRAND_ASSETS.tagline}. Optimized for your body, powered by intelligence.
+              </motion.p>
+            </div>
+
+            {/* Feature Preview Grid */}
+            <div className="grid grid-cols-2 gap-4 max-w-xl">
+              {DEMO_STEPS.slice(0, 4).map((step, i) => {
+                const Icon = step.icon;
+                return (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 + (i * 0.1) }}
+                    className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm group hover:border-[var(--primary)]/30 transition-all"
+                  >
+                    <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${step.color} p-2 mb-3 shadow-lg flex items-center justify-center text-white`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <h4 className="font-bold text-sm mb-1">{step.title}</h4>
+                    <p className="text-xs text-gray-500 line-clamp-2">{step.description}</p>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Decorative Elements */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] opacity-20 pointer-events-none">
+            <div className="absolute inset-0 rounded-full border border-[var(--primary)]/20 animate-[pulse_8s_infinite]" />
+            <div className="absolute inset-[100px] rounded-full border border-white/5 animate-[pulse_12s_infinite]" />
+          </div>
+        </div>
+
+        {/* Right Side: Auth Forms */}
+        <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-6 sm:p-12 lg:min-h-screen relative z-10 bg-black">
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-[440px] space-y-8"
+          >
+            {/* Mobile Branding Header */}
+            <div className="lg:hidden flex flex-col items-center text-center space-y-4 mb-2 w-full relative">
+              <img src={BRAND_ASSETS.logo} className="w-16 h-16 object-contain rounded-2xl shadow-2xl" alt="" />
+              <h1 className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
+                {BRAND_ASSETS.name}
+              </h1>
+              <p className="text-[var(--text-muted)] text-sm max-w-xs">{BRAND_ASSETS.tagline}</p>
+
+              {/* Mobile Quick Feature Preview */}
+              {view === 'landing' && (
+                <div className="grid grid-cols-2 gap-3 w-full px-4 mt-8 mb-4">
+                  {DEMO_STEPS.slice(0, 4).map((step, i) => {
+                    const Icon = step.icon;
+                    return (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 + (i * 0.1) }}
+                        className="p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md flex flex-col items-center text-center group"
+                      >
+                        <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${step.color} p-1.5 mb-2 shadow-lg flex items-center justify-center text-white`}>
+                          <Icon className="w-4 h-4" />
+                        </div>
+                        <h4 className="font-bold text-[9px] uppercase tracking-widest text-gray-300">{step.title}</h4>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <Card className="p-8 sm:p-10 bg-[#111111]/80 backdrop-blur-2xl border border-white/10 shadow-[0_30px_100px_-20px_rgba(0,0,0,0.8)] rounded-3xl relative overflow-visible ring-1 ring-white/5 w-full">
+              <AnimatePresence mode="wait" initial={false}>
+                {view === 'landing' && (
+                  <motion.div
+                    key="landing"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="space-y-8"
+                  >
+                    <div className="text-center">
+                      <h2 className="text-2xl font-bold mb-2">Ready to start?</h2>
+                      <p className="text-gray-500 text-sm">Create an account or sign in to track macros</p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <button
+                        onClick={() => setView('login')}
+                        className="w-full py-4 px-6 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-black font-black text-lg rounded-2xl shadow-[0_10px_30px_-10px_#00ff8866] transition-all transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
+                      >
+                        Sign In
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
+                      </button>
+                      <button
+                        onClick={() => setView('signup')}
+                        className="w-full py-4 px-6 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold text-lg rounded-2xl transition-all"
+                      >
+                        Create Free Account
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {view === 'login' && (
+                  <motion.div
+                    key="login"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                  >
+                    <BackButton />
+                    <div className="text-center mb-10 mt-6">
+                      <h2 className="text-3xl font-black mb-2 text-white">Welcome Back</h2>
+                      <p className="text-gray-500 text-sm">Sign in to your intelligent coach</p>
+                    </div>
+                    <LoginForm />
+                  </motion.div>
+                )}
+
+                {view === 'signup' && (
+                  <motion.div
+                    key="signup"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                  >
+                    <BackButton />
+                    <div className="text-center mb-10 mt-6">
+                      <h2 className="text-3xl font-black mb-2 text-white">Join {BRAND_ASSETS.name}</h2>
+                      <p className="text-gray-500 text-sm">Your transformation starts today</p>
+                    </div>
+                    <SignupForm onSuccess={() => setView('login')} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </Card>
+
+            {/* Mobile Scroll Indicator */}
             {view === 'landing' && (
               <motion.div
-                key="landing"
-                initial={{ opacity: 0, scale: 0.95, filter: "blur(10px)" }}
-                animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-                exit={{ opacity: 0, scale: 1.05, filter: "blur(10px)" }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="text-center space-y-6 sm:space-y-8"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1, duration: 1 }}
+                className="lg:hidden mt-12 flex flex-col items-center gap-3 text-gray-500 cursor-pointer group"
+                onClick={() => {
+                  document.getElementById('mobile-demo-anchor')?.scrollIntoView({ behavior: 'smooth' });
+                }}
               >
-                <div className="space-y-4">
-                  <motion.div
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
-                    className="w-20 h-20 sm:w-24 sm:h-24 bg-black/40 backdrop-blur-md rounded-2xl sm:rounded-3xl mx-auto flex items-center justify-center shadow-lg transform rotate-3 overflow-hidden border border-white/10"
-                  >
-                    <img src={BRAND_ASSETS.logo} alt={BRAND_ASSETS.name} className="w-full h-full object-contain" />
-                  </motion.div>
-
-                  <div className="space-y-2">
-                    <motion.h1
-                      initial={{ y: 20, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      transition={{ delay: 0.2, type: "spring" }}
-                      className="text-4xl sm:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] tracking-tight"
-                    >
-                      {BRAND_ASSETS.name}
-                    </motion.h1>
-                    <motion.p
-                      initial={{ y: 20, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      transition={{ delay: 0.3 }}
-                      className="text-[var(--text-muted)] text-base sm:text-lg max-w-[280px] sm:max-w-xs mx-auto leading-relaxed"
-                    >
-                      Track your nutrition instantly with AI. <br className="hidden sm:block" />
-                      <span className="text-white font-medium block sm:inline mt-1">Your journey starts here.</span>
-                    </motion.p>
-                  </div>
-                </div>
-
-                <div className="space-y-3 sm:space-y-4 pt-2">
-                  <motion.button
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.4, type: "spring" }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setView('login')}
-                    className="w-full py-3.5 sm:py-4 px-6 bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-black font-bold text-base sm:text-lg rounded-xl sm:rounded-2xl shadow-lg shadow-[var(--primary)]/25 transition-colors flex items-center justify-center gap-2 group"
-                  >
-                    Sign In
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
-                  </motion.button>
-                  <motion.button
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.5, type: "spring" }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setView('signup')}
-                    className="w-full py-3.5 sm:py-4 px-6 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-semibold text-base sm:text-lg rounded-xl sm:rounded-2xl transition-colors"
-                  >
-                    Create Account
-                  </motion.button>
-                </div>
+                <span className="text-[10px] uppercase tracking-[0.4em] font-black group-hover:text-[var(--primary)] transition-colors">Learn More</span>
+                <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 2, repeat: Infinity }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="opacity-40 group-hover:text-[var(--primary)] group-hover:opacity-100 transition-all">
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </motion.div>
               </motion.div>
             )}
+          </motion.div>
 
-            {/* Login View */}
-            {view === 'login' && (
-              <motion.div
-                key="login"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="pt-8 sm:pt-4"
-              >
-                <BackButton />
-                <div className="text-center mb-6 sm:mb-8 mt-2 sm:mt-4">
-                  <h2 className="text-2xl sm:text-3xl font-bold text-white mb-1.5 sm:mb-2">Welcome Back</h2>
-                  <p className="text-sm sm:text-base text-[var(--text-muted)]">Sign in to continue your progress</p>
-                </div>
-                <LoginForm />
-              </motion.div>
-            )}
+          {/* Backdrop for the whole right side on mobile */}
+          <div className="lg:hidden absolute top-0 left-0 right-0 h-[1000px] bg-gradient-to-b from-[var(--primary)]/10 via-[var(--secondary)]/5 to-transparent -z-10 blur-[120px]" />
+        </div>
+      </main>
 
-            {/* Signup View */}
-            {view === 'signup' && (
-              <motion.div
-                key="signup"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="pt-8 sm:pt-4"
-              >
-                <BackButton />
-                <div className="text-center mb-6 sm:mb-8 mt-2 sm:mt-4">
-                  <h2 className="text-2xl sm:text-3xl font-bold text-white mb-1.5 sm:mb-2">Join FoodCal</h2>
-                  <p className="text-sm sm:text-base text-[var(--text-muted)]">Start your fitness transformation today</p>
-                </div>
-                <SignupForm onSuccess={() => setView('login')} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-        </Card>
+      {/* Mobile/Full Demo Section */}
+      <div id="app-demo" className="w-full bg-[#080808] border-t border-white/10 relative z-20 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
+        <div id="mobile-demo-anchor" className="absolute -top-20" />
+        <AppDemo />
       </div>
+
+      {/* Footer */}
+      <footer className="py-12 px-6 border-t border-white/5 bg-black/50 text-center">
+        <p className="text-gray-600 text-xs font-mono uppercase tracking-widest">
+          © 2026 {BRAND_ASSETS.name} • Precision AI Nutrition
+        </p>
+      </footer>
     </div>
   );
 };
