@@ -245,84 +245,86 @@ const FeatureModal: React.FC<{
                         className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100]"
                     />
 
-                    {/* Modal */}
-                    <div className="fixed inset-0 z-[101] flex items-center justify-center p-4 overflow-y-auto">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="bg-[#111111] border border-white/10 rounded-3xl max-w-2xl w-full shadow-2xl relative my-8"
-                        >
-                            {/* Close Button */}
-                            <button
-                                onClick={onClose}
-                                className="absolute top-6 right-6 p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-white/60 hover:text-white z-10"
+                    {/* Modal Wrapper to handle scrolling correctly */}
+                    <div className="fixed inset-0 z-[101] overflow-y-auto" onClick={(e) => e.target === e.currentTarget && onClose()}>
+                        <div className="flex min-h-full items-end sm:items-center justify-center p-4 sm:p-6 text-center sm:text-left">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                                className="bg-[#111111] border border-white/10 rounded-3xl max-w-2xl w-full shadow-2xl relative my-8 text-left overflow-hidden"
                             >
-                                <XMarkIcon className="w-6 h-6" />
-                            </button>
-
-                            {/* Header */}
-                            <div className="p-8 border-b border-white/5">
-                                <div className="flex items-start gap-6">
-                                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${feature.color} p-3 shadow-2xl flex items-center justify-center text-white flex-shrink-0`}>
-                                        <Icon className="w-10 h-10" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h2 className="text-3xl font-black text-white mb-3">{feature.title}</h2>
-                                        <p className="text-[var(--text-muted)] text-lg leading-relaxed">
-                                            {feature.fullExplanation.overview}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Content */}
-                            <div className="p-8 space-y-8 max-h-[60vh] overflow-y-auto custom-scrollbar">
-                                {/* How It Works */}
-                                <div>
-                                    <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                                        <span className="text-2xl">⚙️</span>
-                                        How It Works
-                                    </h3>
-                                    <ol className="space-y-3">
-                                        {feature.fullExplanation.howItWorks.map((step, index) => (
-                                            <li key={index} className="flex gap-3 text-gray-300">
-                                                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--primary)]/20 text-[var(--primary)] text-sm font-bold flex items-center justify-center">
-                                                    {index + 1}
-                                                </span>
-                                                <span className="leading-relaxed">{step}</span>
-                                            </li>
-                                        ))}
-                                    </ol>
-                                </div>
-
-                                {/* Benefits */}
-                                <div>
-                                    <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                                        <span className="text-2xl">✨</span>
-                                        Key Benefits
-                                    </h3>
-                                    <ul className="space-y-3">
-                                        {feature.fullExplanation.benefits.map((benefit, index) => (
-                                            <li key={index} className="flex gap-3 text-gray-300">
-                                                <span className="text-[var(--primary)] flex-shrink-0 mt-1">✓</span>
-                                                <span className="leading-relaxed">{benefit}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            </div>
-
-                            {/* Footer */}
-                            <div className="p-6 border-t border-white/5 bg-white/5">
+                                {/* Close Button */}
                                 <button
                                     onClick={onClose}
-                                    className="w-full py-3 px-6 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-black font-bold rounded-xl transition-all"
+                                    className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-white/60 hover:text-white z-20"
                                 >
-                                    Got it!
+                                    <XMarkIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                                 </button>
-                            </div>
-                        </motion.div>
+
+                                {/* Header */}
+                                <div className="p-6 sm:p-8 border-b border-white/5 bg-white/[0.02]">
+                                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-6 text-center sm:text-left">
+                                        <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br ${feature.color} p-3 shadow-2xl flex items-center justify-center text-white flex-shrink-0`}>
+                                            <Icon className="w-8 h-8 sm:w-10 sm:h-10" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <h2 className="text-2xl sm:text-3xl font-black text-white mb-2 sm:mb-3">{feature.title}</h2>
+                                            <p className="text-[var(--text-muted)] text-base sm:text-lg leading-relaxed">
+                                                {feature.fullExplanation.overview}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Content */}
+                                <div className="p-6 sm:p-8 space-y-8 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                                    {/* How It Works */}
+                                    <div>
+                                        <h3 className="text-lg sm:text-xl font-bold text-white mb-4 flex items-center gap-2">
+                                            <span className="text-2xl">⚙️</span>
+                                            How It Works
+                                        </h3>
+                                        <ol className="space-y-3">
+                                            {feature.fullExplanation.howItWorks.map((step, index) => (
+                                                <li key={index} className="flex gap-3 text-gray-300 text-sm sm:text-base">
+                                                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--primary)]/20 text-[var(--primary)] text-sm font-bold flex items-center justify-center">
+                                                        {index + 1}
+                                                    </span>
+                                                    <span className="leading-relaxed">{step}</span>
+                                                </li>
+                                            ))}
+                                        </ol>
+                                    </div>
+
+                                    {/* Benefits */}
+                                    <div>
+                                        <h3 className="text-lg sm:text-xl font-bold text-white mb-4 flex items-center gap-2">
+                                            <span className="text-2xl">✨</span>
+                                            Key Benefits
+                                        </h3>
+                                        <ul className="space-y-3">
+                                            {feature.fullExplanation.benefits.map((benefit, index) => (
+                                                <li key={index} className="flex gap-3 text-gray-300 text-sm sm:text-base">
+                                                    <span className="text-[var(--primary)] flex-shrink-0 mt-1">✓</span>
+                                                    <span className="leading-relaxed">{benefit}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                {/* Footer */}
+                                <div className="p-5 sm:p-6 border-t border-white/5 bg-white/5">
+                                    <button
+                                        onClick={onClose}
+                                        className="w-full py-3 px-6 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-black font-bold rounded-xl transition-all active:scale-95"
+                                    >
+                                        Got it!
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </div>
                     </div>
                 </>
             )}
