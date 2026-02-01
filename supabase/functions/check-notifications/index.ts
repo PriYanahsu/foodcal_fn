@@ -279,10 +279,17 @@ Deno.serve(async (req) => {
             }
         }
 
+        if (apiBaseUrl) {
+            console.log(`Using API Base URL: ${apiBaseUrl}`);
+        } else {
+            console.warn('API_BASE_URL not set and could not be resolved automatically. Push notifications might not work.');
+        }
+
         const supabaseUrl = Deno.env.get('SUPABASE_URL')
         const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
         if (!supabaseUrl || !supabaseServiceKey) {
+            console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
             throw new Error('Missing environment variables')
         }
 
@@ -482,32 +489,38 @@ Deno.serve(async (req) => {
                     // Send push notification if API base URL is available
                     if (apiBaseUrl) {
                         try {
+                            const pushPayload = {
+                                userId: profile.id,
+                                title: notification.title,
+                                body: notification.message,
+                                icon: '/icons/icon-192x192.png',
+                                badge: '/icons/icon-192x192.png',
+                                data: {
+                                    type: notification.type,
+                                    suggestion: suggestion,
+                                },
+                            };
+
+                            console.log(`Attempting to send push notification to user ${profile.id} via ${apiBaseUrl}/api/send-push`);
+
                             const pushResponse = await fetch(`${apiBaseUrl}/api/send-push`, {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
                                 },
-                                body: JSON.stringify({
-                                    userId: profile.id,
-                                    title: notification.title,
-                                    body: notification.message,
-                                    icon: '/icons/icon-192x192.png',
-                                    badge: '/icons/icon-192x192.png',
-                                    data: {
-                                        type: notification.type,
-                                        suggestion: suggestion,
-                                    },
-                                }),
+                                body: JSON.stringify(pushPayload),
                             })
 
                             // Log push notification result for debugging
                             if (!pushResponse.ok) {
-                                const errorData = await pushResponse.json().catch(() => ({}))
-                                // Log but don't fail - notification was already created
+                                const errorData = await pushResponse.json().catch(() => ({}));
+                                console.error(`Failed to send push notification for user ${profile.id}:`, errorData);
+                            } else {
+                                const successData = await pushResponse.json().catch(() => ({}));
+                                console.log(`Push notification successfully sent for user ${profile.id}:`, successData);
                             }
                         } catch (error) {
-                            // Push notification failure shouldn't block notification creation
-                            // Log error for debugging but continue
+                            console.error(`Error calling push notification API for user ${profile.id}:`, error);
                         }
                     }
                 }

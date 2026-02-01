@@ -3,20 +3,23 @@ import { createClient } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
 
-// Try to import web-push
+// Initialize web-push
 let webpush: any = null;
 try {
     webpush = require('web-push');
-    
+
     const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
     const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
     const vapidEmail = process.env.VAPID_EMAIL || 'mailto:noreply@foodcal.com';
-    
+
     if (vapidPublicKey && vapidPrivateKey) {
         webpush.setVapidDetails(vapidEmail, vapidPublicKey, vapidPrivateKey);
+        console.log('Push notification system initialized successfully');
+    } else {
+        console.warn('Push notification keys missing: VAPID_PUBLIC_KEY or VAPID_PRIVATE_KEY');
     }
 } catch (e) {
-    // web-push not installed
+    console.error('Failed to load web-push library:', e);
 }
 
 /**
