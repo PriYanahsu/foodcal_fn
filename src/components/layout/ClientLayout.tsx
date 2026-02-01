@@ -7,6 +7,7 @@ import { NotificationProvider } from '@/features/notifications/context/Notificat
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 import { NotificationToast } from '@/features/notifications/components/NotificationToast';
 import { NotificationPrompt } from '@/features/notifications/components/NotificationPrompt';
+import { PushTest } from '@/features/notifications/components/PushTest';
 import { StepTrackerProvider } from '@/features/activity/context/StepTrackerContext';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
@@ -32,6 +33,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                                     <NotificationToast />
                                 </div>
                                 <NotificationPrompt />
+                                <PushTest />
                             </>
                         )}
 

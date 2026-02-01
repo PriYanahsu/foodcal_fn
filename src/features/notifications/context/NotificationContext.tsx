@@ -137,18 +137,18 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
             // Check current permission first
             const currentPermission = Notification.permission;
-            
+
             // If already denied, we can't request again - show helpful message
             if (currentPermission === 'denied') {
                 setIsSubscribing(false);
                 setPermission('denied');
-                
+
                 // Detect device type for better guidance
                 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
                 const isAndroid = /Android/.test(navigator.userAgent);
-                
+
                 let message = 'Notification permission was previously denied.\n\n';
-                
+
                 if (isIOS) {
                     message += 'To enable on iOS:\n';
                     message += '1. Tap the Share button (square with arrow)\n';
@@ -168,7 +168,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                     message += '2. Change Notifications to "Allow"\n';
                     message += '3. Refresh the page';
                 }
-                
+
                 alert(message);
                 return;
             }
@@ -183,9 +183,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                     // User just denied - provide immediate guidance
                     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
                     const isAndroid = /Android/.test(navigator.userAgent);
-                    
+
                     let message = 'Notifications were blocked.\n\n';
-                    
+
                     if (isIOS) {
                         message += 'On iOS, you need to:\n';
                         message += '1. Add this site to Home Screen first\n';
@@ -197,7 +197,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                     } else {
                         message += 'Click the lock icon in address bar and allow notifications.';
                     }
-                    
+
                     alert(message);
                 }
                 return;
@@ -207,10 +207,10 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             if ('serviceWorker' in navigator && 'PushManager' in window) {
                 try {
                     const registration = await navigator.serviceWorker.ready;
-                    
+
                     // Get VAPID public key - try multiple ways for mobile compatibility
                     const vapidPublicKey = getVapidPublicKey();
-                    
+
                     if (!vapidPublicKey) {
                         console.error('VAPID public key not found');
                         alert('Push notification configuration error. Please make sure VAPID keys are set in environment variables.');
@@ -262,7 +262,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 } catch (pushError: any) {
                     console.error('Push subscription error:', pushError);
                     let errorMessage = 'Failed to enable push notifications. ';
-                    
+
                     if (pushError.message?.includes('VAPID')) {
                         errorMessage += 'Configuration error.';
                     } else if (pushError.message?.includes('permission')) {
@@ -270,7 +270,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                     } else {
                         errorMessage += 'Please try again.';
                     }
-                    
+
                     alert(errorMessage);
                 }
             } else {
@@ -364,6 +364,53 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         }
     }, [user, supabase]);
 
+    const sendTestPush = useCallback(async () => {
+        if (!user) {
+            alert('You must be logged in to test push notifications.');
+            return false;
+        }
+
+        if (!hasPushSubscription) {
+            alert('No push subscription found. Please enable notifications first.');
+            return false;
+        }
+
+        try {
+            const response = await fetch('/api/send-push', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: user.id,
+                    title: 'Test Push Notification 🔔',
+                    body: 'This is a test to verify your mobile device can receive notifications even when the app is closed!',
+                    data: {
+                        url: '/',
+                        test: true
+                    }
+                }),
+            });
+
+            const result = await response.json();
+            if (response.ok && result.success) {
+                if (result.sent > 0) {
+                    alert('Test push sent successfully! You should see it on your device shortly.');
+                    return true;
+                } else {
+                    alert('Push was processed but 0 notifications were sent. This usually means your subscription is invalid or expired.');
+                    return false;
+                }
+            } else {
+                console.error('Test push failed:', result);
+                alert(`Failed to send test push: ${result.error || result.message || 'Unknown error'}`);
+                return false;
+            }
+        } catch (error) {
+            console.error('Test push error:', error);
+            alert('An error occurred while sending the test push.');
+            return false;
+        }
+    }, [user, hasPushSubscription]);
+
     const unreadCount = notifications.filter(n => !n.isRead).length;
 
     return (
@@ -378,6 +425,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             requestPermission,
             hasPushSubscription,
             isSubscribing,
+            sendTestPush,
         }}>
             {children}
         </NotificationContext.Provider>

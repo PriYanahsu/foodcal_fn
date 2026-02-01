@@ -21,4 +21,5 @@ export interface NotificationContextType {
     requestPermission: () => Promise<void>;
     hasPushSubscription: boolean;
     isSubscribing: boolean;
+    sendTestPush: () => Promise<boolean>;
 }

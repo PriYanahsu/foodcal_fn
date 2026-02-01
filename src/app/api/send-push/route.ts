@@ -26,10 +26,15 @@ try {
  * POST endpoint to send push notifications
  */
 export async function POST(request: Request) {
+    console.log('Push notification request received');
     try {
-        const { userId, title, body, icon, badge, data } = await request.json();
+        const payloadJson = await request.json();
+        const { userId, title, body, icon, badge, data } = payloadJson;
+
+        console.log(`Processing push for user: ${userId}, title: ${title}`);
 
         if (!userId || !title || !body) {
+            console.warn('Missing required fields for push notification');
             return NextResponse.json(
                 { error: 'Missing required fields' },
                 { status: 400 }
@@ -37,11 +42,12 @@ export async function POST(request: Request) {
         }
 
         if (!webpush) {
+            console.error('Web-push library not initialized - check VAPID keys');
             return NextResponse.json({
                 success: false,
                 sent: 0,
-                message: 'Web-push library not installed'
-            });
+                message: 'Web-push library not initialized. Check server environment variables (VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY).'
+            }, { status: 500 });
         }
 
         const supabase = await createClient();
@@ -52,13 +58,21 @@ export async function POST(request: Request) {
             .select('subscription')
             .eq('user_id', userId);
 
-        if (error || !subscriptions || subscriptions.length === 0) {
+        if (error) {
+            console.error('Error fetching subscriptions from Supabase:', error);
+            throw error;
+        }
+
+        if (!subscriptions || subscriptions.length === 0) {
+            console.log(`No push subscriptions found for user ${userId}`);
             return NextResponse.json({
                 success: true,
                 sent: 0,
                 message: 'No push subscriptions found'
             });
         }
+
+        console.log(`Found ${subscriptions.length} subscription(s) for user ${userId}`);
 
         const payload = JSON.stringify({
             title,
@@ -67,7 +81,7 @@ export async function POST(request: Request) {
             badge: badge || '/icons/icon-192x192.png',
             data: {
                 ...(data || {}),
-                url: '/', // Always open to dashboard
+                url: data?.url || '/', // Default to root if not provided
                 notificationId: data?.notificationId || null,
             },
         });
@@ -78,14 +92,21 @@ export async function POST(request: Request) {
         for (const row of subscriptions) {
             try {
                 const subscription = row.subscription;
-                if (!subscription || !subscription.endpoint) continue;
+                if (!subscription || !subscription.endpoint) {
+                    console.warn('Malformed subscription object:', row);
+                    continue;
+                }
 
+                console.log(`Sending push to endpoint: ${subscription.endpoint.substring(0, 30)}...`);
                 await webpush.sendNotification(subscription, payload);
                 sentCount++;
             } catch (error: any) {
                 failedCount++;
+                console.error(`Failed to send push to subscription:`, error.message);
+
                 // Remove invalid subscriptions (410 Gone)
-                if (error.statusCode === 410) {
+                if (error.statusCode === 410 || error.statusCode === 404) {
+                    console.log(`Subscription is invalid (status: ${error.statusCode}), removing from database`);
                     await supabase
                         .from('push_subscriptions')
                         .delete()
@@ -95,14 +116,17 @@ export async function POST(request: Request) {
             }
         }
 
+        console.log(`Push complete: ${sentCount} sent, ${failedCount} failed`);
+
         return NextResponse.json({
             success: true,
             sent: sentCount,
             failed: failedCount,
-            message: `Sent ${sentCount} push notification(s)`
+            message: `Sent ${sentCount} push notification(s), failed ${failedCount}`
         });
 
     } catch (error: any) {
+        console.error('Push notification API error:', error);
         return NextResponse.json(
             { error: error.message || 'Failed to send push notifications' },
             { status: 500 }
