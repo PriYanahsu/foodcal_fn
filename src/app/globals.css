@@ -26,7 +26,8 @@
   --input-border: #30363d;
 }
 
-body {
+html, body {
+  scroll-behavior: smooth;
   background: var(--background);
   color: var(--foreground);
   -webkit-font-smoothing: antialiased;
