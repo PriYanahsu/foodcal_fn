@@ -1,5 +1,7 @@
 // Service Worker for Push Notifications
 self.addEventListener('push', function (event) {
+    console.log('[Service Worker] Push Received.');
+
     let notificationData = {
         title: 'New Notification',
         body: 'You have a new notification',
@@ -10,6 +12,7 @@ self.addEventListener('push', function (event) {
     if (event.data) {
         try {
             const data = event.data.json();
+            console.log('[Service Worker] Push JSON data:', data);
             notificationData = {
                 title: data.title || notificationData.title,
                 body: data.body || data.message || notificationData.body,
@@ -18,16 +21,19 @@ self.addEventListener('push', function (event) {
                 data: data.data || {},
             };
         } catch (e) {
-            // If data is not JSON, try text
+            console.warn('[Service Worker] Push data is not JSON, trying text.');
             try {
                 const text = event.data.text();
+                console.log('[Service Worker] Push text data:', text);
                 if (text) {
                     notificationData.body = text;
                 }
             } catch (textError) {
-                console.error('Failed to parse push data:', textError);
+                console.error('[Service Worker] Failed to parse push data:', textError);
             }
         }
+    } else {
+        console.log('[Service Worker] Push event contains no data.');
     }
 
     // Mobile-optimized notification options
@@ -35,22 +41,34 @@ self.addEventListener('push', function (event) {
         body: notificationData.body,
         icon: notificationData.icon,
         badge: notificationData.badge,
-        vibrate: [100, 50, 100], // Vibration pattern for mobile
+        vibrate: [200, 100, 200], // More pronounced vibration for mobile
         tag: notificationData.title, // Group notifications by title
         requireInteraction: false,
         silent: false,
-        renotify: false,
+        renotify: true, // Renotify if the tag is the same
         data: {
             url: notificationData.data?.url || self.location.origin + '/',
             timestamp: Date.now(),
             notificationId: notificationData.data?.notificationId || null,
         },
+        actions: [
+            {
+                action: 'open',
+                title: 'View Details',
+                icon: '/icons/icon-192x192.png'
+            }
+        ]
     };
+
+    console.log('[Service Worker] Showing notification:', notificationData.title);
 
     event.waitUntil(
         self.registration.showNotification(notificationData.title, options)
+            .then(() => {
+                console.log('[Service Worker] Notification shown successfully');
+            })
             .catch(function (error) {
-                console.error('Error showing notification:', error);
+                console.error('[Service Worker] Error showing notification:', error);
             })
     );
 });
