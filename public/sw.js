@@ -1,3 +1,70 @@
+const CACHE_NAME = 'foodcal-v1';
+const ASSETS_TO_CACHE = [
+    '/',
+    '/manifest.json',
+    '/foodCalLogo.jpeg',
+];
+
+self.addEventListener('install', (event) => {
+    event.waitUntil(
+        caches.open(CACHE_NAME).then((cache) => {
+            return cache.addAll(ASSETS_TO_CACHE);
+        })
+    );
+    self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames.map((cacheName) => {
+                    if (cacheName !== CACHE_NAME) {
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        })
+    );
+    self.clients.claim();
+});
+
+self.addEventListener('fetch', (event) => {
+    // Navigation requests: Network First, fall back to cache
+    if (event.request.mode === 'navigate') {
+        event.respondWith(
+            fetch(event.request)
+                .catch(() => {
+                    return caches.match(event.request)
+                        .then((response) => {
+                            if (response) return response;
+                            // Ideally fallback to an offline page here, but for now just returning nothing or home if cached
+                            return caches.match('/');
+                        });
+                })
+        );
+        return;
+    }
+
+    // Static assets (images, css, js): Stale-While-Revalidate
+    if (event.request.destination === 'image' ||
+        event.request.destination === 'script' ||
+        event.request.destination === 'style') {
+        event.respondWith(
+            caches.match(event.request).then((cachedResponse) => {
+                const fetchPromise = fetch(event.request).then((networkResponse) => {
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(event.request, networkResponse.clone());
+                    });
+                    return networkResponse;
+                });
+                return cachedResponse || fetchPromise;
+            })
+        );
+        return;
+    }
+});
+
 // Service Worker for Push Notifications
 self.addEventListener('push', function (event) {
     console.log('[Service Worker] Push Received.');
