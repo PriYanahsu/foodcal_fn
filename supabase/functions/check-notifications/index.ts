@@ -272,17 +272,20 @@ Deno.serve(async (req) => {
 
         let apiBaseUrl = Deno.env.get('API_BASE_URL')
         if (!apiBaseUrl) {
+            // Fallback: try to derive from SUPABASE_URL if it looks like a local or custom setup
+            // but ideally this should be set as a secret
             const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
-            apiBaseUrl = supabaseUrl.replace(/\/functions\/.*$/, '')
-            if (!apiBaseUrl || apiBaseUrl === supabaseUrl) {
-                apiBaseUrl = ''
+            if (supabaseUrl.includes('localhost') || supabaseUrl.includes('127.0.0.1')) {
+                apiBaseUrl = 'http://localhost:3000'
+            } else {
+                console.warn('API_BASE_URL not set. Push notifications will likely fail if derived incorrectly.');
             }
         }
 
         if (apiBaseUrl) {
             console.log(`Using API Base URL: ${apiBaseUrl}`);
         } else {
-            console.warn('API_BASE_URL not set and could not be resolved automatically. Push notifications might not work.');
+            console.error('CRITICAL: API_BASE_URL not set and could not be resolved. Web Push will NOT work.');
         }
 
         const supabaseUrl = Deno.env.get('SUPABASE_URL')
