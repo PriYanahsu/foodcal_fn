@@ -26,13 +26,7 @@ export function InstallAppPrompt() {
 
         if (!isMobile) return;
 
-        // Check if user dismissed it recently (e.g., in the last 24 hours)
-        const dismissedAt = localStorage.getItem('install_prompt_dismissed');
-        if (dismissedAt) {
-            const timeSinceDismiss = Date.now() - parseInt(dismissedAt, 10);
-            // 24 hours = 86400000 ms
-            if (timeSinceDismiss < 86400000) return;
-        }
+
 
         // 3. Handle PWA Prompt (Android/Desktop)
         const handleBeforeInstallPrompt = (e: any) => {
@@ -81,7 +75,6 @@ export function InstallAppPrompt() {
 
     const handleDismiss = () => {
         setShowPrompt(false);
-        localStorage.setItem('install_prompt_dismissed', Date.now().toString());
     };
 
     if (!showPrompt) return null;
