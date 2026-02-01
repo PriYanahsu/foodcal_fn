@@ -186,7 +186,7 @@ export default function UserProfile() {
             >
               {isEditing ? 'Cancel' : 'Edit Profile'}
             </Button>
-            <Button variant="outline" onClick={logout} className="flex-1 md:flex-none text-red-400 border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-red-500/10 shadow-lg">
+            <Button variant="outline" onClick={async () => { await logout(); window.location.href = '/login'; }} className="flex-1 md:flex-none text-red-400 border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-red-500/10 shadow-lg">
               Sign Out
             </Button>
           </div>

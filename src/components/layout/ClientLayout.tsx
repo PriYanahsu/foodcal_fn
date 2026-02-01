@@ -9,6 +9,7 @@ import { NotificationToast } from '@/features/notifications/components/Notificat
 import { NotificationPrompt } from '@/features/notifications/components/NotificationPrompt';
 import { StepTrackerProvider } from '@/features/activity/context/StepTrackerContext';
 import { BRAND_ASSETS } from '@/lib/brand-config';
+import { InstallAppPrompt } from './InstallAppPrompt';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -49,6 +50,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                     </main>
                 </div>
             </StepTrackerProvider>
-        </NotificationProvider>
+
+            <InstallAppPrompt />
+        </NotificationProvider >
     );
 }

@@ -51,7 +51,7 @@ export function Sidebar() {
         try {
             setIsLoggingOut(true);
             await logout();
-            router.push('/login');
+            window.location.href = '/login';
         } catch (error) {
             console.error('Logout failed:', error);
             setIsLoggingOut(false);
