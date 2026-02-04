@@ -71,8 +71,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
                     const showOptions = {
                         body: newNotif.message,
-                        icon: '/icons/icon-192x192.png',
-                        badge: '/icons/icon-192x192.png'
+                        icon: '/foodCalLogo.jpeg',
+                        badge: '/foodCalLogo.jpeg'
                     };
 
                     if ('serviceWorker' in navigator) {
@@ -300,7 +300,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 if (Notification.permission === 'granted') {
                     new Notification('Notifications Enabled! 🎉', {
                         body: 'You will now receive updates synced with your account.',
-                        icon: '/icons/icon-192x192.png'
+                        icon: '/foodCalLogo.jpeg'
                     });
                 }
             }

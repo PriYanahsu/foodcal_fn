@@ -70,37 +70,38 @@ self.addEventListener('push', function (event) {
     console.log('[Service Worker] Push Received.');
 
     let notificationData = {
-        title: 'New Notification',
-        body: 'You have a new notification',
+        title: 'FoodCal Update 🔔',
+        body: 'Check your progress in the app!',
         icon: '/foodCalLogo.jpeg',
         badge: '/foodCalLogo.jpeg',
+        data: { url: self.location.origin + '/' }
     };
 
     if (event.data) {
         try {
             const data = event.data.json();
-            console.log('[Service Worker] Push JSON data:', data);
+            console.log('[Service Worker] Push JSON data parsing successful:', data);
             notificationData = {
                 title: data.title || notificationData.title,
                 body: data.body || data.message || notificationData.body,
                 icon: data.icon || notificationData.icon,
                 badge: data.badge || notificationData.badge,
-                data: data.data || {},
+                data: data.data || notificationData.data,
             };
         } catch (e) {
-            console.warn('[Service Worker] Push data is not JSON, trying text.');
+            console.warn('[Service Worker] Push data is not JSON, falling back to text parsing.');
             try {
                 const text = event.data.text();
-                console.log('[Service Worker] Push text data:', text);
+                console.log('[Service Worker] Push text data received:', text);
                 if (text) {
                     notificationData.body = text;
                 }
             } catch (textError) {
-                console.error('[Service Worker] Failed to parse push data:', textError);
+                console.error('[Service Worker] Failed to parse push data entirely:', textError);
             }
         }
     } else {
-        console.log('[Service Worker] Push event contains no data.');
+        console.warn('[Service Worker] Push event contains no data. Using default message.');
     }
 
     // Mobile-optimized notification options
@@ -108,34 +109,33 @@ self.addEventListener('push', function (event) {
         body: notificationData.body,
         icon: notificationData.icon,
         badge: notificationData.badge,
-        vibrate: [200, 100, 200], // More pronounced vibration for mobile
-        tag: notificationData.title, // Group notifications by title
+        vibrate: [200, 100, 200, 100, 200], // More pronounced vibration for mobile notifications
+        tag: notificationData.title + '-' + Date.now(), // Unique tag if we want multiple to show up
         requireInteraction: false,
         silent: false,
-        renotify: true, // Renotify if the tag is the same
+        renotify: true,
         data: {
             url: notificationData.data?.url || self.location.origin + '/',
             timestamp: Date.now(),
-            notificationId: notificationData.data?.notificationId || null,
         },
         actions: [
             {
                 action: 'open',
-                title: 'View Details',
+                title: 'View App',
                 icon: '/foodCalLogo.jpeg'
             }
         ]
     };
 
-    console.log('[Service Worker] Showing notification:', notificationData.title);
+    console.log('[Service Worker] Displaying notification:', notificationData.title, options);
 
     event.waitUntil(
         self.registration.showNotification(notificationData.title, options)
             .then(() => {
-                console.log('[Service Worker] Notification shown successfully');
+                console.log('[Service Worker] Notification was shown successfully');
             })
             .catch(function (error) {
-                console.error('[Service Worker] Error showing notification:', error);
+                console.error('[Service Worker] Error occurred while showing notification:', error);
             })
     );
 });
