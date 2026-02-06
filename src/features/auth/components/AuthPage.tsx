@@ -19,8 +19,11 @@ export const AuthPage: React.FC = () => {
   const { user } = useAuth();
 
   const signInWithGoogle = async () => {
-    // Dynamically get origin to ensure it works in both web and PWA modes
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://food-cal-fe-ewy4.vercel.app';
+    // Robust origin detection: hardcode production URIs when not on localhost 
+    // to ensure Supabase always matches its allow-list.
+    const origin = (typeof window !== 'undefined' && window.location.hostname !== 'localhost')
+      ? 'https://food-cal-fe-ewy4.vercel.app'
+      : 'http://localhost:3000';
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
