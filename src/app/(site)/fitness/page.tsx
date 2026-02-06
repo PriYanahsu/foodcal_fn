@@ -79,7 +79,7 @@ export default function FitnessHub() {
     }
 
     return (
-        <div className="p-4 md:p-8 lg:p-12 max-w-7xl mx-auto space-y-12 pb-20">
+        <div className="px-4 pb-4 md:px-8 md:pb-8 lg:px-12 lg:pb-12 pt-2 md:pt-4 lg:pt-6 max-w-7xl mx-auto space-y-12 pb-20">
             {showReminder && (
                 <div className="animate-slide-up">
                     <div className="bg-gradient-to-r from-orange-500/20 to-transparent border border-orange-500/30 p-4 rounded-2xl flex items-center justify-between backdrop-blur-md">
