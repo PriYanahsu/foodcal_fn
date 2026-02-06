@@ -16,7 +16,7 @@ export const AuthPage: React.FC = () => {
   const supabase = createClient();
 
   const signInWithGoogle = async () => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+    const origin = typeof window !== 'undefined' ? 'https://food-cal-fe-ewy4.vercel.app' : 'http://localhost:3000';
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
