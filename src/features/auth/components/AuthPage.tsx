@@ -21,14 +21,11 @@ export const AuthPage: React.FC = () => {
   const signInWithGoogle = async () => {
     // Robust origin detection: hardcode production URIs when not on localhost 
     // to ensure Supabase always matches its allow-list.
-    const origin = (typeof window !== 'undefined' && window.location.hostname !== 'localhost')
-      ? 'https://food-cal-fe-ewy4.vercel.app'
-      : 'http://localhost:3000';
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${origin}`
+        redirectTo: 'https://food-cal-fe-ewy4.vercel.app'
       }
     })
 
