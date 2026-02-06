@@ -9,14 +9,19 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BRAND_ASSETS } from '@/lib/brand-config';
+import { useAuth } from '../hooks/useAuth';
 
 export const AuthPage: React.FC = () => {
   const [view, setView] = useState<'landing' | 'login' | 'signup'>('landing');
   const router = useRouter();
   const supabase = createClient();
 
+  const { user } = useAuth();
+
   const signInWithGoogle = async () => {
-    const origin = typeof window !== 'undefined' ? 'https://food-cal-fe-ewy4.vercel.app' : 'http://localhost:3000';
+    // Dynamically get origin to ensure it works in both web and PWA modes
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://food-cal-fe-ewy4.vercel.app';
+
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -31,12 +36,10 @@ export const AuthPage: React.FC = () => {
 
 
   useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) router.push('/');
-    };
-    checkSession();
-  }, [router]);
+    if (user) {
+      router.push('/');
+    }
+  }, [user, router]);
 
   const BackButton = () => (
     <motion.button
