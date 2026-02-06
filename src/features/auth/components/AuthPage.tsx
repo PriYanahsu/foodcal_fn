@@ -16,10 +16,11 @@ export const AuthPage: React.FC = () => {
   const supabase = createClient();
 
   const signInWithGoogle = async () => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: typeof window !== 'undefined' ? `${window.location.origin}` : 'http://localhost:3000'
+        redirectTo: `${origin}`
       }
     })
 
