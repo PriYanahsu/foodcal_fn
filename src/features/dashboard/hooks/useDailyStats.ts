@@ -68,7 +68,7 @@ export const useDailyStats = (dateInput: string | Date = new Date()) => { // Acc
 
             // 3. Aggregate totals from the fetched logs
             const totals = data.reduce(
-                (acc, log) => ({
+                (acc: DailyStats, log: FoodLog) => ({
                     calories: acc.calories + (log.calories || 0),
                     protein: acc.protein + (log.protein || 0),
                     carbs: acc.carbs + (log.carbs || 0),
