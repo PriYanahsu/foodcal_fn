@@ -76,7 +76,7 @@ export const StepTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
     // 1. Load User Profile
     useEffect(() => {
-        if (!user) return;
+        if (!user || hasProfileLoaded.current) return;
         const fetchProfile = async () => {
             const { data } = await supabase
                 .from('profiles')

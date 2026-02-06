@@ -12,12 +12,8 @@ interface SignupFormProps {
 }
 
 export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
-  const [name, setName] = useState('');
-  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
-  const [gender, setGender] = useState('Male'); // Default
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
   const { signup, isLoading, error } = useAuth();
   const [success, setSuccess] = useState(false);
@@ -27,7 +23,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
     setValidationError(null);
 
     // Basic validation
-    if (!name || !username || !email || !password || !confirmPassword) {
+    if (!email || !password) {
       setValidationError('Please fill in all fields');
       return;
     }
@@ -42,18 +38,16 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
       return;
     }
 
-    if (password !== confirmPassword) {
-      setValidationError('Passwords do not match');
-      return;
-    }
+    const defaultUsername = email.split('@')[0] + Math.floor(Math.random() * 1000);
+    const defaultName = email.split('@')[0];
 
     const result = await signup({
-      name,
-      username,
+      name: defaultName,
+      username: defaultUsername,
       email,
-      gender,
+      gender: 'Other',
       password,
-      confirmPassword
+      confirmPassword: password
     });
 
     if (result.success) {
@@ -100,39 +94,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
       )}
 
       <Input
-        type="text"
-        label="Full Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Enter your full name"
-        required
-      />
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-        <Input
-          type="text"
-          label="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder="Choose a username"
-          required
-        />
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-[var(--text-secondary)]">Gender</label>
-          <select
-            value={gender}
-            onChange={(e) => setGender(e.target.value)}
-            className="w-full px-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all h-[50px]"
-          >
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-      </div>
-
-      <Input
         type="email"
         label="Email Address"
         value={email}
@@ -141,25 +102,14 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
         required
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-        <Input
-          type="password"
-          label="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Min. 8 chars"
-          required
-        />
-
-        <Input
-          type="password"
-          label="Repeat Password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="Confirm password"
-          required
-        />
-      </div>
+      <Input
+        type="password"
+        label="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder="Create a password (min. 8 chars)"
+        required
+      />
 
       <Button
         type="submit"

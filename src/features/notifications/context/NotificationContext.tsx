@@ -30,7 +30,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 .limit(50);
 
             if (data) {
-                const mapped: AppNotification[] = data.map(n => ({
+                const mapped: AppNotification[] = data.map((n: { id: any; title: any; message: any; type: string; created_at: any; is_read: any; suggestion: any; }) => ({
                     id: n.id,
                     title: n.title,
                     message: n.message,
@@ -53,7 +53,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 schema: 'public',
                 table: 'notifications',
                 filter: `user_id=eq.${user.id}`
-            } as any, (payload: any) => {
+            }, (payload: { new: any }) => {
                 const newRec = payload.new;
                 const newNotif: AppNotification = {
                     id: newRec.id,
@@ -89,7 +89,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 schema: 'public',
                 table: 'notifications',
                 filter: `user_id=eq.${user.id}`
-            }, (payload) => {
+            }, (payload: { new: any }) => {
                 const updatedRec = payload.new;
                 setNotifications(prev => prev.map(n => n.id === updatedRec.id ? {
                     ...n,

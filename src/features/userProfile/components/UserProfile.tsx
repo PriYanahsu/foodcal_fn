@@ -28,8 +28,8 @@ export default function UserProfile() {
     age: '',
     height: '',
     weight: '',
-    activity_level: 'Sedentary',
-    goal: 'Maintain Weight',
+    activity_level: '',
+    goal: '',
     avatar_url: null,
     target_weight: null,
     target_date: null,
@@ -62,8 +62,8 @@ export default function UserProfile() {
           age: data.age || '',
           height: data.height || '',
           weight: data.weight || '',
-          activity_level: data.activity_level || 'Sedentary',
-          goal: data.goal || 'Maintain Weight',
+          activity_level: data.activity_level || '',
+          goal: data.goal || '',
           avatar_url: data.avatar_url,
           target_weight: data.target_weight || null,
           target_date: data.target_date || null,
@@ -269,6 +269,7 @@ export default function UserProfile() {
                         onChange={(e) => setProfile({ ...profile, gender: e.target.value })}
                         className="w-full px-4 py-2 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] disabled:opacity-50 appearance-none"
                       >
+                        <option value="">Select Gender</option>
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
                         <option value="Other">Other</option>

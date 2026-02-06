@@ -112,7 +112,7 @@ export default function Dashboard() {
       initial="hidden"
       animate="show"
       variants={containerVariants}
-      className="p-4 md:p-8 lg:p-12 max-w-7xl mx-auto space-y-10 min-h-screen relative"
+      className="px-4 pb-4 md:px-8 md:pb-8 lg:px-12 lg:pb-12 pt-2 md:pt-4 lg:pt-6 max-w-7xl mx-auto space-y-10 min-h-screen relative"
     >
       {/* Background Decor */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
