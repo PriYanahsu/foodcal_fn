@@ -41,9 +41,13 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { BRAND_ASSETS } from '@/lib/brand-config';
 
-export function Sidebar() {
+interface SidebarProps {
+    isOpen: boolean;
+    setIsOpen: (open: boolean) => void;
+}
+
+export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     const pathname = usePathname();
-    const [isOpen, setIsOpen] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const { logout } = useAuth();
     const router = useRouter();
@@ -61,13 +65,6 @@ export function Sidebar() {
 
     return (
         <>
-            {/* Mobile Trigger */}
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="md:hidden fixed top-4 right-4 z-50 p-2 bg-[var(--card-bg)] rounded-lg text-white shadow-lg border border-[var(--card-border)]"
-            >
-                {isOpen ? <Icons.Close /> : <Icons.Menu />}
-            </button>
 
             {/* Mobile Sidebar & Overlay */}
             <AnimatePresence>

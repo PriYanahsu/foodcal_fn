@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Sidebar } from './Sidebar';
 import { NotificationProvider } from '@/features/notifications/context/NotificationContext';
@@ -13,6 +13,7 @@ import { InstallAppPrompt } from './InstallAppPrompt';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     // Hide sidebar on login, signup, and landing page if applicable (though usually landing has its own layout)
     // Logic: Hide on /login, /signup
     const isAuthPage = pathname === '/login' || pathname === '/signup';
@@ -20,32 +21,44 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     return (
         <NotificationProvider>
             <StepTrackerProvider>
-                <div className="flex min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-                    {!isAuthPage && <Sidebar />}
+                <div className="flex flex-col md:flex-row min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+                    {!isAuthPage && <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />}
 
                     <main
-                        className={`flex-1 transition-all duration-300 w-full relative ${!isAuthPage ? "pt-4" : ""} md:pt-0 ${!isAuthPage ? 'md:ml-64' : ''}`}
+                        className={`flex-1 transition-all duration-300 w-full relative ${!isAuthPage ? 'md:ml-64' : ''}`}
                     >
-                        {/* Header area for notifications */}
+                        {/* Mobile Sticky Header */}
                         {!isAuthPage && (
-                            <>
-                                <div className="absolute top-4 right-16 md:right-4 z-50 flex items-center gap-3">
+                            <div className="md:hidden sticky top-0 z-[60] flex items-center justify-between px-6 py-4 bg-[var(--background)]/80 backdrop-blur-xl border-b border-white/5">
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={() => setIsSidebarOpen(true)}
+                                        className="p-1 rounded-lg hover:bg-white/5 text-[var(--text-muted)]"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
+                                    </button>
+                                    <img src={BRAND_ASSETS.logo} alt="" className="w-8 h-8 rounded-lg object-contain" />
+                                    <h1 className="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
+                                        {BRAND_ASSETS.name}
+                                    </h1>
+                                </div>
+                                <div className="flex items-center gap-3">
                                     <NotificationBell />
                                     <NotificationToast />
                                 </div>
-                                <NotificationPrompt />
-                            </>
-                        )}
-
-                        {/* Mobile Brand Header (Global) */}
-                        {!isAuthPage && (
-                            <div className="md:hidden absolute top-6 left-6 flex items-center gap-3 z-50">
-                                <img src={BRAND_ASSETS.logo} alt="" className="w-8 h-8 rounded-lg object-contain" />
-                                <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
-                                    {BRAND_ASSETS.name}
-                                </h1>
                             </div>
                         )}
+
+                        {/* Desktop Notifications area */}
+                        {!isAuthPage && (
+                            <div className="hidden md:flex absolute top-4 right-4 z-50 items-center gap-3">
+                                <NotificationBell />
+                                <NotificationToast />
+                            </div>
+                        )}
+
+                        {!isAuthPage && <NotificationPrompt />}
+
                         {children}
                     </main>
                 </div>
