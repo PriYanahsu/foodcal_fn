@@ -120,7 +120,7 @@ export default function UserProfile() {
   if (loading) return <div className="p-8 text-center">Loading profile...</div>;
 
   return (
-    <div className="max-w-5xl mx-auto pb-20 pt-10">
+    <div className="page-container max-w-5xl">
       <div className="px-4 md:px-8">
         {/* Completion Reminder Popup */}
         {showReminder && (

@@ -36,7 +36,7 @@ export const FoodScanPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 md:py-16 flex flex-col items-center animate-fade-in">
+    <div className="page-container flex flex-col items-center animate-fade-in">
       {/* Header Section */}
       {!preview && (
         <div className="text-center space-y-3 mb-10 animate-fade-in">
