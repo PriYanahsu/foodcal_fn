@@ -64,8 +64,8 @@ export const useFoodScan = () => {
       }
       return true;
     } catch (err: any) {
-      console.error("Failed to save to history:", err);
-      setError(err.message || "Failed to save meal");
+      console.error('Failed to save to history:', err);
+      setError(err.message || 'Failed to save meal');
       return false;
     } finally {
       setIsSaving(false);

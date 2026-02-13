@@ -1,26 +1,26 @@
 {
-    "id": "com.krixen.foodcal",
-    "name": "FoodCal",
-    "short_name": "FoodCal",
-    "description": "Premium AI Nutrition & Fitness Coach",
-    "start_url": "/",
-    "scope": "/",
-    "display": "standalone",
-    "orientation": "portrait",
-    "background_color": "#000000",
-    "theme_color": "#000000",
-    "icons": [
-        {
-            "src": "/foodCalLogo.jpeg",
-            "sizes": "192x192",
-            "type": "image/jpeg",
-            "purpose": "any maskable"
-        },
-        {
-            "src": "/foodCalLogo.jpeg",
-            "sizes": "512x512",
-            "type": "image/jpeg",
-            "purpose": "any maskable"
-        }
-    ]
+  "id": "com.krixen.foodcal",
+  "name": "FoodCal",
+  "short_name": "FoodCal",
+  "description": "Premium AI Nutrition & Fitness Coach",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "/foodCalLogo.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/foodCalLogo.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
 }

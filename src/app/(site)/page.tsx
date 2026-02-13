@@ -2,7 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { CameraIcon, SparklesIcon, ChevronRightIcon, XMarkIcon, ChevronLeftIcon } from '@heroicons/react/24/outline';
+import {
+  CameraIcon,
+  SparklesIcon,
+  ChevronRightIcon,
+  XMarkIcon,
+  ChevronLeftIcon,
+} from '@heroicons/react/24/outline';
 import AvatarUpload from '@/features/userProfile/components/AvatarUpload';
 import { ROUTES } from '@/constants/routes';
 import { StatCard } from '@/components/dashboard/StatCard';
@@ -54,11 +60,7 @@ export default function Dashboard() {
       }
 
       setProfileLoading(true);
-      const { data } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+      const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
 
       if (data) {
         setProfile(data);
@@ -74,7 +76,8 @@ export default function Dashboard() {
   }, [user]);
 
   const completionPercentage = calculateProfileCompletion(profile);
-  const userName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+  const userName =
+    profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
 
   const goals = {
     calories: profile?.daily_calorie_target || 2200,
@@ -97,14 +100,14 @@ export default function Dashboard() {
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
-      }
-    }
+        staggerChildren: 0.1,
+      },
+    },
   };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
+    show: { opacity: 1, y: 0 },
   };
 
   return (
@@ -129,7 +132,10 @@ export default function Dashboard() {
               </div>
               <p className="text-sm font-medium">
                 Profile Incomplete ({completionPercentage}%) —
-                <Link href="/profile" className="text-[var(--primary)] hover:underline ml-1 font-bold">
+                <Link
+                  href="/profile"
+                  className="text-[var(--primary)] hover:underline ml-1 font-bold"
+                >
                   Complete setup
                 </Link>
               </p>
@@ -145,29 +151,36 @@ export default function Dashboard() {
       )}
 
       {/* Hero Section */}
-      <motion.section variants={itemVariants} className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-8">
+      <motion.section
+        variants={itemVariants}
+        className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-8"
+      >
         <div className="flex flex-col sm:flex-row items-center gap-6 w-full xl:w-auto">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className=" shrink-0 p-1 rounded-full"
-          >
+          <motion.div whileHover={{ scale: 1.05 }} className=" shrink-0 p-1 rounded-full">
             <AvatarUpload
               uid={user?.id || ''}
               url={profile?.avatar_url ?? null}
               isEditing={false}
               onUpload={(url) => {
                 supabase.from('profiles').update({ avatar_url: url }).eq('id', user?.id).then();
-                setProfile(prev => prev ? { ...prev, avatar_url: url } : null);
+                setProfile((prev) => (prev ? { ...prev, avatar_url: url } : null));
               }}
               size={72}
             />
           </motion.div>
           <div className="text-center sm:text-left">
             <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white mb-1">
-              Hello, <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-blue-400">{userName}</span>
+              Hello,{' '}
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-blue-400">
+                {userName}
+              </span>
             </h1>
             <p className="text-[var(--text-muted)] font-medium">
-              {loading ? 'Crunching the numbers...' : profile?.goal ? `Target: ${profile.goal}` : "Let's hit your macro goals today."}
+              {loading
+                ? 'Crunching the numbers...'
+                : profile?.goal
+                  ? `Target: ${profile.goal}`
+                  : "Let's hit your macro goals today."}
             </p>
           </div>
         </div>
@@ -186,7 +199,9 @@ export default function Dashboard() {
               className="px-2 sm:px-6 text-center min-w-[120px] sm:min-w-[140px] relative cursor-pointer group flex-1 sm:flex-none"
               onClick={() => {
                 // Explicitly show picker for better reliable interaction
-                const input = document.getElementById('date-picker-input') as HTMLInputElement | null;
+                const input = document.getElementById(
+                  'date-picker-input'
+                ) as HTMLInputElement | null;
                 if (input) {
                   if ('showPicker' in (input as any)) {
                     (input as any).showPicker();
@@ -211,7 +226,13 @@ export default function Dashboard() {
                 {isToday ? 'Today' : 'Viewing Log'}
               </span>
               <span className="text-sm font-bold text-white group-hover:text-[var(--primary)] transition-colors flex items-center justify-center gap-1 pointer-events-none">
-                {mounted ? new Date(selectedDate + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '...'}
+                {mounted
+                  ? new Date(selectedDate + 'T00:00:00').toLocaleDateString(undefined, {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })
+                  : '...'}
                 <span className="text-[10px] opacity-50">▼</span>
               </span>
             </div>
@@ -291,7 +312,10 @@ export default function Dashboard() {
                 </span>
               </h2>
             </div>
-            <Link href={ROUTES.HISTORY} className="text-[var(--primary)] hover:text-[var(--primary-hover)] text-sm font-bold flex items-center gap-1 group">
+            <Link
+              href={ROUTES.HISTORY}
+              className="text-[var(--primary)] hover:text-[var(--primary-hover)] text-sm font-bold flex items-center gap-1 group"
+            >
               Full History
               <ChevronRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
@@ -312,7 +336,9 @@ export default function Dashboard() {
                 <h3 className="text-xl font-bold mb-2 text-white">Empty Plate?</h3>
                 <p className="text-[var(--text-muted)] max-w-sm mb-8">
                   You haven't logged any meals for this day yet.
-                  {isToday ? " Start tracking now to hit your goals!" : " Select another date to view history."}
+                  {isToday
+                    ? ' Start tracking now to hit your goals!'
+                    : ' Select another date to view history.'}
                 </p>
                 {isToday && (
                   <Link href={ROUTES.SCAN}>
@@ -336,7 +362,9 @@ export default function Dashboard() {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.05 }}
                     >
-                      <Link href={`/history/${new Date(log.created_at).toLocaleDateString('en-CA')}/${log.id}`}>
+                      <Link
+                        href={`/history/${new Date(log.created_at).toLocaleDateString('en-CA')}/${log.id}`}
+                      >
                         <div className="bg-[var(--card-bg)]/60 hover:bg-[var(--card-bg)] backdrop-blur-md border border-[var(--card-border)] hover:border-[var(--primary)]/30 rounded-2xl p-4 flex items-center justify-between gap-5 transition-all group shadow-sm hover:shadow-md">
                           <div className="flex items-center gap-5 flex-1 min-w-0">
                             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 group-hover:from-[var(--primary)]/10 group-hover:to-[var(--primary)]/5 transition-all flex items-center justify-center text-2xl border border-white/5 group-hover:border-[var(--primary)]/20 shadow-inner">
@@ -344,17 +372,30 @@ export default function Dashboard() {
                               🥗
                             </div>
                             <div className="min-w-0 flex-1">
-                              <h3 className="font-bold truncate text-lg group-hover:text-[var(--primary)] transition-colors">{log.food_name}</h3>
+                              <h3 className="font-bold truncate text-lg group-hover:text-[var(--primary)] transition-colors">
+                                {log.food_name}
+                              </h3>
                               <p className="text-xs font-medium text-[var(--text-muted)] flex items-center gap-2">
-                                <span>{mounted ? new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                                <span>
+                                  {mounted
+                                    ? new Date(log.created_at).toLocaleTimeString([], {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                      })
+                                    : ''}
+                                </span>
                                 <span className="w-1 h-1 rounded-full bg-gray-600" />
                                 <span>{Math.round(log.protein)}g Protein</span>
                               </p>
                             </div>
                           </div>
                           <div className="text-right shrink-0 bg-black/20 px-4 py-2 rounded-xl">
-                            <span className="block font-black text-xl text-white">+{Math.round(log.calories)}</span>
-                            <span className="text-[10px] uppercase font-bold text-[var(--text-muted)] tracking-wider">kcal</span>
+                            <span className="block font-black text-xl text-white">
+                              +{Math.round(log.calories)}
+                            </span>
+                            <span className="text-[10px] uppercase font-bold text-[var(--text-muted)] tracking-wider">
+                              kcal
+                            </span>
                           </div>
                         </div>
                       </Link>
@@ -368,7 +409,6 @@ export default function Dashboard() {
 
         {/* Sidebar Widgets */}
         <motion.div variants={itemVariants} className="space-y-6">
-
           {/* Fitness Hub Card */}
           <Link href="/fitness" className="block group">
             <div className="bg-gradient-to-br from-[var(--primary)]/10 to-blue-500/5 backdrop-blur-xl border border-[var(--primary)]/20 rounded-3xl p-6 shadow-2xl relative overflow-hidden transition-all hover:scale-[1.02] hover:shadow-[0_0_30px_-10px_rgba(0,255,136,0.3)]">
@@ -381,7 +421,9 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <h3 className="font-bold text-lg leading-tight text-white">Fitness Hub</h3>
-                    <p className="text-[10px] font-bold text-[var(--primary)] uppercase tracking-widest">AI Coach Active</p>
+                    <p className="text-[10px] font-bold text-[var(--primary)] uppercase tracking-widest">
+                      AI Coach Active
+                    </p>
                   </div>
                 </div>
                 <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
@@ -391,7 +433,7 @@ export default function Dashboard() {
 
               <div className="bg-black/20 rounded-xl p-4 border border-white/5 mb-4 backdrop-blur-sm">
                 <p className="text-sm text-gray-300 italic leading-relaxed">
-                  "{profile?.ai_coach_advice || "Log more meals to unlock personalized insights."}"
+                  "{profile?.ai_coach_advice || 'Log more meals to unlock personalized insights.'}"
                 </p>
               </div>
 
@@ -442,7 +484,6 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-
         </motion.div>
       </section>
 

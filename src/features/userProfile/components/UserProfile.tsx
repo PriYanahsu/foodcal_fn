@@ -97,10 +97,7 @@ export default function UserProfile() {
         avatar_url: profile.avatar_url,
       };
 
-      const { error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', user?.id);
+      const { error } = await supabase.from('profiles').update(updates).eq('id', user?.id);
 
       if (error) throw error;
       setIsEditing(false);
@@ -108,7 +105,6 @@ export default function UserProfile() {
       // Update reminder state after save
       const newCompletion = calculateProfileCompletion({ ...profile, ...updates });
       if (newCompletion === 100) setShowReminder(false);
-
     } catch (error) {
       console.error('Error updating profile:', error);
       alert('Failed to update profile');
@@ -131,15 +127,26 @@ export default function UserProfile() {
                   <SparklesIcon className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="font-bold text-white text-sm">Profile Incomplete ({completionPercentage}%)</p>
-                  <p className="text-[var(--text-muted)] text-xs">Complete your full profile for 100% accurate AI results.</p>
+                  <p className="font-bold text-white text-sm">
+                    Profile Incomplete ({completionPercentage}%)
+                  </p>
+                  <p className="text-[var(--text-muted)] text-xs">
+                    Complete your full profile for 100% accurate AI results.
+                  </p>
                 </div>
               </div>
               <button
                 onClick={() => setShowReminder(false)}
                 className="text-white/40 hover:text-white transition-colors"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
               </button>
             </div>
           </div>
@@ -164,8 +171,12 @@ export default function UserProfile() {
 
           <div className="flex-1 text-center md:text-left space-y-2">
             <div>
-              <h1 className="text-2xl md:text-4xl font-bold text-white drop-shadow-lg">{profile.full_name || 'Your Name'}</h1>
-              <p className="text-gray-200 text-base md:text-lg drop-shadow-md">@{profile.username || 'username'}</p>
+              <h1 className="text-2xl md:text-4xl font-bold text-white drop-shadow-lg">
+                {profile.full_name || 'Your Name'}
+              </h1>
+              <p className="text-gray-200 text-base md:text-lg drop-shadow-md">
+                @{profile.username || 'username'}
+              </p>
             </div>
           </div>
 
@@ -186,7 +197,14 @@ export default function UserProfile() {
             >
               {isEditing ? 'Cancel' : 'Edit Profile'}
             </Button>
-            <Button variant="outline" onClick={async () => { await logout(); window.location.href = '/login'; }} className="flex-1 md:flex-none text-red-400 border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-red-500/10 shadow-lg">
+            <Button
+              variant="outline"
+              onClick={async () => {
+                await logout();
+                window.location.href = '/login';
+              }}
+              className="flex-1 md:flex-none text-red-400 border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-red-500/10 shadow-lg"
+            >
               Sign Out
             </Button>
           </div>
@@ -197,19 +215,22 @@ export default function UserProfile() {
           <Card className="p-4 bg-[var(--card-bg)] border border-[var(--card-border)] text-center shadow-lg">
             <p className="text-[var(--text-muted)] text-xs uppercase tracking-wider mb-1">Age</p>
             <p className="text-xl md:text-2xl font-bold text-[var(--foreground)]">
-              {profile.age || '-'} <span className="text-sm text-[var(--text-muted)] font-normal">yrs</span>
+              {profile.age || '-'}{' '}
+              <span className="text-sm text-[var(--text-muted)] font-normal">yrs</span>
             </p>
           </Card>
           <Card className="p-4 bg-[var(--card-bg)] border border-[var(--card-border)] text-center shadow-lg">
             <p className="text-[var(--text-muted)] text-xs uppercase tracking-wider mb-1">Height</p>
             <p className="text-xl md:text-2xl font-bold text-[var(--foreground)]">
-              {profile.height || '-'} <span className="text-sm text-[var(--text-muted)] font-normal">cm</span>
+              {profile.height || '-'}{' '}
+              <span className="text-sm text-[var(--text-muted)] font-normal">cm</span>
             </p>
           </Card>
           <Card className="p-4 bg-[var(--card-bg)] border border-[var(--card-border)] text-center shadow-lg">
             <p className="text-[var(--text-muted)] text-xs uppercase tracking-wider mb-1">Weight</p>
             <p className="text-xl md:text-2xl font-bold text-[var(--foreground)]">
-              {profile.weight || '-'} <span className="text-sm text-[var(--text-muted)] font-normal">kg</span>
+              {profile.weight || '-'}{' '}
+              <span className="text-sm text-[var(--text-muted)] font-normal">kg</span>
             </p>
           </Card>
           <Card className="p-4 bg-[var(--card-bg)] border border-[var(--card-border)] text-center shadow-lg">
@@ -226,7 +247,9 @@ export default function UserProfile() {
             <Card className="p-6 md:p-8 bg-[var(--card-bg)] border border-[var(--card-border)] relative overflow-hidden shadow-xl">
               {/* Decorative background removed for cleaner theme matching if requested, or kept subtle */}
               <div className="absolute top-0 right-0 p-4 opacity-[0.03]">
-                <svg className="w-48 h-48" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z" /></svg>
+                <svg className="w-48 h-48" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z" />
+                </svg>
               </div>
 
               <div className="relative">
@@ -238,7 +261,9 @@ export default function UserProfile() {
                 <div className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="col-span-2 md:col-span-1">
-                      <label className="block text-sm font-medium text-[var(--text-muted)] mb-2">Full Name</label>
+                      <label className="block text-sm font-medium text-[var(--text-muted)] mb-2">
+                        Full Name
+                      </label>
                       <Input
                         value={profile.full_name}
                         disabled={!isEditing}
@@ -246,7 +271,9 @@ export default function UserProfile() {
                       />
                     </div>
                     <div className="col-span-2 md:col-span-1">
-                      <label className="block text-sm font-medium text-[var(--text-muted)] mb-2">Username</label>
+                      <label className="block text-sm font-medium text-[var(--text-muted)] mb-2">
+                        Username
+                      </label>
                       <Input
                         value={profile.username}
                         disabled={true}
@@ -254,7 +281,9 @@ export default function UserProfile() {
                       />
                     </div>
                     <div className="col-span-2 md:col-span-1">
-                      <label className="block text-sm font-medium text-[var(--text-muted)] mb-2">Email</label>
+                      <label className="block text-sm font-medium text-[var(--text-muted)] mb-2">
+                        Email
+                      </label>
                       <Input
                         value={profile.email}
                         disabled={true}
@@ -262,7 +291,9 @@ export default function UserProfile() {
                       />
                     </div>
                     <div className="col-span-2 md:col-span-1">
-                      <label className="block text-sm font-medium text-[var(--text-muted)] mb-2">Gender</label>
+                      <label className="block text-sm font-medium text-[var(--text-muted)] mb-2">
+                        Gender
+                      </label>
                       <select
                         disabled={!isEditing}
                         value={profile.gender}
@@ -292,14 +323,19 @@ export default function UserProfile() {
                 </div>
 
                 <div className="flex-1 text-center md:text-left space-y-1">
-                  <h3 className="text-xl font-black tracking-tight">Fitness <span className="text-[var(--primary)]">Hub</span></h3>
+                  <h3 className="text-xl font-black tracking-tight">
+                    Fitness <span className="text-[var(--primary)]">Hub</span>
+                  </h3>
                   <p className="text-[var(--text-muted)] text-sm leading-relaxed max-w-sm">
                     AI targets and tracking have moved to a dedicated space.
                   </p>
                 </div>
 
                 <Link href="/fitness" className="w-full md:w-auto">
-                  <Button variant="primary" className="w-full md:w-auto px-6 py-2.5 text-sm shadow-[0_0_20px_rgba(0,255,136,0.15)]">
+                  <Button
+                    variant="primary"
+                    className="w-full md:w-auto px-6 py-2.5 text-sm shadow-[0_0_20px_rgba(0,255,136,0.15)]"
+                  >
                     Enter Hub
                   </Button>
                 </Link>
@@ -323,8 +359,8 @@ export default function UserProfile() {
                 </div>
                 <p className="text-xs text-[var(--text-muted)] mt-2">
                   {completionPercentage < 100
-                    ? "Complete your profile to get more accurate AI nutrition recommendations."
-                    : "Your profile is fully optimized! AI coaching is at peak accuracy."}
+                    ? 'Complete your profile to get more accurate AI nutrition recommendations.'
+                    : 'Your profile is fully optimized! AI coaching is at peak accuracy.'}
                 </p>
               </div>
             </Card>
@@ -332,7 +368,8 @@ export default function UserProfile() {
             <Card className="p-6 bg-gradient-to-br from-[var(--input-bg)] to-[var(--card-bg)] border border-[var(--card-border)] shadow-xl">
               <h4 className="font-bold text-lg mb-2 text-purple-400">Pro Tip</h4>
               <p className="text-sm text-[var(--text-muted)]">
-                Updating your weight weekly helps the AI adjust your calorie goals for better results.
+                Updating your weight weekly helps the AI adjust your calorie goals for better
+                results.
               </p>
             </Card>
           </div>

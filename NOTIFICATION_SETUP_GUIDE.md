@@ -52,17 +52,20 @@ SELECT cron.schedule(
 ```
 
 **Replace:**
+
 - `YOUR_PROJECT_REF` with your Supabase project reference ID
 - `YOUR_SERVICE_ROLE_KEY` with your service role key (found in Settings → API)
 
 ### Option 2: External Cron Service
 
 Use services like:
+
 - **cron-job.org**
 - **GitHub Actions**
 - **Vercel Cron** (if deployed on Vercel)
 
 Schedule to call:
+
 ```
 POST https://YOUR_PROJECT_REF.supabase.co/functions/v1/check-notifications
 Headers:
@@ -73,11 +76,13 @@ Headers:
 ### Option 3: Manual Testing
 
 Call the API endpoint:
+
 ```bash
 curl -X POST "http://localhost:3000/api/check-notifications?test=true"
 ```
 
 Or call the edge function directly:
+
 ```bash
 curl -X POST "https://YOUR_PROJECT_REF.supabase.co/functions/v1/check-notifications?test=true" \
   -H "Authorization: Bearer YOUR_ANON_KEY" \
@@ -88,13 +93,13 @@ curl -X POST "https://YOUR_PROJECT_REF.supabase.co/functions/v1/check-notificati
 
 The system now sends notifications at these times:
 
-| Time | Trigger | Notification Type |
-|------|---------|-------------------|
-| **1:00 AM** | System Check | System reminder |
-| **8:00 AM** | Morning Kickoff | Goal reminder |
-| **3:00 PM** | Afternoon Check | Coach advice (if behind) |
-| **7:00 PM** | Evening Check | Coach advice (if behind) |
-| **11:15 PM** | End of Day | **ALWAYS sends** - Summary/Reminder |
+| Time         | Trigger         | Notification Type                   |
+| ------------ | --------------- | ----------------------------------- |
+| **1:00 AM**  | System Check    | System reminder                     |
+| **8:00 AM**  | Morning Kickoff | Goal reminder                       |
+| **3:00 PM**  | Afternoon Check | Coach advice (if behind)            |
+| **7:00 PM**  | Evening Check   | Coach advice (if behind)            |
+| **11:15 PM** | End of Day      | **ALWAYS sends** - Summary/Reminder |
 
 ### 11:15 PM Notification Details
 
@@ -122,9 +127,10 @@ curl -X POST "https://YOUR_PROJECT_REF.supabase.co/functions/v1/check-notificati
 1. Wait until 11:15 PM (or set your system time for testing)
 2. Ensure the cron job is running
 3. Check notifications table:
+
 ```sql
-SELECT * FROM notifications 
-WHERE created_at >= CURRENT_DATE 
+SELECT * FROM notifications
+WHERE created_at >= CURRENT_DATE
 ORDER BY created_at DESC;
 ```
 
@@ -139,6 +145,7 @@ npx supabase@latest functions logs check-notifications --follow
 ### Verify Time Matching
 
 The function logs will show:
+
 ```
 User [id]: Local Time 23:15 (timezone) | Calories: X/Y (Z%) | Behind: true/false
   Time Checks: SystemCheck=false, Morning=false, Afternoon=false, Evening=false, EndOfDay=true, TestWindow=false
@@ -176,6 +183,7 @@ User [id]: Local Time 23:15 (timezone) | Calories: X/Y (Z%) | Behind: true/false
 ## 🚀 Quick Start
 
 1. **Deploy the updated function:**
+
    ```bash
    npx supabase@latest functions deploy check-notifications
    ```
@@ -183,6 +191,7 @@ User [id]: Local Time 23:15 (timezone) | Calories: X/Y (Z%) | Behind: true/false
 2. **Set up cron job** (see Option 1 above)
 
 3. **Test immediately:**
+
    ```bash
    curl -X POST "http://localhost:3000/api/check-notifications?test=true"
    ```

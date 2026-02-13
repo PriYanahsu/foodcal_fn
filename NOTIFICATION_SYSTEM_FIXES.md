@@ -3,11 +3,14 @@
 ## 🔧 Issues Found and Fixed
 
 ### 1. **Time Windows Too Narrow** ✅ FIXED
+
 **Problem:** Notifications only triggered in first 5 minutes of hour (e.g., `minutes < 5`)
+
 - If cron runs every 30 minutes, it could miss the window
 - Test time was exact minute (1:40) which is hard to hit
 
 **Fix:**
+
 - Expanded time windows to 10 minutes for meal times
 - Test time now: `1:40 AM - 1:45 AM` (5 minute window)
 - Breakfast: `8:00 - 8:10 AM`
@@ -18,38 +21,44 @@
 - Late night: `11:30 - 11:40 PM`
 
 ### 2. **Duplicate Check Too Strict** ✅ FIXED
+
 **Problem:** Checked if same title was sent today, which could block legitimate notifications
 
 **Fix:**
+
 - Now checks if same notification (title + type) was sent in last 2 hours
 - Prevents spam while allowing legitimate notifications
 - Test notifications bypass duplicate check
 
 ### 3. **Missing Error Validation** ✅ FIXED
+
 **Problem:** No validation for time parsing errors
 
 **Fix:**
+
 - Added validation for hour and minutes parsing
 - Skips user if time parsing fails (prevents crashes)
 
 ### 4. **Push Notification Error Handling** ✅ IMPROVED
+
 **Problem:** Errors were silently swallowed, making debugging hard
 
 **Fix:**
+
 - Better error handling for push notification API calls
 - Logs errors for debugging (but doesn't block notification creation)
 
 ## 📋 Current Notification Schedule
 
-| Time | Window | Type | Description |
-|------|--------|------|-------------|
-| **1:40 AM** | 1:40-1:45 | Test | Test notification |
-| **8:00 AM** | 8:00-8:10 | Breakfast | Morning motivation |
-| **1:00 PM** | 1:00-1:10 | Lunch | Midday check-in |
-| **3:30 PM** | 3:30-3:40 | Afternoon | Progress reminder |
-| **7:00 PM** | 7:00-7:10 | Dinner | Evening motivation |
-| **10:00 PM** | 10:00-10:10 | Evening | End of day summary |
-| **11:30 PM** | 11:30-11:40 | Late night | Final check-in |
+| Time         | Window      | Type       | Description        |
+| ------------ | ----------- | ---------- | ------------------ |
+| **1:40 AM**  | 1:40-1:45   | Test       | Test notification  |
+| **8:00 AM**  | 8:00-8:10   | Breakfast  | Morning motivation |
+| **1:00 PM**  | 1:00-1:10   | Lunch      | Midday check-in    |
+| **3:30 PM**  | 3:30-3:40   | Afternoon  | Progress reminder  |
+| **7:00 PM**  | 7:00-7:10   | Dinner     | Evening motivation |
+| **10:00 PM** | 10:00-10:10 | Evening    | End of day summary |
+| **11:30 PM** | 11:30-11:40 | Late night | Final check-in     |
 
 ## ✅ Verification Checklist
 
@@ -62,6 +71,7 @@
 ## 🚀 Next Steps
 
 1. **Deploy the updated edge function:**
+
    ```bash
    npx supabase functions deploy check-notifications
    ```

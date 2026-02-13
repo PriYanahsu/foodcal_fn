@@ -25,7 +25,7 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
 
     const { data, error: loginError } = await supabase.auth.signInWithPassword({
       email,
-      password
+      password,
     });
 
     if (loginError) {
@@ -124,7 +124,6 @@ export const signup = async (credentials: SignupCredentials): Promise<AuthRespon
     };
   }
 };
-
 
 export const logout = async (): Promise<{ success: boolean; error?: string }> => {
   try {

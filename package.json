@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -18,6 +19,7 @@
     "framer-motion": "^12.26.2",
     "next": "16.1.2",
     "openai": "^6.16.0",
+    "pretier": "^0.0.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "web-push": "^3.6.7"
@@ -31,6 +33,7 @@
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.2",
+    "prettier": "^3.8.1",
     "supabase": "^2.74.4",
     "tailwindcss": "^4",
     "typescript": "^5"

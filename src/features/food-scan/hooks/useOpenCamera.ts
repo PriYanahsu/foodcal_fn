@@ -1,14 +1,14 @@
-import { useRef, useState, useCallback, useEffect } from "react";
+import { useRef, useState, useCallback, useEffect } from 'react';
 
 export const useOpenCamera = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
   const streamRef = useRef<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const startStream = useCallback(async (mode: "user" | "environment") => {
+  const startStream = useCallback(async (mode: 'user' | 'environment') => {
     try {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
@@ -16,7 +16,9 @@ export const useOpenCamera = () => {
 
       // Check if API is supported (fails on insecure HTTP)
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error("Camera API not available. This usually happens on insecure (HTTP) connections. Please use HTTPS or localhost.");
+        throw new Error(
+          'Camera API not available. This usually happens on insecure (HTTP) connections. Please use HTTPS or localhost.'
+        );
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -28,10 +30,10 @@ export const useOpenCamera = () => {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play().catch(e => {
+          videoRef.current?.play().catch((e) => {
             // Ignore AbortError which happens if the user switches camera quickly
             if (e.name !== 'AbortError') {
-              console.error("Error playing video:", e);
+              console.error('Error playing video:', e);
             }
           });
         };
@@ -39,16 +41,17 @@ export const useOpenCamera = () => {
 
       setError(null);
     } catch (err: any) {
-      console.error("Error accessing camera:", err);
+      console.error('Error accessing camera:', err);
       // Determine user-friendly error message
-      let msg = "Could not access camera. Please ensure permissions are granted.";
+      let msg = 'Could not access camera. Please ensure permissions are granted.';
       if (err instanceof Error) {
         msg = err.message;
       }
       // Common permission/security errors
-      if (err.name === 'NotAllowedError') msg = "Camera permission denied. Please allow access in browser settings.";
-      if (err.name === 'NotFoundError') msg = "No camera device found.";
-      if (err.name === 'NotReadableError') msg = "Camera is currently in use by another app.";
+      if (err.name === 'NotAllowedError')
+        msg = 'Camera permission denied. Please allow access in browser settings.';
+      if (err.name === 'NotFoundError') msg = 'No camera device found.';
+      if (err.name === 'NotReadableError') msg = 'Camera is currently in use by another app.';
 
       setError(msg);
       // Keep isOpen true so the Overlay can display the error message
@@ -62,7 +65,7 @@ export const useOpenCamera = () => {
   };
 
   const switchCamera = async () => {
-    const newMode = facingMode === "environment" ? "user" : "environment";
+    const newMode = facingMode === 'environment' ? 'user' : 'environment';
     setFacingMode(newMode);
     await startStream(newMode);
   };
@@ -92,7 +95,7 @@ export const useOpenCamera = () => {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
     if (!ctx) return null;
 
     // Flip horizontally if using front camera for natural mirroring
@@ -103,11 +106,9 @@ export const useOpenCamera = () => {
 
     ctx.drawImage(video, 0, 0);
 
-    return new File(
-      [dataURLtoBlob(canvas.toDataURL("image/jpeg", 0.9))],
-      "captured.jpg",
-      { type: "image/jpeg" }
-    );
+    return new File([dataURLtoBlob(canvas.toDataURL('image/jpeg', 0.9))], 'captured.jpg', {
+      type: 'image/jpeg',
+    });
   };
 
   return {
@@ -123,7 +124,7 @@ export const useOpenCamera = () => {
 };
 
 function dataURLtoBlob(dataUrl: string) {
-  const [meta, content] = dataUrl.split(",");
+  const [meta, content] = dataUrl.split(',');
   const mime = meta.match(/:(.*?);/)![1];
   const binary = atob(content);
   const arr = new Uint8Array(binary.length);

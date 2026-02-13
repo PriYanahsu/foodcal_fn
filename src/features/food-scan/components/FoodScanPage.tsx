@@ -7,7 +7,8 @@ import { NutritionCard } from './NutritionCard';
 import { XMarkIcon, SparklesIcon, CameraIcon, PhotoIcon } from '@heroicons/react/24/outline';
 
 export const FoodScanPage: React.FC = () => {
-  const { scanImage, saveFoodLog, isLoading, isSaving, nutritionData, error, reset } = useFoodScan();
+  const { scanImage, saveFoodLog, isLoading, isSaving, nutritionData, error, reset } =
+    useFoodScan();
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [prompt, setPrompt] = useState('');
@@ -46,7 +47,9 @@ export const FoodScanPage: React.FC = () => {
           <h1 className="text-3xl md:text-4xl font-black tracking-tighter">
             What are you <span className="text-[var(--primary)]">eating?</span>
           </h1>
-          <p className="text-[var(--text-muted)] text-sm md:text-lg font-medium opacity-70">Capture any meal to unlock its nutritional secrets.</p>
+          <p className="text-[var(--text-muted)] text-sm md:text-lg font-medium opacity-70">
+            Capture any meal to unlock its nutritional secrets.
+          </p>
         </div>
       )}
 
@@ -75,7 +78,9 @@ export const FoodScanPage: React.FC = () => {
                     </div>
                     <div className="space-y-1">
                       <p className="font-bold text-xl tracking-tight">Tap to capture</p>
-                      <p className="text-[var(--text-muted)] text-xs font-medium opacity-60">Ready to analyze your meal?</p>
+                      <p className="text-[var(--text-muted)] text-xs font-medium opacity-60">
+                        Ready to analyze your meal?
+                      </p>
                     </div>
                   </div>
                 </button>
@@ -106,7 +111,9 @@ export const FoodScanPage: React.FC = () => {
           <div className="space-y-8 animate-fade-in-up">
             <div className="flex flex-col items-center text-center space-y-2">
               <h2 className="text-2xl font-black tracking-tight uppercase">Confirm Meal</h2>
-              <p className="text-[var(--text-muted)] text-xs font-bold uppercase tracking-widest opacity-60">Analyzing your capture</p>
+              <p className="text-[var(--text-muted)] text-xs font-bold uppercase tracking-widest opacity-60">
+                Analyzing your capture
+              </p>
             </div>
 
             <div className="relative aspect-square rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl group ring-1 ring-white/5">
@@ -131,10 +138,15 @@ export const FoodScanPage: React.FC = () => {
               <div className="space-y-6">
                 <div className="space-y-3">
                   <div className="flex justify-between items-center px-1">
-                    <label htmlFor="prompt" className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">
+                    <label
+                      htmlFor="prompt"
+                      className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]"
+                    >
                       Details (optional)
                     </label>
-                    <span className="text-[10px] font-bold text-[var(--primary)] opacity-60">AI Assissted</span>
+                    <span className="text-[10px] font-bold text-[var(--primary)] opacity-60">
+                      AI Assissted
+                    </span>
                   </div>
                   <textarea
                     id="prompt"
