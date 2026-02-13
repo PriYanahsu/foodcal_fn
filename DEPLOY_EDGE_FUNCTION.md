@@ -5,6 +5,7 @@
 ### Step 1: Install Supabase CLI
 
 **For Windows (using Scoop):**
+
 ```powershell
 # Install Scoop if you don't have it
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
@@ -16,28 +17,33 @@ scoop install supabase
 ```
 
 **Or download directly:**
+
 1. Go to: https://github.com/supabase/cli/releases
 2. Download the Windows executable
 3. Add it to your PATH
 
 **Or use npx (no installation needed):**
+
 ```bash
 npx supabase@latest functions deploy check-notifications
 ```
 
 ### Step 2: Login to Supabase
+
 ```bash
 npx supabase login
 # Or if installed: supabase login
 ```
 
 ### Step 3: Link Your Project
+
 ```bash
 npx supabase link --project-ref your-project-ref
 # You can find your project ref in Supabase Dashboard > Settings > General > Reference ID
 ```
 
 ### Step 4: Deploy the Function
+
 ```bash
 npx supabase functions deploy check-notifications
 ```
@@ -53,6 +59,7 @@ After deployment, set environment variables in Supabase Dashboard:
    - `API_BASE_URL` - Your Next.js app URL (e.g., `https://your-app.vercel.app` or `http://localhost:3000` for dev)
 
 Or use CLI:
+
 ```bash
 npx supabase secrets set API_BASE_URL=https://your-app.vercel.app
 ```
@@ -108,11 +115,13 @@ npx supabase@latest secrets set API_BASE_URL=https://your-app.vercel.app
 ### Test the Function
 
 1. **Via API endpoint:**
+
    ```bash
    curl -X POST "http://localhost:3000/api/check-notifications?test=true"
    ```
 
 2. **Direct function call:**
+
    ```bash
    curl -X POST "https://YOUR_PROJECT_REF.supabase.co/functions/v1/check-notifications?test=true" \
      -H "Authorization: Bearer YOUR_ANON_KEY"
@@ -128,18 +137,22 @@ npx supabase@latest secrets set API_BASE_URL=https://your-app.vercel.app
 ## Troubleshooting
 
 ### Function Not Found
+
 - Make sure you're in the project root directory
 - Verify the function folder exists at `supabase/functions/check-notifications/`
 
 ### Authentication Errors
+
 - Run `npx supabase@latest login` again
 - Check your project ref is correct
 
 ### Environment Variables Not Working
+
 - Variables must be set in Supabase Dashboard, not locally
 - Restart the function after setting variables
 
 ### API_BASE_URL Issues
+
 - Make sure your Next.js app is accessible
 - For local dev, use `http://localhost:3000` (only works if edge function can reach it)
 - For production, use your deployed URL (e.g., Vercel, Netlify)

@@ -47,7 +47,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
       email,
       gender: 'Other',
       password,
-      confirmPassword: password
+      confirmPassword: password,
     });
 
     if (result.success) {
@@ -63,7 +63,12 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
     return (
       <div className="text-center py-8">
         <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg className="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg
+            className="w-8 h-8 text-green-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>

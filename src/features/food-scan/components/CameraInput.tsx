@@ -1,7 +1,7 @@
-import React, { useRef } from "react";
-import { PhotoIcon, CameraIcon } from "@heroicons/react/24/outline";
-import { useOpenCamera } from "../hooks/useOpenCamera";
-import { CameraOverlay } from "./CameraOverlay";
+import React, { useRef } from 'react';
+import { PhotoIcon, CameraIcon } from '@heroicons/react/24/outline';
+import { useOpenCamera } from '../hooks/useOpenCamera';
+import { CameraOverlay } from './CameraOverlay';
 
 interface CameraInputProps {
   onImageSelect: (file: File) => void;

@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
   /* Dark Theme Base */
@@ -35,8 +35,6 @@ body {
 }
 
 @layer components {
-
-
   .btn-primary {
     @apply bg-[var(--primary)] text-black font-bold py-3 px-6 rounded-xl hover:bg-[var(--primary-hover)] transition-all duration-300 transform hover:scale-[1.02] shadow-[0_0_15px_#00ff884d];
   }

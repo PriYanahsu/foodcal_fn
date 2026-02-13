@@ -4,37 +4,31 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
-    console.log('--- Fitness Consultant API Started ---');
+  console.log('--- Fitness Consultant API Started ---');
+  try {
+    const body = await req.json();
+    console.log('Request Body:', JSON.stringify(body, null, 2));
+
+    const { stats, goals } = body;
+
+    if (!stats || !goals) {
+      return NextResponse.json({ error: 'User stats and goals are required' }, { status: 400 });
+    }
+
+    if (!process.env.GEMINI_API_KEY) {
+      console.error('CRITICAL: GEMINI_API_KEY is missing');
+      return NextResponse.json({ error: 'AI Service configuration error' }, { status: 500 });
+    }
+
+    console.log('API Key present (starts with):', process.env.GEMINI_API_KEY.substring(0, 10));
+
+    // Initialize Gemini
+    let responseText = '';
     try {
-        const body = await req.json();
-        console.log('Request Body:', JSON.stringify(body, null, 2));
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+      const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 
-        const { stats, goals } = body;
-
-        if (!stats || !goals) {
-            return NextResponse.json(
-                { error: 'User stats and goals are required' },
-                { status: 400 }
-            );
-        }
-
-        if (!process.env.GEMINI_API_KEY) {
-            console.error('CRITICAL: GEMINI_API_KEY is missing');
-            return NextResponse.json(
-                { error: 'AI Service configuration error' },
-                { status: 500 }
-            );
-        }
-
-        console.log('API Key present (starts with):', process.env.GEMINI_API_KEY.substring(0, 10));
-
-        // Initialize Gemini
-        let responseText = '';
-        try {
-            const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-            const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
-
-            const prompt = `
+      const prompt = `
             You are a highly intelligent, world-class elite fitness coach and nutritionist who specializes in POSITIVE PSYCHOLOGY and MOTIVATIONAL INTERVIEWING.
             Your goal is to be a supportive, empathetic, and encouraging partner to the user.
             
@@ -71,42 +65,44 @@ export async function POST(req: Request) {
             Do not include any conversational filler outside the JSON.
             `;
 
-            console.log('--- Calling Gemini ---');
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            responseText = response.text();
-            console.log('--- Gemini Success ---');
-        } catch (geminiError: any) {
-            console.error('Gemini Error:', geminiError);
-            return NextResponse.json(
-                { error: `AI Service Error: ${geminiError.message}` },
-                { status: 500 }
-            );
-        }
-
-        // More robust JSON extraction
-        let cleanContent = responseText;
-        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-            cleanContent = jsonMatch[0];
-        }
-
-        try {
-            const analysis = JSON.parse(cleanContent);
-            return NextResponse.json({ data: analysis });
-        } catch (e) {
-            console.error("JSON Parse Error. Raw content:", responseText);
-            return NextResponse.json({
-                error: "Failed to parse AI response. The coach was a bit too talkative.",
-                raw: responseText
-            }, { status: 500 });
-        }
-
-    } catch (error: any) {
-        console.error('Fitness Consultant Error:', error);
-        return NextResponse.json(
-            { error: error.message || 'Failed to consult fitness coach', stack: error.stack },
-            { status: 500 }
-        );
+      console.log('--- Calling Gemini ---');
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      responseText = response.text();
+      console.log('--- Gemini Success ---');
+    } catch (geminiError: any) {
+      console.error('Gemini Error:', geminiError);
+      return NextResponse.json(
+        { error: `AI Service Error: ${geminiError.message}` },
+        { status: 500 }
+      );
     }
+
+    // More robust JSON extraction
+    let cleanContent = responseText;
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      cleanContent = jsonMatch[0];
+    }
+
+    try {
+      const analysis = JSON.parse(cleanContent);
+      return NextResponse.json({ data: analysis });
+    } catch (e) {
+      console.error('JSON Parse Error. Raw content:', responseText);
+      return NextResponse.json(
+        {
+          error: 'Failed to parse AI response. The coach was a bit too talkative.',
+          raw: responseText,
+        },
+        { status: 500 }
+      );
+    }
+  } catch (error: any) {
+    console.error('Fitness Consultant Error:', error);
+    return NextResponse.json(
+      { error: error.message || 'Failed to consult fitness coach', stack: error.stack },
+      { status: 500 }
+    );
+  }
 }

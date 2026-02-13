@@ -27,6 +27,7 @@ web-push generate-vapid-keys
 ```
 
 This will output:
+
 - Public Key (starts with `B...`)
 - Private Key (starts with `...`)
 
@@ -64,13 +65,16 @@ CREATE POLICY "Users can manage their own push subscriptions"
 Add the following environment variables:
 
 ### Next.js (.env.local)
+
 ```
 NEXT_PUBLIC_VAPID_PUBLIC_KEY=your_public_key_here
 VAPID_PRIVATE_KEY=your_private_key_here
 ```
 
 ### Supabase Edge Function
+
 Add these to your Supabase project settings:
+
 - `VAPID_PUBLIC_KEY` - Your VAPID public key
 - `VAPID_PRIVATE_KEY` - Your VAPID private key
 - `API_BASE_URL` - Your Next.js application URL (for sending push notifications)
@@ -93,27 +97,27 @@ import webpush from 'web-push';
 
 // Set VAPID details
 webpush.setVapidDetails(
-    'mailto:your-email@example.com', // Contact email
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-    process.env.VAPID_PRIVATE_KEY!
+  'mailto:your-email@example.com', // Contact email
+  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+  process.env.VAPID_PRIVATE_KEY!
 );
 
 // Then in the POST handler, send notifications:
 for (const sub of subscriptions) {
-    try {
-        await webpush.sendNotification(
-            sub.subscription,
-            JSON.stringify({
-                title,
-                body,
-                icon: icon || '/icons/icon-192x192.png',
-                badge: badge || '/icons/icon-192x192.png',
-            })
-        );
-    } catch (error) {
-        // Handle errors (e.g., invalid subscription)
-        console.error('Push notification failed:', error);
-    }
+  try {
+    await webpush.sendNotification(
+      sub.subscription,
+      JSON.stringify({
+        title,
+        body,
+        icon: icon || '/icons/icon-192x192.png',
+        badge: badge || '/icons/icon-192x192.png',
+      })
+    );
+  } catch (error) {
+    // Handle errors (e.g., invalid subscription)
+    console.error('Push notification failed:', error);
+  }
 }
 ```
 
@@ -147,17 +151,20 @@ The edge function should call the push notification API when creating notificati
 ## Troubleshooting
 
 ### Notifications not appearing
+
 - Check browser console for errors
 - Verify VAPID keys are set correctly
 - Ensure service worker is registered
 - Check notification permissions in browser settings
 
 ### Subscription not saving
+
 - Verify database table exists
 - Check RLS policies allow user access
 - Verify API endpoint is accessible
 
 ### Push notifications not sending
+
 - Verify VAPID keys are correct
 - Check API endpoint is working
 - Ensure subscriptions are valid (they expire if not used)
@@ -172,6 +179,7 @@ The edge function should call the push notification API when creating notificati
 ## Browser Support
 
 Web push notifications are supported in:
+
 - Chrome/Edge (Android & Desktop)
 - Firefox (Android & Desktop)
 - Safari (iOS 16.4+ & macOS)

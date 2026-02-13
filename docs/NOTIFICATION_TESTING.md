@@ -1,31 +1,36 @@
 # Notification System Testing Guide
 
 ## Overview
+
 This guide explains how to test the notification system that triggers when users haven't completed their daily diet goals.
 
 ## What Was Fixed
 
 ### 1. **Edge Function Updates** (`supabase/functions/check-notifications/index.ts`)
-   - ✅ Added diet completion checking by comparing `food_logs` with `daily_calorie_target`
-   - ✅ Implemented time-based progress thresholds (morning: 25%, afternoon: 60%, evening: 85%, night: 95%)
-   - ✅ Integrated with `/api/fitness-consultant` to generate personalized AI coaching advice
-   - ✅ Added logic to detect when users are behind schedule
-   - ✅ Enhanced notification messages with calorie deficits and progress percentages
+
+- ✅ Added diet completion checking by comparing `food_logs` with `daily_calorie_target`
+- ✅ Implemented time-based progress thresholds (morning: 25%, afternoon: 60%, evening: 85%, night: 95%)
+- ✅ Integrated with `/api/fitness-consultant` to generate personalized AI coaching advice
+- ✅ Added logic to detect when users are behind schedule
+- ✅ Enhanced notification messages with calorie deficits and progress percentages
 
 ### 2. **API Endpoint** (`src/app/api/check-notifications/route.ts`)
-   - ✅ Created endpoint to manually trigger notification checks
-   - ✅ Supports test mode via `?test=true` query parameter
-   - ✅ Can be called by cron jobs, webhooks, or manually for testing
+
+- ✅ Created endpoint to manually trigger notification checks
+- ✅ Supports test mode via `?test=true` query parameter
+- ✅ Can be called by cron jobs, webhooks, or manually for testing
 
 ### 3. **Test Suite** (`tests/notification-system.test.ts`)
-   - ✅ Comprehensive test coverage for notification triggering
-   - ✅ Verifies diet completion detection
-   - ✅ Tests duplicate prevention
-   - ✅ Validates notification content and structure
+
+- ✅ Comprehensive test coverage for notification triggering
+- ✅ Verifies diet completion detection
+- ✅ Tests duplicate prevention
+- ✅ Validates notification content and structure
 
 ## How to Test
 
 ### Prerequisites
+
 1. Ensure your Next.js server is running: `npm run dev`
 2. Have a test user in your Supabase database with:
    - A `daily_calorie_target` set in the `profiles` table
@@ -46,6 +51,7 @@ curl -X POST "http://localhost:3000/api/check-notifications" \
 ### Option 2: Run Test Suite
 
 1. Set up environment variables:
+
 ```bash
 export NEXT_PUBLIC_SUPABASE_URL="your-supabase-url"
 export NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
@@ -54,11 +60,13 @@ export API_BASE_URL="http://localhost:3000"
 ```
 
 2. Install test dependencies (if needed):
+
 ```bash
 npm install --save-dev tsx @types/node
 ```
 
 3. Run the test:
+
 ```bash
 npx tsx tests/notification-system.test.ts
 ```
@@ -97,6 +105,7 @@ The system checks if users are behind on their diet by:
 ### AI Coaching Integration
 
 When a user is behind on their diet, the system:
+
 1. Calls `/api/fitness-consultant` with user stats and goals
 2. Receives personalized coaching advice
 3. Includes the advice in the notification's `suggestion` field
@@ -106,16 +115,19 @@ When a user is behind on their diet, the system:
 ### When User is Behind Schedule
 
 **Afternoon (3 PM):**
+
 - Title: "Energy Boost Needed! ⚡"
 - Message: "You're at X% of your daily goal. You need about Y more calories to stay on track."
 - Includes AI coaching suggestion
 
 **Evening (7 PM):**
+
 - Title: "Almost There! 🌙"
 - Message: "You're at X% of your daily goal. Just Y more calories to complete your day strong!"
 - Includes AI coaching suggestion
 
 **Night (11:55 PM):**
+
 - Title: "Final Push! 💪"
 - Message: "You're at X% of your daily goal. Don't give up now - you're so close!"
 - Includes AI coaching suggestion
@@ -123,6 +135,7 @@ When a user is behind on their diet, the system:
 ### Duplicate Prevention
 
 The system prevents sending the same notification multiple times per day by:
+
 - Checking if a notification with the same title was already sent today
 - Skipping if duplicate found (unless in test mode)
 
@@ -131,14 +144,16 @@ The system prevents sending the same notification multiple times per day by:
 ### Notifications Not Triggering
 
 1. **Check user has calorie target**:
+
    ```sql
    SELECT id, daily_calorie_target FROM profiles WHERE id = 'user-id';
    ```
 
 2. **Check food logs exist**:
+
    ```sql
-   SELECT * FROM food_logs 
-   WHERE user_id = 'user-id' 
+   SELECT * FROM food_logs
+   WHERE user_id = 'user-id'
    AND created_at >= CURRENT_DATE;
    ```
 
@@ -159,6 +174,7 @@ The system prevents sending the same notification multiple times per day by:
    - `API_BASE_URL` (for fitness-consultant API calls)
 
 2. **Verify edge function is deployed**:
+
    ```bash
    supabase functions list
    ```
@@ -197,6 +213,7 @@ To automatically check notifications, set up a cron job:
 ### Using External Cron Service
 
 Use a service like cron-job.org or GitHub Actions to call:
+
 ```
 POST https://your-domain.com/api/check-notifications
 ```
@@ -204,6 +221,7 @@ POST https://your-domain.com/api/check-notifications
 ## Next Steps
 
 1. **Deploy the edge function**:
+
    ```bash
    supabase functions deploy check-notifications
    ```
@@ -214,7 +232,7 @@ POST https://your-domain.com/api/check-notifications
 
 4. **Monitor notifications** in the database:
    ```sql
-   SELECT * FROM notifications 
-   WHERE created_at >= CURRENT_DATE 
+   SELECT * FROM notifications
+   WHERE created_at >= CURRENT_DATE
    ORDER BY created_at DESC;
    ```
