@@ -82,63 +82,52 @@ export const MuscleMap: React.FC<MuscleMapProps> = ({
   };
 
   return (
-    <div className="flex flex-col lg:flex-row items-start gap-8 lg:gap-12 w-full">
-      {/* Interactive Legend */}
-      <div className="w-full lg:w-48 xl:w-60 space-y-3 shrink-0">
-        <div className="pb-3 border-b border-white/5 mb-3">
-          <h4 className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">
-            Muscle Index
-          </h4>
-          <p className="text-xs font-bold text-white">Select focus</p>
-        </div>
-        <div className="flex lg:flex-col overflow-x-auto lg:overflow-y-auto pb-4 lg:pb-0 gap-2 custom-scrollbar lg:max-h-[500px] lg:pr-2">
-          {muscles.map((m) => (
-            <button
-              key={m.id}
-              onMouseEnter={() => setHoveredMuscle(m.id)}
-              onMouseLeave={() => setHoveredMuscle(null)}
-              onClick={() => handleSelect(m.id)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg lg:rounded-xl border transition-all text-left group whitespace-nowrap lg:whitespace-normal shrink-0 ${
-                selectedMuscle === m.id
-                  ? 'bg-[var(--primary)] border-[var(--primary)] text-black'
-                  : query.length > 1 && m.name.toLowerCase().includes(query)
-                    ? 'bg-[var(--primary)]/20 border-[var(--primary)]/30 text-white'
-                    : 'bg-white/5 border-white/5 text-[var(--text-muted)] hover:text-white'
-              }`}
-            >
-              <span className="text-[9px] lg:text-[10px] font-black uppercase tracking-tight">
-                {m.name.split(' (')[0]}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
+    <div className="flex flex-col xl:flex-row items-center justify-center gap-12 w-full">
 
-      {/* Anatomical Views */}
-      <div className="flex-1 w-full relative">
-        <div className="grid grid-cols-2 gap-4 sm:gap-6 items-center justify-items-center">
-          {/* View: Front Container */}
-          <div className="flex flex-col items-center gap-4 w-full">
-            <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-50">
-              Anterior
-            </h3>
-            <div className="relative w-full max-w-[120px] sm:max-w-[150px] aspect-[1/2.2]">
+      {/* Anatomical Main View */}
+      <div className="flex-1 w-full relative group">
+        <div className="grid grid-cols-2 gap-8 md:gap-12 items-center justify-items-center">
+          {/* Anterior View */}
+          <div className="flex flex-col items-center gap-6 w-full">
+            <div className="space-y-1 text-center">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.5em] text-[var(--primary)] shadow-sm">
+                Anterior
+              </h3>
+              <div className="w-12 h-[1px] bg-gradient-to-r from-transparent via-[var(--primary)]/50 to-transparent mx-auto" />
+            </div>
+
+            <div className="relative w-full max-w-[140px] sm:max-w-[170px] aspect-[1/2.2] group/map">
+              {/* Holographic Base Grid */}
+              <div className="absolute inset-x-[-20%] inset-y-[-10%] opacity-20 pointer-events-none">
+                <svg width="100%" height="100%" className="text-[var(--primary)]/10">
+                  <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="currentColor" strokeWidth="0.5" />
+                  </pattern>
+                  <rect width="100%" height="100%" fill="url(#grid)" />
+                </svg>
+              </div>
+
               <svg
                 viewBox="0 0 200 450"
-                className="w-full h-full drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] overflow-visible"
+                className="w-full h-full drop-shadow-[0_0_30px_rgba(0,0,0,0.8)] overflow-visible relative z-10"
               >
                 <defs>
-                  <radialGradient id="bodyGlow" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.05" />
-                    <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
-                  </radialGradient>
+                  <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="5" result="blur" />
+                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                  </filter>
+                  <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#1a1a20" />
+                    <stop offset="100%" stopColor="#0d0d10" />
+                  </linearGradient>
                 </defs>
-                <circle cx="100" cy="200" r="150" fill="url(#bodyGlow)" />
+
                 <path
                   d="M100 25 L115 45 Q125 70 115 110 L145 140 L135 250 L155 420 L130 420 L120 280 L100 280 L80 280 L70 420 L45 420 L65 250 L55 140 L85 110 Q75 70 85 45 Z"
-                  fill="#141417"
-                  stroke="rgba(255,255,255,0.03)"
-                  strokeWidth="1"
+                  fill="url(#bodyGrad)"
+                  stroke="rgba(var(--primary-rgb), 0.1)"
+                  strokeWidth="1.5"
+                  className="transition-colors duration-700 group-hover/map:stroke-[var(--primary)]/20"
                 />
 
                 <motion.path
@@ -147,7 +136,7 @@ export const MuscleMap: React.FC<MuscleMapProps> = ({
                   onMouseEnter={() => setHoveredMuscle('chest')}
                   onMouseLeave={() => setHoveredMuscle(null)}
                   onClick={() => handleSelect('chest')}
-                  className="cursor-pointer"
+                  className="cursor-pointer transition-all duration-300"
                 />
                 <motion.path
                   d="M100 95 Q115 85 130 95 L133 145 Q115 155 97 145 Z"
@@ -155,7 +144,7 @@ export const MuscleMap: React.FC<MuscleMapProps> = ({
                   onMouseEnter={() => setHoveredMuscle('chest')}
                   onMouseLeave={() => setHoveredMuscle(null)}
                   onClick={() => handleSelect('chest')}
-                  className="cursor-pointer"
+                  className="cursor-pointer transition-all duration-300"
                 />
                 <motion.path
                   d="M85 155 L115 155 L110 240 L90 240 Z"
@@ -163,7 +152,7 @@ export const MuscleMap: React.FC<MuscleMapProps> = ({
                   onMouseEnter={() => setHoveredMuscle('abs')}
                   onMouseLeave={() => setHoveredMuscle(null)}
                   onClick={() => handleSelect('abs')}
-                  className="cursor-pointer"
+                  className="cursor-pointer transition-all duration-300"
                 />
                 <motion.path
                   d="M72 100 Q62 110 68 140 L80 140 Q80 110 90 100 Z"
@@ -171,7 +160,7 @@ export const MuscleMap: React.FC<MuscleMapProps> = ({
                   onMouseEnter={() => setHoveredMuscle('shoulders')}
                   onMouseLeave={() => setHoveredMuscle(null)}
                   onClick={() => handleSelect('shoulders')}
-                  className="cursor-pointer"
+                  className="cursor-pointer transition-all duration-300"
                 />
                 <motion.path
                   d="M128 100 Q138 110 132 140 L120 140 Q120 110 110 100 Z"
@@ -179,7 +168,7 @@ export const MuscleMap: React.FC<MuscleMapProps> = ({
                   onMouseEnter={() => setHoveredMuscle('shoulders')}
                   onMouseLeave={() => setHoveredMuscle(null)}
                   onClick={() => handleSelect('shoulders')}
-                  className="cursor-pointer"
+                  className="cursor-pointer transition-all duration-300"
                 />
                 <motion.path
                   d="M60 150 Q52 175 62 205 L72 200 Q70 175 75 150 Z"
@@ -187,7 +176,7 @@ export const MuscleMap: React.FC<MuscleMapProps> = ({
                   onMouseEnter={() => setHoveredMuscle('biceps')}
                   onMouseLeave={() => setHoveredMuscle(null)}
                   onClick={() => handleSelect('biceps')}
-                  className="cursor-pointer"
+                  className="cursor-pointer transition-all duration-300"
                 />
                 <motion.path
                   d="M140 150 Q148 175 138 205 L128 200 Q130 175 125 150 Z"
@@ -195,7 +184,7 @@ export const MuscleMap: React.FC<MuscleMapProps> = ({
                   onMouseEnter={() => setHoveredMuscle('biceps')}
                   onMouseLeave={() => setHoveredMuscle(null)}
                   onClick={() => handleSelect('biceps')}
-                  className="cursor-pointer"
+                  className="cursor-pointer transition-all duration-300"
                 />
                 <motion.path
                   d="M68 255 L92 255 L88 340 L64 330 Z"
@@ -203,7 +192,7 @@ export const MuscleMap: React.FC<MuscleMapProps> = ({
                   onMouseEnter={() => setHoveredMuscle('quads')}
                   onMouseLeave={() => setHoveredMuscle(null)}
                   onClick={() => handleSelect('quads')}
-                  className="cursor-pointer"
+                  className="cursor-pointer transition-all duration-300"
                 />
                 <motion.path
                   d="M132 255 L108 255 L112 340 L136 330 Z"
@@ -211,28 +200,38 @@ export const MuscleMap: React.FC<MuscleMapProps> = ({
                   onMouseEnter={() => setHoveredMuscle('quads')}
                   onMouseLeave={() => setHoveredMuscle(null)}
                   onClick={() => handleSelect('quads')}
-                  className="cursor-pointer"
+                  className="cursor-pointer transition-all duration-300"
                 />
               </svg>
             </div>
           </div>
 
-          {/* View: Back Container */}
-          <div className="flex flex-col items-center gap-4 w-full">
-            <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-50">
-              Posterior
-            </h3>
-            <div className="relative w-full max-w-[140px] sm:max-w-[180px] aspect-[1/2.2]">
+          {/* Posterior View */}
+          <div className="flex flex-col items-center gap-6 w-full">
+            <div className="space-y-1 text-center">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.5em] text-[var(--primary)] shadow-sm">
+                Posterior
+              </h3>
+              <div className="w-12 h-[1px] bg-gradient-to-r from-transparent via-[var(--primary)]/50 to-transparent mx-auto" />
+            </div>
+
+            <div className="relative w-full max-w-[140px] sm:max-w-[170px] aspect-[1/2.2] group/map">
+              <div className="absolute inset-x-[-20%] inset-y-[-10%] opacity-20 pointer-events-none">
+                <svg width="100%" height="100%" className="text-[var(--primary)]/10">
+                  <use href="#grid" />
+                </svg>
+              </div>
+
               <svg
                 viewBox="0 0 200 450"
-                className="w-full h-full drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] overflow-visible"
+                className="w-full h-full drop-shadow-[0_0_30px_rgba(0,0,0,0.8)] overflow-visible relative z-10"
               >
-                <circle cx="100" cy="200" r="150" fill="url(#bodyGlow)" />
                 <path
                   d="M100 25 L115 45 Q125 70 115 110 L145 140 L135 250 L155 420 L130 420 L120 280 L100 280 L80 280 L70 420 L45 420 L65 250 L55 140 L85 110 Q75 70 85 45 Z"
-                  fill="#141417"
-                  stroke="rgba(255,255,255,0.03)"
-                  strokeWidth="1"
+                  fill="url(#bodyGrad)"
+                  stroke="rgba(var(--primary-rgb), 0.1)"
+                  strokeWidth="1.5"
+                  className="transition-colors duration-700 group-hover/map:stroke-[var(--primary)]/20"
                 />
 
                 <motion.path
@@ -241,7 +240,7 @@ export const MuscleMap: React.FC<MuscleMapProps> = ({
                   onMouseEnter={() => setHoveredMuscle('traps')}
                   onMouseLeave={() => setHoveredMuscle(null)}
                   onClick={() => handleSelect('traps')}
-                  className="cursor-pointer"
+                  className="cursor-pointer transition-all duration-300"
                 />
                 <motion.path
                   d="M75 105 Q100 120 125 105 L120 190 Q100 205 80 190 Z"
@@ -249,7 +248,7 @@ export const MuscleMap: React.FC<MuscleMapProps> = ({
                   onMouseEnter={() => setHoveredMuscle('back')}
                   onMouseLeave={() => setHoveredMuscle(null)}
                   onClick={() => handleSelect('back')}
-                  className="cursor-pointer"
+                  className="cursor-pointer transition-all duration-300"
                 />
                 <motion.path
                   d="M55 145 Q45 175 55 210 L68 200 Q65 175 70 145 Z"
@@ -257,7 +256,7 @@ export const MuscleMap: React.FC<MuscleMapProps> = ({
                   onMouseEnter={() => setHoveredMuscle('triceps')}
                   onMouseLeave={() => setHoveredMuscle(null)}
                   onClick={() => handleSelect('triceps')}
-                  className="cursor-pointer"
+                  className="cursor-pointer transition-all duration-300"
                 />
                 <motion.path
                   d="M145 145 Q155 175 145 210 L132 200 Q135 175 130 145 Z"
@@ -265,7 +264,7 @@ export const MuscleMap: React.FC<MuscleMapProps> = ({
                   onMouseEnter={() => setHoveredMuscle('triceps')}
                   onMouseLeave={() => setHoveredMuscle(null)}
                   onClick={() => handleSelect('triceps')}
-                  className="cursor-pointer"
+                  className="cursor-pointer transition-all duration-300"
                 />
                 <motion.path
                   d="M72 230 Q100 220 128 230 L132 275 Q100 290 68 275 Z"
@@ -273,7 +272,7 @@ export const MuscleMap: React.FC<MuscleMapProps> = ({
                   onMouseEnter={() => setHoveredMuscle('glutes')}
                   onMouseLeave={() => setHoveredMuscle(null)}
                   onClick={() => handleSelect('glutes')}
-                  className="cursor-pointer"
+                  className="cursor-pointer transition-all duration-300"
                 />
                 <motion.path
                   d="M75 285 L95 285 L92 350 L68 340 Z"
@@ -281,7 +280,7 @@ export const MuscleMap: React.FC<MuscleMapProps> = ({
                   onMouseEnter={() => setHoveredMuscle('hamstrings')}
                   onMouseLeave={() => setHoveredMuscle(null)}
                   onClick={() => handleSelect('hamstrings')}
-                  className="cursor-pointer"
+                  className="cursor-pointer transition-all duration-300"
                 />
                 <motion.path
                   d="M125 285 L105 285 L108 350 L132 340 Z"
@@ -289,7 +288,7 @@ export const MuscleMap: React.FC<MuscleMapProps> = ({
                   onMouseEnter={() => setHoveredMuscle('hamstrings')}
                   onMouseLeave={() => setHoveredMuscle(null)}
                   onClick={() => handleSelect('hamstrings')}
-                  className="cursor-pointer"
+                  className="cursor-pointer transition-all duration-300"
                 />
                 <motion.path
                   d="M62 360 L80 365 L75 415 L55 415 Z"
@@ -297,7 +296,7 @@ export const MuscleMap: React.FC<MuscleMapProps> = ({
                   onMouseEnter={() => setHoveredMuscle('calves')}
                   onMouseLeave={() => setHoveredMuscle(null)}
                   onClick={() => handleSelect('calves')}
-                  className="cursor-pointer"
+                  className="cursor-pointer transition-all duration-300"
                 />
                 <motion.path
                   d="M138 360 L120 365 L125 415 L145 415 Z"
@@ -305,31 +304,62 @@ export const MuscleMap: React.FC<MuscleMapProps> = ({
                   onMouseEnter={() => setHoveredMuscle('calves')}
                   onMouseLeave={() => setHoveredMuscle(null)}
                   onClick={() => handleSelect('calves')}
-                  className="cursor-pointer"
+                  className="cursor-pointer transition-all duration-300"
                 />
               </svg>
             </div>
           </div>
         </div>
 
-        {/* Selection Label */}
+        {/* Dynamic Scan Info Center Overlay */}
         <AnimatePresence>
           {(hoveredMuscle || selectedMuscle) && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 10 }}
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 10 }}
-              className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black/90 backdrop-blur-md border border-[var(--primary)]/50 px-4 py-2 rounded-xl z-50 pointer-events-none shadow-2xl flex flex-col items-center"
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-3xl border border-[var(--primary)]/30 p-1 rounded-full z-50 pointer-events-none shadow-5xl w-32 h-32 md:w-40 md:h-40 flex flex-col items-center justify-center text-center ring-4 ring-white/5"
             >
-              <p className="text-[9px] font-black uppercase tracking-widest text-[var(--primary)] leading-none mb-1">
-                Target Identified
-              </p>
-              <p className="text-sm font-black text-white uppercase tracking-tight">
-                {hoveredMuscle || selectedMuscle}
-              </p>
+              <div className="space-y-1">
+                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--primary)] leading-none">
+                  Selected
+                </p>
+                <div className="h-[1px] w-8 bg-white/20 mx-auto my-2" />
+                <p className="text-xs md:text-sm font-black text-white uppercase tracking-tighter">
+                  {hoveredMuscle || selectedMuscle}
+                </p>
+                <div className="mt-2 flex items-center justify-center gap-1">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="w-1 h-1 rounded-full bg-[var(--primary)] opacity-40" />
+                  ))}
+                </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
+
+      {/* Interactive Muscle Dock (Bottom) */}
+      <div className="absolute inset-x-0 -bottom-12 flex justify-center h-16">
+        <div className="flex items-center gap-1.5 px-4 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-x-auto max-w-[90%] custom-scrollbar">
+          {muscles.map((m) => (
+            <button
+              key={m.id}
+              onMouseEnter={() => setHoveredMuscle(m.id)}
+              onMouseLeave={() => setHoveredMuscle(null)}
+              onClick={() => handleSelect(m.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all whitespace-nowrap group relative ${selectedMuscle === m.id
+                ? 'bg-[var(--primary)]/20 text-[var(--primary)] font-bold'
+                : 'text-white/40 hover:text-white hover:bg-white/5'
+                }`}
+            >
+              <span className="text-[10px] font-black uppercase tracking-tight">{m.name.split(' (')[0]}</span>
+              {selectedMuscle === m.id && (
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[var(--primary)] shadow-[0_0_10px_var(--primary)]" />
+              )}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

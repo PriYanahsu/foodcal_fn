@@ -31,8 +31,8 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
     const matchesSearch =
       query.length > 0
         ? ex.name.toLowerCase().includes(query) ||
-          ex.description.toLowerCase().includes(query) ||
-          ex.muscleGroup.toLowerCase().includes(query)
+        ex.description.toLowerCase().includes(query) ||
+        ex.muscleGroup.toLowerCase().includes(query)
         : true;
 
     const finalMatches = matchesSearch && matchesDifficulty;
@@ -46,87 +46,109 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
 
   if (!selectedMuscle && query.length <= 2 && !difficulty) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 md:py-32 text-center opacity-40">
-        <div className="w-16 h-16 md:w-24 md:h-24 mb-6 md:mb-8 rounded-full border-2 border-dashed border-[var(--text-muted)] flex items-center justify-center text-3xl md:text-4xl grayscale">
-          🏋️
-        </div>
-        <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight mb-2 text-white">
-          Select a Muscle
+      <div className="flex flex-col items-center justify-center py-20 md:py-32 text-center relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-[var(--primary)]/5 rounded-full blur-[100px] -z-10" />
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 0.4, scale: 1 }}
+          className="w-20 h-20 md:w-28 md:h-28 mb-8 rounded-3xl border-2 border-dashed border-white/20 flex items-center justify-center text-4xl md:text-5xl"
+        >
+          <SparklesIcon className="w-10 h-10 text-white" />
+        </motion.div>
+
+        <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tighter mb-4 text-white">
+          Find Your <span className="text-[var(--primary)]">Exercise</span>
         </h3>
-        <p className="max-w-xs text-xs md:text-sm">
-          Explore professional routines by selecting a focus area or using search.
+        <p className="max-w-xs text-xs md:text-sm text-[var(--text-muted)] font-medium leading-relaxed">
+          Select a muscle group or search above to find professional training guides.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-[400px]">
+    <div className="relative min-h-[500px]">
       <AnimatePresence mode="wait">
         {!selectedExercise ? (
           // --- STAGE 1: LIST VIEW ---
           <motion.div
             key="list"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            className="space-y-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="space-y-8"
           >
-            <div className="flex items-center justify-between border-b border-white/5 pb-4">
-              <h3 className="text-lg md:text-xl font-black uppercase tracking-tight text-white">
-                {difficulty ? `${difficulty.toUpperCase()} ` : ''}
-                {query.length > 2
-                  ? `Results for "${searchQuery}"`
-                  : selectedMuscle
-                    ? `${selectedMuscle} Routines`
-                    : 'Routines'}
-              </h3>
-              <span className="text-[10px] font-black bg-[var(--primary)] text-black px-2 py-1 rounded">
-                {filteredExercises.length} AVAILABLE
-              </span>
+            <div className="flex items-center justify-between border-b border-white/5 pb-6">
+              <div className="space-y-1">
+                <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight text-white flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-[var(--primary)] shadow-[0_0_8px_var(--primary)]" />
+                  {difficulty ? `${difficulty.toUpperCase()} ` : ''}
+                  {query.length > 2
+                    ? `Results: "${searchQuery}"`
+                    : selectedMuscle
+                      ? `${selectedMuscle} Exercises`
+                      : 'All Exercises'}
+                </h3>
+                <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">
+                  {filteredExercises.length} Exercises Found
+                </p>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
               {filteredExercises.length > 0 ? (
                 filteredExercises.map((ex, i) => (
                   <motion.button
                     key={ex.id}
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
                     onClick={() => setSelectedExercise(ex)}
-                    className="bg-[var(--card-bg)]/80 backdrop-blur-xl border border-[var(--card-border)] hover:border-[var(--primary)]/50 p-4 md:p-5 rounded-2xl md:rounded-3xl transition-all group text-left flex items-center justify-between shadow-lg"
+                    className="group relative bg-white/[0.03] backdrop-blur-md border border-white/5 hover:border-[var(--primary)]/40 p-5 md:p-6 rounded-[2rem] transition-all flex flex-col gap-4 shadow-2xl overflow-hidden"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-[var(--primary)] group-hover:scale-110 transition-transform">
-                        <BoltIcon className="w-5 h-5" />
+                    {/* Hover Glow */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                    <div className="flex items-start justify-between relative z-10">
+                      <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-[var(--primary)] group-hover:bg-[var(--primary)] group-hover:text-black transition-all duration-300">
+                        <BoltIcon className="w-6 h-6" />
                       </div>
-                      <div>
-                        <h4 className="font-bold text-white group-hover:text-[var(--primary)] transition-colors text-sm md:text-base">
-                          {ex.name}
-                        </h4>
-                        <span
-                          className={`text-[9px] font-black uppercase tracking-widest ${
-                            ex.difficulty === 'beginner'
-                              ? 'text-green-400'
-                              : ex.difficulty === 'intermediate'
-                                ? 'text-orange-400'
-                                : 'text-red-400'
-                          }`}
-                        >
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg border ${ex.difficulty === 'beginner'
+                          ? 'text-green-400 border-green-400/20 bg-green-400/5'
+                          : ex.difficulty === 'intermediate'
+                            ? 'text-orange-400 border-orange-400/20 bg-orange-400/5'
+                            : 'text-red-400 border-red-400/20 bg-red-400/5'
+                          }`}>
                           {ex.difficulty}
                         </span>
                       </div>
                     </div>
-                    <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <ChevronLeftIcon className="w-4 h-4 rotate-180 text-[var(--primary)]" />
+
+                    <div className="relative z-10 space-y-2">
+                      <h4 className="text-lg font-black text-white group-hover:text-[var(--primary)] transition-colors leading-tight uppercase tracking-tight">
+                        {ex.name}
+                      </h4>
+                      <p className="text-xs text-[var(--text-muted)] line-clamp-2 font-medium leading-relaxed group-hover:text-white/60 transition-colors">
+                        {ex.description}
+                      </p>
+                    </div>
+
+                    <div className="pt-2 flex items-center justify-between relative z-10 mt-auto">
+                      <div className="flex items-center gap-1.5 opacity-40 group-hover:opacity-100 transition-all">
+                        <div className="w-1 h-1 rounded-full bg-white/20" />
+                        <span className="text-[9px] font-black uppercase tracking-widest text-[var(--primary)]">View Details</span>
+                      </div>
+                      <ChevronLeftIcon className="w-4 h-4 rotate-180 text-white/20 group-hover:text-[var(--primary)] group-hover:translate-x-1 transition-all" />
                     </div>
                   </motion.button>
                 ))
               ) : (
-                <div className="col-span-full py-12 text-center bg-black/20 rounded-3xl border border-dashed border-[var(--card-border)]">
-                  <p className="text-[var(--text-muted)] italic text-sm md:text-base">
-                    No matching exercises found.
+                <div className="col-span-full py-16 text-center bg-white/[0.02] rounded-[3rem] border border-dashed border-white/10">
+                  <p className="text-white/40 italic text-sm md:text-base font-medium">
+                    Sector clear. No matching protocols found.
                   </p>
                 </div>
               )}
@@ -136,138 +158,137 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
           // --- STAGE 2: DETAIL VIEW ---
           <motion.div
             key="detail"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, x: -20 }}
-            className="bg-[var(--card-bg)]/80 backdrop-blur-3xl border border-[var(--card-border)] p-4 md:p-6 rounded-2xl md:rounded-[2rem] shadow-2xl space-y-6 relative overflow-hidden"
+            className="bg-black/40 backdrop-blur-3xl border border-white/10 p-6 md:p-10 rounded-[3rem] shadow-5xl space-y-10 relative overflow-hidden"
           >
-            <div className="absolute top-0 right-0 w-48 h-48 bg-[var(--primary)]/5 blur-[80px] pointer-events-none" />
+            {/* Visual HUD Accents */}
+            <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-[var(--primary)]/5 blur-[120px] pointer-events-none" />
 
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 pb-5">
-              <div className="flex items-center gap-4">
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8 pb-10 border-b border-white/5 relative z-10">
+              <div className="flex items-center gap-6">
                 <button
                   onClick={() => setSelectedExercise(null)}
-                  className="p-2.5 bg-white/5 hover:bg-[var(--primary)] hover:text-black rounded-lg transition-all text-white group"
+                  className="w-14 h-14 bg-white/5 hover:bg-[var(--primary)] hover:text-black rounded-2xl transition-all text-white border border-white/10 flex items-center justify-center group shrink-0"
                 >
-                  <ChevronLeftIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  <ChevronLeftIcon className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
                 </button>
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span
-                      className={`text-[9px] font-black uppercase tracking-[0.2em] ${
-                        selectedExercise.difficulty === 'beginner'
-                          ? 'text-green-400'
-                          : selectedExercise.difficulty === 'intermediate'
-                            ? 'text-orange-400'
-                            : 'text-red-400'
-                      }`}
-                    >
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className={`text-[10px] font-black uppercase tracking-[0.3em] ${selectedExercise.difficulty === 'beginner' ? 'text-green-400' :
+                      selectedExercise.difficulty === 'intermediate' ? 'text-orange-400' : 'text-red-400'
+                      }`}>
                       {selectedExercise.difficulty}
                     </span>
-                    <span className="w-1 h-1 rounded-full bg-white/20" />
-                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--primary)]">
+                    <div className="w-1 h-1 rounded-full bg-white/20" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--primary)]">
                       {selectedExercise.muscleGroup}
                     </span>
                   </div>
-                  <h3 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight leading-none">
+                  <h3 className="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter leading-none">
                     {selectedExercise.name}
                   </h3>
                 </div>
               </div>
 
-              <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-white/5 rounded-2xl border border-white/10">
-                <BeakerIcon className="w-4 h-4 text-[var(--primary)]" />
-                <span className="text-[10px] font-black text-white/60 tracking-widest uppercase">
-                  PRO ROUTINE
+              <div className="flex items-center gap-3 px-6 py-3 bg-[var(--primary)]/5 rounded-2xl border border-[var(--primary)]/20 shadow-lg">
+                <SparklesIcon className="w-5 h-5 text-[var(--primary)] animate-pulse" />
+                <span className="text-[10px] font-black text-white tracking-[0.2em] uppercase">
+                  Proper Form & Guide
                 </span>
               </div>
             </div>
 
-            {/* Description & Equipment */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-              <div className="md:col-span-2 space-y-4">
-                <h4 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[var(--primary)]">
-                  <SparklesIcon className="w-4 h-4" />
-                  The Goal
-                </h4>
-                <p className="text-sm md:text-base text-[var(--text-muted)] leading-relaxed italic">
-                  "{selectedExercise.description}"
-                </p>
-              </div>
-              <div className="space-y-4">
-                <h4 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[var(--primary)]">
-                  <BeakerIcon className="w-4 h-4" />
-                  Gear Needed
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {selectedExercise.equipment.map((item, i) => (
-                    <span
-                      key={i}
-                      className="px-3 py-1.5 bg-white/5 rounded-lg border border-white/5 text-[10px] font-bold text-white uppercase"
-                    >
-                      {item}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Execution Guide */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-4">
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-white/30 whitespace-nowrap">
-                  Execution Protocol
-                </h4>
-                <div className="h-[1px] w-full bg-white/5" />
-              </div>
-              <div className="grid grid-cols-1 gap-4">
-                {selectedExercise.steps.map((step, idx) => (
-                  <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.1 }}
-                    className="flex gap-5 p-4 rounded-2xl bg-white/5 border border-white/5 items-center group hover:bg-[var(--primary)]/5 hover:border-[var(--primary)]/20 transition-all shadow-sm"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/20 flex items-center justify-center text-[var(--primary)] font-black text-sm shrink-0 group-hover:bg-[var(--primary)] group-hover:text-black transition-colors">
-                      {idx + 1}
-                    </div>
-                    <p className="text-sm md:text-base text-white/80 font-medium group-hover:text-white transition-colors leading-relaxed">
-                      {step}
-                    </p>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            {/* Tips */}
-            {selectedExercise.tips && selectedExercise.tips.length > 0 && (
-              <div className="p-5 rounded-2xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 flex items-start gap-4">
-                <div className="p-2 bg-[var(--primary)]/20 rounded-lg text-[var(--primary)]">
-                  <SparklesIcon className="w-5 h-5" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest">
-                    Training Pro Tip
+            {/* Detail Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 relative z-10">
+              {/* Main Body */}
+              <div className="lg:col-span-8 space-y-10">
+                <div className="space-y-4">
+                  <h4 className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-white/30">
+                    <div className="w-6 h-[1px] bg-white/10" /> Description
+                  </h4>
+                  <p className="text-lg md:text-xl text-white/80 leading-relaxed font-bold italic font-serif">
+                    "{selectedExercise.description}"
                   </p>
-                  <ul className="space-y-1">
-                    {selectedExercise.tips.map((tip, i) => (
-                      <li key={i} className="text-sm text-white font-medium">
-                        {tip}
-                      </li>
+                </div>
+
+                {/* Execution Protocol */}
+                <div className="space-y-6">
+                  <h4 className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-white/30">
+                    <div className="w-6 h-[1px] bg-white/10" /> How to perform
+                  </h4>
+                  <div className="grid grid-cols-1 gap-4">
+                    {selectedExercise.steps.map((step, idx) => (
+                      <motion.div
+                        key={idx}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.1 }}
+                        className="flex gap-6 p-6 rounded-3xl bg-white/[0.03] border border-white/5 items-center group hover:bg-[var(--primary)]/5 hover:border-[var(--primary)]/30 transition-all duration-300"
+                      >
+                        <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white/20 font-black text-sm group-hover:bg-[var(--primary)] group-hover:text-black group-hover:border-[var(--primary)] transition-all duration-300">
+                          0{idx + 1}
+                        </div>
+                        <p className="flex-1 text-sm md:text-base text-white/60 font-bold group-hover:text-white transition-colors leading-relaxed">
+                          {step}
+                        </p>
+                      </motion.div>
                     ))}
-                  </ul>
+                  </div>
                 </div>
               </div>
-            )}
 
-            <button
-              onClick={() => setSelectedExercise(null)}
-              className="w-full py-4 rounded-xl md:rounded-2xl bg-white/5 border border-white/10 text-white font-black uppercase text-[10px] md:text-xs tracking-widest hover:bg-white/10 hover:border-white/20 transition-all mt-4"
-            >
-              Return to Selection
-            </button>
+              {/* Sidebar Info */}
+              <div className="lg:col-span-4 space-y-8">
+                {/* Equipment Hud */}
+                <div className="glass-panel p-8 bg-white/[0.02] border-white/5 space-y-6">
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-[var(--primary)] flex items-center gap-2">
+                    <BeakerIcon className="w-4 h-4" /> Equipment needed
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedExercise.equipment.map((item, i) => (
+                      <span
+                        key={i}
+                        className="px-4 py-2 bg-white/5 rounded-xl border border-white/10 text-[10px] font-black text-white uppercase tracking-tight hover:bg-[var(--primary)]/10 hover:border-[var(--primary)]/30 transition-all cursor-default"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Training Insight */}
+                {selectedExercise.tips && selectedExercise.tips.length > 0 && (
+                  <div className="p-8 rounded-[2rem] bg-gradient-to-br from-[var(--primary)]/20 to-transparent border border-[var(--primary)]/30 space-y-4 shadow-xl">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-[var(--primary)] rounded-2xl flex items-center justify-center text-black shadow-[0_0_15px_rgba(0,255,136,0.3)]">
+                        <SparklesIcon className="w-5 h-5" />
+                      </div>
+                      <p className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest">
+                        Pro Training Tips
+                      </p>
+                    </div>
+                    <ul className="space-y-3">
+                      {selectedExercise.tips.map((tip, i) => (
+                        <li key={i} className="text-sm text-white font-bold leading-relaxed flex gap-3">
+                          <div className="w-1 h-1 rounded-full bg-[var(--primary)] mt-2 shrink-0" />
+                          {tip}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                <button
+                  onClick={() => setSelectedExercise(null)}
+                  className="w-full py-5 rounded-3xl bg-white/5 border border-white/10 text-white/40 font-black uppercase text-xs tracking-[0.2em] hover:bg-white/10 hover:border-white/20 hover:text-white transition-all shadow-xl group"
+                >
+                  Back to <span className="text-white/20 group-hover:text-white/40 transition-colors">Exercises</span>
+                </button>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

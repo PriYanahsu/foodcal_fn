@@ -115,7 +115,7 @@ export default function Dashboard() {
       initial="hidden"
       animate="show"
       variants={containerVariants}
-      className="px-4 pb-4 md:px-8 md:pb-8 lg:px-12 lg:pb-12 pt-2 md:pt-4 lg:pt-6 max-w-7xl mx-auto space-y-10 min-h-screen relative"
+      className="page-container max-w-7xl space-y-10 min-h-screen relative"
     >
       {/* Background Decor */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
@@ -228,10 +228,10 @@ export default function Dashboard() {
               <span className="text-sm font-bold text-white group-hover:text-[var(--primary)] transition-colors flex items-center justify-center gap-1 pointer-events-none">
                 {mounted
                   ? new Date(selectedDate + 'T00:00:00').toLocaleDateString(undefined, {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })
                   : '...'}
                 <span className="text-[10px] opacity-50">▼</span>
               </span>
@@ -379,9 +379,9 @@ export default function Dashboard() {
                                 <span>
                                   {mounted
                                     ? new Date(log.created_at).toLocaleTimeString([], {
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                      })
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                    })
                                     : ''}
                                 </span>
                                 <span className="w-1 h-1 rounded-full bg-gray-600" />

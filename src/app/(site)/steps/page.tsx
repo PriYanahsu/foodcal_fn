@@ -45,7 +45,7 @@ export default function StepHistoryPage() {
   const avgSteps = logs.length > 0 ? Math.round(totalSteps / logs.length) : 0;
 
   return (
-    <div className="page-container space-y-8 max-w-4xl">
+    <div className="page-container space-y-8 max-w-4xl relative">
       <header className="flex flex-col gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
