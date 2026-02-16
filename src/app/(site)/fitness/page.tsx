@@ -75,7 +75,7 @@ export default function FitnessHub() {
   }
 
   return (
-    <div className="px-4 pb-4 md:px-8 md:pb-8 lg:px-12 lg:pb-12 pt-2 md:pt-4 lg:pt-6 max-w-7xl mx-auto space-y-12 pb-20">
+    <div className="page-container max-w-7xl space-y-12 pb-20">
       {showReminder && (
         <div className="animate-slide-up">
           <div className="bg-gradient-to-r from-orange-500/20 to-transparent border border-orange-500/30 p-4 rounded-2xl flex items-center justify-between backdrop-blur-md">
@@ -329,10 +329,10 @@ export default function FitnessHub() {
                     <p className="text-2xl font-black text-white group-hover:text-blue-400 transition-colors tabular-nums">
                       {profile?.target_date
                         ? new Date(profile.target_date).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric',
-                          })
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })
                         : 'Setting...'}
                     </p>
                   </div>

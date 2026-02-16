@@ -19,7 +19,7 @@ export default function ExercisesPage() {
   };
 
   return (
-    <div className="p-3 md:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 min-h-screen">
+    <div className="page-container max-w-7xl space-y-6 min-h-screen">
       {/* Header & Search */}
       <header className="flex flex-col gap-5">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
@@ -99,15 +99,14 @@ export default function ExercisesPage() {
               <button
                 key={level}
                 onClick={() => setSelectedDifficulty(selectedDifficulty === level ? null : level)}
-                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-wider sm:tracking-[0.2em] border transition-all ${
-                  selectedDifficulty === level
-                    ? level === 'beginner'
-                      ? 'bg-green-400 border-green-400 text-black shadow-[0_0_15px_-5px_#4ade80]'
-                      : level === 'intermediate'
-                        ? 'bg-orange-400 border-orange-400 text-black shadow-[0_0_15px_-5px_#fb923c]'
-                        : 'bg-red-400 border-red-400 text-black shadow-[0_0_15px_-5px_#f87171]'
-                    : 'bg-black/20 border-white/5 text-[var(--text-muted)] hover:border-white/10 hover:text-white'
-                }`}
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-wider sm:tracking-[0.2em] border transition-all ${selectedDifficulty === level
+                  ? level === 'beginner'
+                    ? 'bg-green-400 border-green-400 text-black shadow-[0_0_15px_-5px_#4ade80]'
+                    : level === 'intermediate'
+                      ? 'bg-orange-400 border-orange-400 text-black shadow-[0_0_15px_-5px_#fb923c]'
+                      : 'bg-red-400 border-red-400 text-black shadow-[0_0_15px_-5px_#f87171]'
+                  : 'bg-black/20 border-white/5 text-[var(--text-muted)] hover:border-white/10 hover:text-white'
+                  }`}
               >
                 {level}
               </button>
