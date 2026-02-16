@@ -1,17 +1,8 @@
 'use client';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  HomeIcon,
-  CameraIcon,
-  ClockIcon,
-  UserIcon,
-  ArrowLeftStartOnRectangleIcon,
-  Bars3Icon,
-  XMarkIcon,
-} from '@heroicons/react/24/outline'; // Assumes heroicons is installed, if not we might need to install or use unicode/svgs
 
 // Fallback SVGs if heroicons not available or to reduce deps
 const Icons = {
