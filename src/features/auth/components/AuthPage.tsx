@@ -18,23 +18,61 @@ export const AuthPage: React.FC = () => {
 
   const { user } = useAuth();
 
+  const resolveAppOrigin = () => {
+    if (typeof window !== 'undefined') return window.location.origin;
+
+    const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+    if (configuredSiteUrl) return configuredSiteUrl.replace(/\/$/, '');
+
+    const vercelUrl = process.env.NEXT_PUBLIC_VERCEL_URL?.trim();
+    if (vercelUrl) {
+      const normalizedVercelUrl = /^https?:\/\//.test(vercelUrl)
+        ? vercelUrl
+        : `https://${vercelUrl}`;
+      return normalizedVercelUrl.replace(/\/$/, '');
+    }
+
+    return 'http://localhost:3000';
+  };
+
   const signInWithGoogle = async () => {
-    const appOrigin =
-      typeof window !== 'undefined'
-        ? window.location.origin
-        : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-    const redirectTo = `${appOrigin.replace(/\/$/, '')}/auth/callback`;
+    const isBrowser = typeof window !== 'undefined';
+    const appOrigin = resolveAppOrigin();
+    const redirectTo = `${appOrigin}/auth/callback`;
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo,
+        skipBrowserRedirect: true,
       },
     });
 
     if (error) {
       console.error(error.message);
+      return;
     }
+
+    const oauthUrl = data?.url;
+    if (!oauthUrl || !isBrowser) {
+      console.error('Missing OAuth URL from Supabase.');
+      return;
+    }
+
+    const outgoingRedirectTo = new URL(oauthUrl).searchParams.get('redirect_to');
+    const isLocalHost = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+    const isProdHost = !isLocalHost;
+    if (isProdHost && outgoingRedirectTo?.includes('localhost')) {
+      console.error(
+        `Supabase URL Configuration is forcing localhost redirect. Update Auth URL settings. Returned redirect_to: ${outgoingRedirectTo}`
+      );
+      alert(
+        'Google sign-in is misconfigured in Supabase: redirect target is localhost. Update Supabase Auth > URL Configuration (Site URL + Additional Redirect URLs).'
+      );
+      return;
+    }
+
+    window.location.assign(oauthUrl);
   };
 
   useEffect(() => {
