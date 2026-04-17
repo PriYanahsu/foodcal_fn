@@ -19,10 +19,11 @@ export const AuthPage: React.FC = () => {
   const { user } = useAuth();
 
   const signInWithGoogle = async () => {
-    const redirectTo =
+    const appOrigin =
       typeof window !== 'undefined'
-        ? `${window.location.origin}/`
+        ? window.location.origin
         : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    const redirectTo = `${appOrigin.replace(/\/$/, '')}/auth/callback`;
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
