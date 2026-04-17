@@ -20,9 +20,9 @@ export const AuthPage: React.FC = () => {
 
   const signInWithGoogle = async () => {
     const redirectTo =
-      typeof window !== 'undefined' && window.location.hostname === 'localhost'
-        ? 'http://localhost:3000'
-        : 'https://food-cal-fe-ewy4.vercel.app';
+      typeof window !== 'undefined'
+        ? `${window.location.origin}/`
+        : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
