@@ -191,6 +191,7 @@ export const AuthPage: React.FC = () => {
                           {step.title}
                         </h4>
                       </motion.div>
+                      // hellp
                     );
                   })}
                 </div>
