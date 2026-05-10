@@ -19,9 +19,9 @@ export async function POST(req: Request) {
     }
 
     // Initialize Gemini
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    // Use standard alias for best availability (avoids experimental quota limits)
-    const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
+    // const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    // // Use standard alias for best availability (avoids experimental quota limits)
+    // const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 
     // Clean base64 string
     const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
@@ -45,15 +45,70 @@ export async function POST(req: Request) {
         ${additional_prompt ? `User provided additional context: "${additional_prompt}". Take this into account when identifying the food or ingredients.` : ''}
         `;
 
-    const result = await model.generateContent([
-      prompt,
-      {
-        inlineData: {
-          data: base64Data,
-          mimeType: 'image/jpeg', // Assuming JPEG for simplicity, or we could detect/pass it.
-        },
-      },
-    ]);
+    // Initialize Gemini
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+    // Dynamic fallback models
+    const MODELS = [
+      'gemini-2.5-flash',
+      'gemini-2.0-flash',
+      'gemini-2.0-flash-lite',
+      'gemma-3-27b',
+      'gemma-3-12b',
+      'gemma-3-4b',
+      'gemma-3-1b',
+    ];
+
+    let result;
+
+    for (const modelName of MODELS) {
+      try {
+        console.log(`Trying model: ${modelName}`);
+
+        const model = genAI.getGenerativeModel({
+          model: modelName,
+        });
+
+        result = await model.generateContent([
+          prompt,
+          {
+            inlineData: {
+              data: base64Data,
+              mimeType: 'image/jpeg',
+            },
+          },
+        ]);
+
+        console.log(`Success with: ${modelName}`);
+
+        break;
+      } catch (error: any) {
+        console.error(`Failed on ${modelName}:`, error.message);
+
+        const isQuotaError =
+          error?.status === 429 ||
+          error?.message?.includes('429') ||
+          error?.message?.includes('quota') ||
+          error?.message?.includes('rate limit');
+
+        if (!isQuotaError) {
+          throw error;
+        }
+      }
+    }
+
+    if (!result) {
+      throw new Error('All Gemini models are currently unavailable.');
+    }
+    // const result = await model.generateContent([
+    //   prompt,
+    //   {
+    //     inlineData: {
+    //       data: base64Data,
+    //       mimeType: 'image/jpeg', // Assuming JPEG for simplicity, or we could detect/pass it.
+    //     },
+    //   },
+    // ]);
 
     const responseText = result.response.text();
 
