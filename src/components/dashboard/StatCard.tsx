@@ -25,7 +25,7 @@ export function StatCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
-      className="bg-[var(--card-bg)]/80 backdrop-blur-md border border-[var(--card-border)] rounded-2xl shadow-xl p-6 relative overflow-hidden group hover:border-[var(--primary)]/30 transition-colors"
+      className="bg-[var(--card-bg)]/80 backdrop-blur-md border border-[var(--card-border)] rounded-2xl shadow-xl p-4 sm:p-6 relative overflow-hidden group hover:border-[var(--primary)]/30 transition-colors"
     >
       {/* Background Glow */}
       <div
@@ -33,17 +33,17 @@ export function StatCard({
         style={{ backgroundColor: color }}
       />
 
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          <p className="text-[var(--text-muted)] text-xs font-bold uppercase tracking-widest mb-1">
+      <div className="flex justify-between items-start mb-3 sm:mb-4">
+        <div className="min-w-0">
+          <p className="text-[var(--text-muted)] text-[10px] sm:text-xs font-bold uppercase tracking-wider sm:tracking-widest mb-0.5 sm:mb-1">
             {label}
           </p>
-          <div className="flex items-baseline gap-1 mt-1">
-            <h3 className="text-xl sm:text-3xl font-black text-white tracking-tight">{value}</h3>
-            <span className="text-xs font-medium text-[var(--text-muted)]">{unit}</span>
+          <div className="flex items-baseline gap-0.5 sm:gap-1 mt-0.5 sm:mt-1">
+            <h3 className="text-lg sm:text-2xl lg:text-3xl font-black text-white tracking-tight">{value}</h3>
+            <span className="text-[10px] sm:text-xs font-medium text-[var(--text-muted)] truncate">{unit}</span>
           </div>
         </div>
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl bg-white/5 border border-white/5 shadow-inner">
+        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-base sm:text-xl bg-white/5 border border-white/5 shadow-inner shrink-0">
           {icon}
         </div>
       </div>
