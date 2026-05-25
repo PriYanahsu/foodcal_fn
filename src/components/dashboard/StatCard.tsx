@@ -39,7 +39,7 @@ export function StatCard({
             {label}
           </p>
           <div className="flex items-baseline gap-1 mt-1">
-            <h3 className="text-3xl font-black text-white tracking-tight">{value}</h3>
+            <h3 className="text-xl sm:text-3xl font-black text-white tracking-tight">{value}</h3>
             <span className="text-xs font-medium text-[var(--text-muted)]">{unit}</span>
           </div>
         </div>
