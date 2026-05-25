@@ -185,7 +185,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full xl:w-auto">
+        <div className="grid grid-cols-2 gap-4 w-full xl:w-auto">
           {/* Custom Date Navigator */}
           <div className="flex items-center bg-[var(--card-bg)]/50 backdrop-blur-md border border-[var(--card-border)] rounded-2xl p-1 shadow-lg w-full sm:w-auto justify-between sm:justify-start relative z-10">
             <button
@@ -260,7 +260,7 @@ export default function Dashboard() {
       </motion.section>
 
       {/* Stats Grid */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-5">
         <StatCard
           label="Calories"
           value={Math.round(stats.calories)}
