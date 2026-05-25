@@ -115,7 +115,7 @@ export default function Dashboard() {
       initial="hidden"
       animate="show"
       variants={containerVariants}
-      className="page-container max-w-7xl space-y-10 min-h-screen relative"
+      className="page-container max-w-7xl space-y-6 sm:space-y-8 lg:space-y-10 min-h-screen relative"
     >
       {/* Background Decor */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
@@ -125,12 +125,12 @@ export default function Dashboard() {
 
       {showReminder && (
         <motion.div variants={itemVariants} className="relative z-20">
-          <div className="glass-card px-4 py-3 flex items-center justify-between gap-4 border-[var(--primary)]/20 shadow-[0_4px_20px_-5px_rgba(var(--primary-rgb),0.2)]">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-[var(--primary)]/10 rounded-full text-[var(--primary)]">
-                <SparklesIcon className="w-5 h-5" />
+          <div className="glass-card px-3 py-2.5 sm:px-4 sm:py-3 flex items-center justify-between gap-2 sm:gap-4 border-[var(--primary)]/20 shadow-[0_4px_20px_-5px_rgba(var(--primary-rgb),0.2)]">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="p-1.5 sm:p-2 bg-[var(--primary)]/10 rounded-full text-[var(--primary)] shrink-0">
+                <SparklesIcon className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <p className="text-sm font-medium">
+              <p className="text-xs sm:text-sm font-medium leading-snug">
                 Profile Incomplete ({completionPercentage}%) —
                 <Link
                   href="/profile"
@@ -153,9 +153,9 @@ export default function Dashboard() {
       {/* Hero Section */}
       <motion.section
         variants={itemVariants}
-        className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-8"
+        className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4 sm:gap-6 lg:gap-8"
       >
-        <div className="flex flex-col sm:flex-row items-center gap-6 w-full xl:w-auto">
+        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full xl:w-auto">
           <motion.div whileHover={{ scale: 1.05 }} className=" shrink-0 p-1 rounded-full">
             <AvatarUpload
               uid={user?.id || ''}
@@ -165,17 +165,17 @@ export default function Dashboard() {
                 supabase.from('profiles').update({ avatar_url: url }).eq('id', user?.id).then();
                 setProfile((prev) => (prev ? { ...prev, avatar_url: url } : null));
               }}
-              size={72}
+              size={56}
             />
           </motion.div>
           <div className="text-center sm:text-left">
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white mb-1">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white mb-0.5 sm:mb-1">
               Hello,{' '}
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-blue-400">
                 {userName}
               </span>
             </h1>
-            <p className="text-[var(--text-muted)] font-medium">
+            <p className="text-sm sm:text-base text-[var(--text-muted)] font-medium">
               {loading
                 ? 'Crunching the numbers...'
                 : profile?.goal
@@ -185,14 +185,14 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 w-full xl:w-auto">
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-4 w-full xl:w-auto">
           {/* Custom Date Navigator */}
-          <div className="flex items-center bg-[var(--card-bg)]/50 backdrop-blur-md border border-[var(--card-border)] rounded-2xl p-1 shadow-lg w-full sm:w-auto justify-between sm:justify-start relative z-10">
+          <div className="flex items-center bg-[var(--card-bg)]/50 backdrop-blur-md border border-[var(--card-border)] rounded-xl sm:rounded-2xl p-0.5 sm:p-1 shadow-lg w-full sm:w-auto justify-between sm:justify-start relative z-10">
             <button
               onClick={() => handleDateChange(-1)}
-              className="p-3 hover:bg-white/5 rounded-xl transition-colors text-[var(--text-muted)] hover:text-white shrink-0"
+              className="p-2 sm:p-3 hover:bg-white/5 rounded-lg sm:rounded-xl transition-colors text-[var(--text-muted)] hover:text-white shrink-0"
             >
-              <ChevronLeftIcon className="w-5 h-5" />
+              <ChevronLeftIcon className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
             <div
@@ -222,10 +222,10 @@ export default function Dashboard() {
                 className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-20"
                 style={{ colorScheme: 'dark' }}
               />
-              <span className="text-xs text-[var(--text-muted)] font-bold uppercase tracking-wider block mb-0.5 group-hover:text-[var(--primary)] transition-colors pointer-events-none">
+              <span className="text-[10px] sm:text-xs text-[var(--text-muted)] font-bold uppercase tracking-wider block mb-0.5 group-hover:text-[var(--primary)] transition-colors pointer-events-none">
                 {isToday ? 'Today' : 'Viewing Log'}
               </span>
-              <span className="text-sm font-bold text-white group-hover:text-[var(--primary)] transition-colors flex items-center justify-center gap-1 pointer-events-none">
+              <span className="text-xs sm:text-sm font-bold text-white group-hover:text-[var(--primary)] transition-colors flex items-center justify-center gap-0.5 sm:gap-1 pointer-events-none">
                 {mounted
                   ? new Date(selectedDate + 'T00:00:00').toLocaleDateString(undefined, {
                     month: 'short',
@@ -240,9 +240,9 @@ export default function Dashboard() {
             <button
               onClick={() => handleDateChange(1)}
               disabled={isToday}
-              className={`p-3 rounded-xl transition-colors shrink-0 ${isToday ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/5 text-[var(--text-muted)] hover:text-white'}`}
+              className={`p-2 sm:p-3 rounded-lg sm:rounded-xl transition-colors shrink-0 ${isToday ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/5 text-[var(--text-muted)] hover:text-white'}`}
             >
-              <ChevronRightIcon className="w-5 h-5" />
+              <ChevronRightIcon className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
 
@@ -250,17 +250,17 @@ export default function Dashboard() {
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="btn-primary flex items-center justify-center gap-2 h-14 px-8 rounded-2xl transition-all w-full sm:w-auto"
+              className="btn-primary flex items-center justify-center gap-1.5 sm:gap-2 h-11 sm:h-14 px-3 sm:px-8 rounded-xl sm:rounded-2xl transition-all w-full sm:w-auto"
             >
-              <CameraIcon className="w-6 h-6" />
-              <span className="font-black tracking-wide">LOG MEAL</span>
+              <CameraIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+              <span className="font-black tracking-wide text-xs sm:text-base">LOG MEAL</span>
             </motion.button>
           </Link>
         </div>
       </motion.section>
 
       {/* Stats Grid */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
         <StatCard
           label="Calories"
           value={Math.round(stats.calories)}
@@ -300,21 +300,21 @@ export default function Dashboard() {
       </section>
 
       {/* Main Content Split */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-8">
         {/* Recent Activity */}
-        <motion.div variants={itemVariants} className="lg:col-span-2 space-y-6">
-          <div className="flex flex-wrap justify-between items-end gap-4 p-2">
+        <motion.div variants={itemVariants} className="lg:col-span-2 space-y-4 sm:space-y-6">
+          <div className="flex flex-wrap justify-between items-end gap-2 sm:gap-4 p-1 sm:p-2">
             <div>
-              <h2 className="text-2xl font-bold flex items-center gap-3">
+              <h2 className="text-lg sm:text-2xl font-bold flex items-center gap-2 sm:gap-3">
                 Daily Log
-                <span className="text-xs font-normal text-[var(--text-muted)] bg-white/5 px-2 py-1 rounded-lg border border-white/5">
+                <span className="text-[10px] sm:text-xs font-normal text-[var(--text-muted)] bg-white/5 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg border border-white/5">
                   {recentLogs.length} Items
                 </span>
               </h2>
             </div>
             <Link
               href={ROUTES.HISTORY}
-              className="text-[var(--primary)] hover:text-[var(--primary-hover)] text-sm font-bold flex items-center gap-1 group"
+              className="text-[var(--primary)] hover:text-[var(--primary-hover)] text-xs sm:text-sm font-bold flex items-center gap-1 group"
             >
               Full History
               <ChevronRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -329,12 +329,12 @@ export default function Dashboard() {
                 ))}
               </div>
             ) : recentLogs.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 px-6 bg-[var(--card-bg)]/30 backdrop-blur-md rounded-3xl border border-[var(--card-border)] border-dashed text-center">
-                <div className="w-20 h-20 mb-6 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-4xl shadow-inner border border-white/5">
+              <div className="flex flex-col items-center justify-center py-10 sm:py-16 px-4 sm:px-6 bg-[var(--card-bg)]/30 backdrop-blur-md rounded-2xl sm:rounded-3xl border border-[var(--card-border)] border-dashed text-center">
+                <div className="w-14 h-14 sm:w-20 sm:h-20 mb-4 sm:mb-6 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-2xl sm:text-4xl shadow-inner border border-white/5">
                   🍽️
                 </div>
-                <h3 className="text-xl font-bold mb-2 text-white">Empty Plate?</h3>
-                <p className="text-[var(--text-muted)] max-w-sm mb-8">
+                <h3 className="text-lg sm:text-xl font-bold mb-1.5 sm:mb-2 text-white">Empty Plate?</h3>
+                <p className="text-sm sm:text-base text-[var(--text-muted)] max-w-sm mb-6 sm:mb-8">
                   You haven't logged any meals for this day yet.
                   {isToday
                     ? ' Start tracking now to hit your goals!'
@@ -345,7 +345,7 @@ export default function Dashboard() {
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className="px-8 py-3 bg-[var(--primary)] text-black font-bold rounded-xl shadow-[0_4px_20px_-5px_rgba(0,0,0,0.5)]"
+                      className="px-6 py-2.5 sm:px-8 sm:py-3 text-sm sm:text-base bg-[var(--primary)] text-black font-bold rounded-xl shadow-[0_4px_20px_-5px_rgba(0,0,0,0.5)]"
                     >
                       Scan First Meal
                     </motion.button>
@@ -365,9 +365,9 @@ export default function Dashboard() {
                       <Link
                         href={`/history/${new Date(log.created_at).toLocaleDateString('en-CA')}/${log.id}`}
                       >
-                        <div className="bg-[var(--card-bg)]/60 hover:bg-[var(--card-bg)] backdrop-blur-md border border-[var(--card-border)] hover:border-[var(--primary)]/30 rounded-2xl p-4 flex items-center justify-between gap-5 transition-all group shadow-sm hover:shadow-md">
-                          <div className="flex items-center gap-5 flex-1 min-w-0">
-                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 group-hover:from-[var(--primary)]/10 group-hover:to-[var(--primary)]/5 transition-all flex items-center justify-center text-2xl border border-white/5 group-hover:border-[var(--primary)]/20 shadow-inner">
+                        <div className="bg-[var(--card-bg)]/60 hover:bg-[var(--card-bg)] backdrop-blur-md border border-[var(--card-border)] hover:border-[var(--primary)]/30 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between gap-3 sm:gap-5 transition-all group shadow-sm hover:shadow-md">
+                          <div className="flex items-center gap-3 sm:gap-5 flex-1 min-w-0">
+                            <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 group-hover:from-[var(--primary)]/10 group-hover:to-[var(--primary)]/5 transition-all flex items-center justify-center text-lg sm:text-2xl border border-white/5 group-hover:border-[var(--primary)]/20 shadow-inner shrink-0">
                               {/* Dynamic icon could go here if available */}
                               🥗
                             </div>
@@ -389,11 +389,11 @@ export default function Dashboard() {
                               </p>
                             </div>
                           </div>
-                          <div className="text-right shrink-0 bg-black/20 px-4 py-2 rounded-xl">
-                            <span className="block font-black text-xl text-white">
+                          <div className="text-right shrink-0 bg-black/20 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl">
+                            <span className="block font-black text-base sm:text-xl text-white">
                               +{Math.round(log.calories)}
                             </span>
-                            <span className="text-[10px] uppercase font-bold text-[var(--text-muted)] tracking-wider">
+                            <span className="text-[9px] sm:text-[10px] uppercase font-bold text-[var(--text-muted)] tracking-wider">
                               kcal
                             </span>
                           </div>
@@ -408,10 +408,10 @@ export default function Dashboard() {
         </motion.div>
 
         {/* Sidebar Widgets */}
-        <motion.div variants={itemVariants} className="space-y-6">
+        <motion.div variants={itemVariants} className="space-y-4 sm:space-y-6">
           {/* Fitness Hub Card */}
           <Link href="/fitness" className="block group">
-            <div className="bg-gradient-to-br from-[var(--primary)]/10 to-blue-500/5 backdrop-blur-xl border border-[var(--primary)]/20 rounded-3xl p-6 shadow-2xl relative overflow-hidden transition-all hover:scale-[1.02] hover:shadow-[0_0_30px_-10px_rgba(0,255,136,0.3)]">
+            <div className="bg-gradient-to-br from-[var(--primary)]/10 to-blue-500/5 backdrop-blur-xl border border-[var(--primary)]/20 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl relative overflow-hidden transition-all hover:scale-[1.02] hover:shadow-[0_0_30px_-10px_rgba(0,255,136,0.3)]">
               <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--primary)]/10 blur-[50px] rounded-full pointer-events-none" />
 
               <div className="flex items-center justify-between mb-6 relative z-10">
@@ -431,8 +431,8 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div className="bg-black/20 rounded-xl p-4 border border-white/5 mb-4 backdrop-blur-sm">
-                <p className="text-sm text-gray-300 italic leading-relaxed">
+              <div className="bg-black/20 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-white/5 mb-3 sm:mb-4 backdrop-blur-sm">
+                <p className="text-xs sm:text-sm text-gray-300 italic leading-relaxed">
                   "{profile?.ai_coach_advice || 'Log more meals to unlock personalized insights.'}"
                 </p>
               </div>
@@ -449,12 +449,12 @@ export default function Dashboard() {
           <StepTracker />
 
           {/* Quick Goals */}
-          <div className="bg-[var(--card-bg)]/40 backdrop-blur-md border border-[var(--card-border)] rounded-3xl p-6 shadow-xl space-y-6">
-            <h3 className="font-bold text-lg">Daily Habits</h3>
+          <div className="bg-[var(--card-bg)]/40 backdrop-blur-md border border-[var(--card-border)] rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl space-y-4 sm:space-y-6">
+            <h3 className="font-bold text-base sm:text-lg">Daily Habits</h3>
 
-            <div className="space-y-5">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0 shadow-[0_0_15px_-5px_rgba(59,130,246,0.3)]">
+            <div className="space-y-4 sm:space-y-5">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-sm sm:text-base text-blue-400 shrink-0 shadow-[0_0_15px_-5px_rgba(59,130,246,0.3)]">
                   🌊
                 </div>
                 <div className="flex-1">
@@ -468,14 +468,14 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shrink-0 shadow-[0_0_15px_-5px_rgba(168,85,247,0.3)]">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-sm sm:text-base text-purple-400 shrink-0 shadow-[0_0_15px_-5px_rgba(168,85,247,0.3)]">
                   💤
                 </div>
                 <div className="flex-1">
                   <div className="flex justify-between mb-1.5">
-                    <span className="font-bold text-sm">Sleep</span>
-                    <span className="text-xs font-medium text-purple-400">6 / 8 hrs</span>
+                    <span className="font-bold text-xs sm:text-sm">Sleep</span>
+                    <span className="text-[10px] sm:text-xs font-medium text-purple-400">6 / 8 hrs</span>
                   </div>
                   <div className="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
                     <div className="h-full bg-purple-500 w-3/4 shadow-[0_0_10px_rgba(168,85,247,0.5)] rounded-full"></div>

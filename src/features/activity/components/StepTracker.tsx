@@ -75,18 +75,18 @@ export const StepTracker: React.FC = () => {
   const progress = Math.min((steps / stepGoal) * 100, 100);
 
   return (
-    <div className="glass-card p-6 relative overflow-hidden group">
+    <div className="glass-card p-4 sm:p-6 relative overflow-hidden group">
       {/* Background Animation */}
       <div className="absolute -right-10 -top-10 w-32 h-32 bg-[var(--primary)]/5 rounded-full blur-3xl group-hover:bg-[var(--primary)]/10 transition-all duration-700" />
 
-      <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] border border-[var(--primary)]/20 shadow-[0_0_15px_rgba(0,255,136,0.1)]">
-              <FootprintsIcon className={`w-6 h-6 ${isTracking ? 'animate-pulse' : ''}`} />
+      <div className="flex flex-col gap-4 sm:gap-6">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] border border-[var(--primary)]/20 shadow-[0_0_15px_rgba(0,255,136,0.1)] shrink-0">
+              <FootprintsIcon className={`w-5 h-5 sm:w-6 sm:h-6 ${isTracking ? 'animate-pulse' : ''}`} />
             </div>
-            <div>
-              <h3 className="font-black text-white text-lg tracking-tight">Daily Steps</h3>
+            <div className="min-w-0">
+              <h3 className="font-black text-white text-base sm:text-lg tracking-tight">Daily Steps</h3>
               <p className="text-[var(--text-muted)] text-[10px] uppercase font-bold tracking-widest">
                 Activity Tracker
               </p>
@@ -123,7 +123,7 @@ export const StepTracker: React.FC = () => {
 
         <div className="relative pt-4">
           <div className="flex justify-between items-end mb-2">
-            <span className="text-4xl font-black text-white tabular-nums tracking-tighter">
+            <span className="text-2xl sm:text-4xl font-black text-white tabular-nums tracking-tighter">
               {steps.toLocaleString()}
             </span>
             {isEditingGoal ? (
