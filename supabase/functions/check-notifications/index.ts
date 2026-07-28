@@ -1,6 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 // @ts-expect-error Deno npm import
 import webpush from 'npm:web-push@3.6.7';
+
+/** Service-role client — avoid ReturnType<typeof createClient> (wrong overload / generics). */
+type EdgeSupabase = SupabaseClient<any, 'public', any>;
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -24,12 +27,12 @@ function initWebPush(): boolean {
 }
 
 /**
- * Deliver browser push even when the website is closed.
+ * Deliver browser push even when the 
  * Prefer direct web-push from edge (service role can read subscriptions).
  * Fall back to Next.js /api/send-push if VAPID isn't configured here.
  */
 async function deliverPushNotification(
-  supabase: ReturnType<typeof createClient>,
+  supabase: EdgeSupabase,
   opts: {
     userId: string;
     title: string;
@@ -442,7 +445,7 @@ Deno.serve(async (req) => {
       throw new Error('Missing environment variables');
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase: EdgeSupabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Fetch profiles with all necessary fields
     const { data: profiles, error: profilesError } = await supabase
