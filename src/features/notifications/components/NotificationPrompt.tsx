@@ -13,22 +13,16 @@ export const NotificationPrompt: React.FC = () => {
   const [hasShown, setHasShown] = useState(false);
 
   useEffect(() => {
-    // Show prompt if:
-    // 1. User is logged in
-    // 2. Permission is default (not granted or denied)
-    // 3. No push subscription yet
-    // 4. We haven't shown it in this session
+    // Show if logged in, no push sub yet, and not denied/dismissed
     if (
       user &&
-      permission === 'default' &&
+      permission !== 'denied' &&
       !hasPushSubscription &&
       !hasShown &&
       typeof window !== 'undefined'
     ) {
-      // Check if user previously dismissed
       const dismissed = localStorage.getItem(`notification-prompt-dismissed-${user.id}`);
       if (!dismissed) {
-        // Wait 2 seconds after page load to show prompt
         const timer = setTimeout(() => {
           setIsVisible(true);
         }, 2000);
@@ -46,14 +40,12 @@ export const NotificationPrompt: React.FC = () => {
   const handleDismiss = () => {
     setHasShown(true);
     setIsVisible(false);
-    // Store dismissal in localStorage
     if (user && typeof window !== 'undefined') {
       localStorage.setItem(`notification-prompt-dismissed-${user.id}`, 'true');
     }
   };
 
-  // Don't show if permission is already granted or denied, or if user has push subscription
-  if (permission !== 'default' || hasPushSubscription || !user) {
+  if (permission === 'denied' || hasPushSubscription || !user) {
     return null;
   }
 

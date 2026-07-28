@@ -13,10 +13,12 @@ export default function WeightProgressWidget({
   userId,
   targetWeight,
   onLogSuccess,
+  compact = false,
 }: {
   userId: string;
   targetWeight: number | null;
   onLogSuccess?: () => void;
+  compact?: boolean;
 }) {
   const supabase = createClient();
   const [currentWeight, setCurrentWeight] = useState<number | null>(null);
@@ -76,8 +78,10 @@ export default function WeightProgressWidget({
       : 0;
 
   return (
-    <div className="bg-gradient-to-br from-[var(--card-bg)]/40 to-black/10 backdrop-blur-md border border-white/5 rounded-2xl p-6 mt-4 transition-all">
-      <div className="flex justify-between items-center mb-6">
+    <div
+      className={`bg-gradient-to-br from-[var(--card-bg)]/40 to-black/10 backdrop-blur-md border border-white/5 rounded-2xl transition-all ${compact ? 'p-4 mt-0' : 'p-6 mt-4'}`}
+    >
+      <div className={`flex justify-between items-center ${compact ? 'mb-4' : 'mb-6'}`}>
         <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--primary)]/70 flex items-center gap-2">
           <ScaleIcon className="w-4 h-4" /> Progression Metric
         </h3>
@@ -109,13 +113,15 @@ export default function WeightProgressWidget({
           </button>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className={compact ? 'space-y-4' : 'space-y-6'}>
           <div className="flex justify-between items-end">
             <div className="space-y-1">
               <span className="text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest opacity-60">
                 Live Status
               </span>
-              <div className="text-4xl font-black tabular-nums tracking-tighter text-white">
+              <div
+                className={`${compact ? 'text-3xl' : 'text-4xl'} font-black tabular-nums tracking-tighter text-white`}
+              >
                 {loading ? (
                   <div className="h-10 w-24 bg-white/5 animate-pulse rounded-lg" />
                 ) : currentWeight ? (
@@ -132,7 +138,9 @@ export default function WeightProgressWidget({
               <span className="text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest opacity-60">
                 Objective
               </span>
-              <div className="text-2xl font-black text-[var(--primary)] tabular-nums tracking-tighter">
+              <div
+                className={`${compact ? 'text-xl' : 'text-2xl'} font-black text-[var(--primary)] tabular-nums tracking-tighter`}
+              >
                 {targetWeight ? (
                   <span className="flex items-baseline gap-1 justify-end">
                     {targetWeight}

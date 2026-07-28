@@ -2,14 +2,15 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
     "lib": ["ESNext", "DOM"],
+    "noEmit": true,
+    "isolatedModules": true,
     "skipLibCheck": true,
-    "baseUrl": ".",
-    "paths": {
-      "@supabase/supabase-js": ["../../node_modules/@supabase/supabase-js"]
-    },
+    "strict": true,
     "types": []
   },
-  "include": ["./**/*.ts", "./deno.d.ts"]
+  "include": ["./**/*.ts"],
+  "files": ["./deno.d.ts"]
 }
