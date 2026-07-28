@@ -98,7 +98,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             !document.hidden;
 
           if (shouldShowLocalOsNotif) {
-            const showOptions: NotificationOptions = {
+            const showOptions: NotificationOptions & { renotify?: boolean } = {
               body: newNotif.message,
               icon: '/foodCalLogo.jpeg',
               badge: '/foodCalLogo.jpeg',
