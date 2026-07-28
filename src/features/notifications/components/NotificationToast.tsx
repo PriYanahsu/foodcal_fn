@@ -98,7 +98,7 @@ export const NotificationToast = () => {
           exit={{ opacity: 0, x: 400, scale: 0.9 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           onClick={handleClick}
-          className="fixed top-4 right-4 md:right-8 z-[100] max-w-md w-[calc(100vw-32px)] cursor-pointer group"
+          className="fixed z-[100] left-3 right-3 top-[max(0.75rem,env(safe-area-inset-top))] md:left-auto md:right-6 md:w-full md:max-w-md cursor-pointer group isolate"
         >
           <div
             className={`
@@ -106,8 +106,8 @@ export const NotificationToast = () => {
                         bg-gradient-to-br ${getGradient()}
                         border backdrop-blur-xl
                         shadow-2xl
-                        transition-all duration-300
-                        hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(0,255,136,0.3)]
+                        transition-shadow duration-300
+                        hover:shadow-[0_0_30px_rgba(0,255,136,0.25)]
                     `}
           >
             {/* Animated background glow */}

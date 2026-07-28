@@ -67,9 +67,9 @@ export const NotificationPrompt: React.FC = () => {
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-[101]"
+            className="fixed z-[101] left-3 right-3 bottom-[max(1rem,env(safe-area-inset-bottom))] md:left-auto md:right-4 md:w-96 isolate"
           >
-            <div className="glass-card border border-[var(--primary)]/30 p-5 rounded-2xl shadow-2xl bg-black/90 backdrop-blur-xl">
+            <div className="overflow-hidden rounded-2xl border border-[var(--primary)]/30 p-5 shadow-2xl bg-black/90 backdrop-blur-xl">
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 rounded-full bg-[var(--primary)]/20 flex items-center justify-center">

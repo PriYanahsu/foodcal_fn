@@ -1,88 +1,153 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useNotifications } from '@/features/notifications/context/NotificationContext';
 import { NotificationItem } from '@/features/notifications/components/NotificationItem';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckIcon, TrashIcon } from '@heroicons/react/24/outline';
+import {
+  BellIcon,
+  CheckIcon,
+  TrashIcon,
+} from '@heroicons/react/24/outline';
+
+function dayLabel(timestamp: string): string {
+  const date = new Date(timestamp);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  const sameDay = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+
+  if (sameDay(date, today)) return 'Today';
+  if (sameDay(date, yesterday)) return 'Yesterday';
+  return date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+}
 
 export default function NotificationsPage() {
   const { notifications, unreadCount, markAllAsRead, markAsRead, removeNotification } =
     useNotifications();
 
+  const grouped = useMemo(() => {
+    const map = new Map<string, typeof notifications>();
+    for (const n of notifications) {
+      const key = dayLabel(n.timestamp);
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(n);
+    }
+    return Array.from(map.entries());
+  }, [notifications]);
+
+  const clearRead = () => {
+    notifications.filter((n) => n.isRead).forEach((n) => removeNotification(n.id));
+  };
+
+  const readCount = notifications.filter((n) => n.isRead).length;
+
   return (
-    <div className="page-container space-y-8 max-w-4xl">
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Notifications</h1>
-          <p className="text-[var(--text-muted)] text-sm">
-            Stay updated on your calorie goals and AI coaching.
+    <div className="page-container space-y-6 sm:space-y-8 max-w-2xl pb-24 lg:pb-8">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-3">
+            <span className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[var(--primary)]/10 ring-1 ring-[var(--primary)]/20 flex items-center justify-center text-[var(--primary)] shrink-0">
+              <BellIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+            </span>
+            <span className="truncate">Notifications</span>
+          </h1>
+          <p className="text-[var(--text-muted)] text-sm mt-2 pl-0 sm:pl-[3.75rem]">
+            Goal alerts, milestones, and AI coaching tips.
           </p>
         </div>
 
         {notifications.length > 0 && (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
             {unreadCount > 0 && (
               <button
+                type="button"
                 onClick={markAllAsRead}
-                className="btn-secondary flex items-center gap-2 py-2 px-4 h-10 border-[var(--primary)]/30 text-[var(--primary)] text-xs"
+                className="btn-secondary flex items-center gap-1.5 py-2 px-3 h-9 text-xs border-[var(--primary)]/30 text-[var(--primary)]"
               >
                 <CheckIcon className="w-4 h-4" />
-                Mark All Read
+                Mark all read
+              </button>
+            )}
+            {readCount > 0 && (
+              <button
+                type="button"
+                onClick={clearRead}
+                className="btn-secondary flex items-center gap-1.5 py-2 px-3 h-9 text-xs text-gray-400"
+              >
+                <TrashIcon className="w-3.5 h-3.5" />
+                Clear read
               </button>
             )}
           </div>
         )}
       </header>
 
-      <section className="glass-card overflow-hidden">
-        <div className="p-4 border-b border-white/10 bg-white/5 flex items-center justify-between">
-          <span className="text-sm font-semibold">
-            Recent Updates {unreadCount > 0 && `(${unreadCount} new)`}
-          </span>
-          <span className="text-xs text-[var(--text-muted)]">
-            Showing last {notifications.length} notifications
-          </span>
-        </div>
-
-        <div className="p-4 space-y-4 min-h-[400px]">
-          <AnimatePresence initial={false} mode="popLayout">
-            {notifications.length > 0 ? (
-              notifications.map((notif) => (
-                <div key={notif.id} className="relative group">
-                  <NotificationItem
-                    notification={notif}
-                    onRead={markAsRead}
-                    onRemove={removeNotification}
-                    showRemove={false}
-                  />
-                  {/* Additional full-page interactions could go here */}
-                </div>
-              ))
+      {notifications.length > 0 && (
+        <div className="flex items-center gap-3 text-xs text-[var(--text-muted)]">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/5 border border-white/10 px-3 py-1">
+            {unreadCount > 0 ? (
+              <>
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] animate-pulse" />
+                {unreadCount} unread
+              </>
             ) : (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col items-center justify-center py-20 text-center"
-              >
-                <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center text-4xl mb-6 grayscale opacity-50">
-                  🔔
-                </div>
-                <h3 className="text-xl font-bold mb-2">Clean Slate!</h3>
-                <p className="text-[var(--text-muted)] max-w-xs mx-auto text-sm">
-                  Your notification center is empty. We'll alert you here when the AI Coach has
-                  advice for you.
-                </p>
-              </motion.div>
+              'All caught up'
             )}
-          </AnimatePresence>
+          </span>
+          <span>{notifications.length} total</span>
         </div>
+      )}
 
-        <div className="p-4 bg-black/20 border-t border-white/5 flex justify-center">
-          <p className="text-[10px] text-gray-500 uppercase tracking-widest font-black">
-            Powered by Gemini AI Engine
-          </p>
-        </div>
+      <section className="space-y-6 min-h-[320px]">
+        <AnimatePresence initial={false} mode="popLayout">
+          {notifications.length > 0 ? (
+            grouped.map(([label, items]) => (
+              <motion.div
+                key={label}
+                layout
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="space-y-2.5"
+              >
+                <h2 className="text-[11px] font-semibold uppercase tracking-wider text-gray-500 px-1">
+                  {label}
+                </h2>
+                <div className="space-y-2.5">
+                  {items.map((notif) => (
+                    <NotificationItem
+                      key={notif.id}
+                      notification={notif}
+                      onRead={markAsRead}
+                      onRemove={removeNotification}
+                      showRemove
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            ))
+          ) : (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] flex flex-col items-center justify-center py-16 sm:py-20 px-6 text-center"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-white/5 ring-1 ring-white/10 flex items-center justify-center mb-5">
+                <BellIcon className="w-7 h-7 text-gray-500" />
+              </div>
+              <h3 className="text-lg font-semibold mb-1.5">No notifications yet</h3>
+              <p className="text-[var(--text-muted)] max-w-xs text-sm leading-relaxed">
+                When the AI coach has advice or you hit a milestone, it&apos;ll show up here.
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </section>
     </div>
   );

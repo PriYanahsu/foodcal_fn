@@ -159,7 +159,11 @@ export default function FitnessHub() {
   }
 
   return (
-    <div className="page-container max-w-7xl space-y-3 sm:space-y-4 lg:space-y-4 pb-24 lg:pb-6">
+    <div
+      className={`page-container max-w-7xl space-y-3 sm:space-y-4 lg:space-y-4 ${
+        showWizard ? 'pb-4 lg:pb-3' : 'pb-24 lg:pb-6'
+      }`}
+    >
       {showReminder && (
         <div className="animate-slide-up">
           <div className="bg-gradient-to-r from-orange-500/20 to-transparent border border-orange-500/30 p-3 rounded-xl flex items-center justify-between backdrop-blur-md">
@@ -186,26 +190,164 @@ export default function FitnessHub() {
         </div>
       )}
 
-      {showWizard && user ? (
-        <section className="animate-fade-in space-y-8">
-          <div className="flex items-center justify-between bg-[var(--card-bg)]/50 p-6 rounded-2xl border border-[var(--card-border)]">
-            <div>
-              <h2 className="text-2xl md:text-3xl font-black">
-                AI Plan <span className="text-[var(--primary)]">Consultation</span>
-              </h2>
-              <p className="text-[var(--text-muted)] text-sm">
-                Fine-tune your fitness objectives with our expert AI coach.
-              </p>
-            </div>
-            <button
-              onClick={() => setShowWizard(false)}
-              className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm font-semibold text-[var(--text-muted)] hover:text-white hover:bg-white/10 flex items-center gap-2 transition-all"
-            >
-              <XMarkIcon className="w-5 h-5" /> Cancel Consultation
-            </button>
+      {/* Top row: Fitness Hub always stays — right side swaps to plan wizard */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4 lg:items-start">
+        {/* Fitness Hub — always present */}
+        <header className="relative py-4 px-4 sm:py-5 sm:px-5 lg:py-5 lg:px-6 rounded-2xl lg:rounded-3xl overflow-hidden bg-gradient-to-br from-[var(--primary)]/10 via-transparent to-transparent border border-[var(--card-border)] shadow-xl flex flex-col">
+          <div className="absolute top-0 right-0 p-4 opacity-[0.03] pointer-events-none">
+            <TrophyIcon className="w-28 h-28 text-[var(--primary)]" />
           </div>
 
-          <div className="max-w-4xl mx-auto">
+          <div className="relative z-10 flex flex-col gap-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-1.5 min-w-0">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] text-[9px] font-bold uppercase tracking-widest">
+                  <SparklesIcon className="w-3 h-3" />
+                  Elite AI Coaching
+                </div>
+                <h1 className="text-2xl lg:text-3xl font-black tracking-tight leading-tight">
+                  Fitness{' '}
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
+                    Hub
+                  </span>
+                </h1>
+                <p className="text-sm text-[var(--text-muted)] leading-snug font-medium">
+                  {showWizard
+                    ? 'Updating your plan — current stats stay in view.'
+                    : profile?.goal
+                      ? `Optimizing for ${profile.goal.toLowerCase()} with AI precision.`
+                      : 'Build your expert coaching profile to begin.'}
+                </p>
+              </div>
+              <div className="shrink-0 text-center">
+                <div className="relative w-12 h-12 lg:w-14 lg:h-14">
+                  <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                    <circle cx="18" cy="18" r="15.5" fill="none" stroke="white" strokeOpacity="0.08" strokeWidth="3" />
+                    <circle
+                      cx="18"
+                      cy="18"
+                      r="15.5"
+                      fill="none"
+                      stroke="var(--primary)"
+                      strokeWidth="3"
+                      strokeDasharray={`${completionPercentage} 100`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <span className="absolute inset-0 flex items-center justify-center text-[10px] lg:text-xs font-black text-white">
+                    {completionPercentage}%
+                  </span>
+                </div>
+                <p className="text-[9px] text-[var(--text-muted)] font-bold uppercase mt-0.5">Profile</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { label: 'Weight', value: profile?.weight ? `${profile.weight} kg` : '--' },
+                { label: 'Target', value: profile?.target_weight ? `${profile.target_weight} kg` : '--' },
+                { label: 'BMI', value: bmi },
+                { label: 'Height', value: profile?.height ? `${profile.height} cm` : '--' },
+                { label: 'Activity', value: profile?.activity_level?.replace('_', ' ') || '--' },
+                {
+                  label: 'Age / Sex',
+                  value:
+                    profile?.age || profile?.gender
+                      ? `${profile?.age ?? '--'} · ${profile?.gender ?? '--'}`
+                      : '--',
+                },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="bg-black/20 rounded-lg px-2 py-1.5 border border-white/5"
+                >
+                  <p className="text-[8px] lg:text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-wider truncate">
+                    {item.label}
+                  </p>
+                  <p className="text-[11px] lg:text-xs font-bold text-white truncate capitalize">
+                    {item.value}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-4 gap-1.5">
+              {[
+                { label: 'Cal', value: profile?.daily_calorie_target, unit: 'kcal' },
+                { label: 'Protein', value: profile?.daily_protein_target, unit: 'g' },
+                { label: 'Carbs', value: profile?.daily_carbs_target, unit: 'g' },
+                { label: 'Fats', value: profile?.daily_fats_target, unit: 'g' },
+              ].map((m) => (
+                <div
+                  key={m.label}
+                  className="rounded-lg px-2 py-1.5 border border-white/5 bg-white/[0.03] text-center"
+                >
+                  <p className="text-[8px] text-[var(--text-muted)] font-bold uppercase">{m.label}</p>
+                  <p className="text-xs lg:text-sm font-black text-white tabular-nums">
+                    {m.value ?? '--'}
+                    <span className="text-[8px] font-medium text-[var(--text-muted)] ml-0.5">{m.unit}</span>
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 border-t border-white/5">
+              {weightDelta && (
+                <span className="text-[10px] text-[var(--text-muted)]">
+                  <span className="font-bold text-white">{weightDelta} kg</span> to goal
+                </span>
+              )}
+              {daysLeft !== null && (
+                <span className="text-[10px] text-[var(--text-muted)] flex items-center gap-1">
+                  <CalendarIcon className="w-3 h-3" />
+                  <span className="font-bold text-blue-400">{daysLeft > 0 ? daysLeft : 0} days</span> left
+                </span>
+              )}
+              {profile?.target_date && (
+                <span className="text-[10px] text-[var(--text-muted)]">
+                  Target:{' '}
+                  <span className="font-bold text-white">
+                    {new Date(profile.target_date).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </span>
+                </span>
+              )}
+              {!profile?.goal && !showWizard && (
+                <button
+                  onClick={() => setShowWizard(true)}
+                  className="ml-auto btn-primary px-4 py-1.5 text-xs shadow-[0_0_15px_#00ff8822]"
+                >
+                  Start Consultation
+                </button>
+              )}
+            </div>
+          </div>
+        </header>
+
+        {/* Right column: Plan wizard OR Expert Strategy */}
+        {showWizard && user ? (
+          <aside className="animate-fade-in flex flex-col gap-2.5 min-w-0">
+            <div className="flex items-center justify-between gap-3 bg-[var(--card-bg)]/50 px-3 py-2.5 rounded-xl border border-[var(--card-border)]">
+              <div className="min-w-0">
+                <h2 className="text-sm sm:text-base font-black leading-tight truncate">
+                  AI Plan <span className="text-[var(--primary)]">Consultation</span>
+                </h2>
+                <p className="text-[var(--text-muted)] text-[10px] truncate">
+                  Update goals — Hub stays as your reference.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowWizard(false)}
+                className="shrink-0 px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[11px] font-semibold text-[var(--text-muted)] hover:text-white hover:bg-white/10 flex items-center gap-1.5 transition-all"
+              >
+                <XMarkIcon className="w-4 h-4" />
+                Cancel
+              </button>
+            </div>
+
             <FitnessSetupWizard
               userId={user.id}
               isInline={true}
@@ -215,214 +357,77 @@ export default function FitnessHub() {
                 fetchProfile();
               }}
             />
-          </div>
-        </section>
-      ) : (
-        <>
-          {/* Top Row: Fitness Hub + Expert Strategy — 50/50 on desktop */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4 lg:items-stretch">
-            {/* Fitness Hub — detailed */}
-            <header className="relative py-5 px-5 lg:py-5 lg:px-6 rounded-2xl lg:rounded-3xl overflow-hidden bg-gradient-to-br from-[var(--primary)]/10 via-transparent to-transparent border border-[var(--card-border)] shadow-xl flex flex-col h-full">
-              <div className="absolute top-0 right-0 p-4 opacity-[0.03] pointer-events-none">
-                <TrophyIcon className="w-28 h-28 text-[var(--primary)]" />
-              </div>
+          </aside>
+        ) : (
+          <aside className="relative overflow-hidden bg-gradient-to-br from-[var(--primary)]/5 via-[var(--card-bg)] to-transparent border border-[var(--primary)]/20 rounded-2xl lg:rounded-3xl p-4 lg:p-5 shadow-lg group flex flex-col h-full">
+            <div className="absolute top-0 right-0 p-4 opacity-[0.02] pointer-events-none">
+              <SparklesIcon className="w-24 h-24 text-[var(--primary)]" />
+            </div>
 
-              <div className="relative z-10 flex flex-col h-full gap-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1.5 min-w-0">
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] text-[9px] font-bold uppercase tracking-widest">
-                      <SparklesIcon className="w-3 h-3" />
-                      Elite AI Coaching
-                    </div>
-                    <h1 className="text-2xl lg:text-3xl font-black tracking-tight leading-tight">
-                      Fitness{' '}
-                      <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
-                        Hub
-                      </span>
-                    </h1>
-                    <p className="text-sm text-[var(--text-muted)] leading-snug font-medium">
-                      {profile?.goal
-                        ? `Optimizing for ${profile.goal.toLowerCase()} with AI precision.`
-                        : 'Build your expert coaching profile to begin.'}
-                    </p>
+            <div className="relative z-10 flex flex-col h-full gap-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-1.5 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20">
+                    <SparklesIcon className="w-5 h-5 text-[var(--primary)]" />
                   </div>
-                  <div className="shrink-0 text-center">
-                    <div className="relative w-12 h-12 lg:w-14 lg:h-14">
-                      <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                        <circle cx="18" cy="18" r="15.5" fill="none" stroke="white" strokeOpacity="0.08" strokeWidth="3" />
-                        <circle
-                          cx="18"
-                          cy="18"
-                          r="15.5"
-                          fill="none"
-                          stroke="var(--primary)"
-                          strokeWidth="3"
-                          strokeDasharray={`${completionPercentage} 100`}
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                      <span className="absolute inset-0 flex items-center justify-center text-[10px] lg:text-xs font-black text-white">
-                        {completionPercentage}%
-                      </span>
-                    </div>
-                    <p className="text-[9px] text-[var(--text-muted)] font-bold uppercase mt-0.5">Profile</p>
-                  </div>
-                </div>
-
-                {/* Quick metrics grid */}
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { label: 'Weight', value: profile?.weight ? `${profile.weight} kg` : '--' },
-                    { label: 'Target', value: profile?.target_weight ? `${profile.target_weight} kg` : '--' },
-                    { label: 'BMI', value: bmi },
-                    { label: 'Height', value: profile?.height ? `${profile.height} cm` : '--' },
-                    { label: 'Activity', value: profile?.activity_level?.replace('_', ' ') || '--' },
-                    {
-                      label: 'Age / Sex',
-                      value:
-                        profile?.age || profile?.gender
-                          ? `${profile?.age ?? '--'} · ${profile?.gender ?? '--'}`
-                          : '--',
-                    },
-                  ].map((item) => (
-                    <div
-                      key={item.label}
-                      className="bg-black/20 rounded-lg px-2 py-1.5 border border-white/5"
-                    >
-                      <p className="text-[8px] lg:text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-wider truncate">
-                        {item.label}
-                      </p>
-                      <p className="text-[11px] lg:text-xs font-bold text-white truncate capitalize">
-                        {item.value}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Macro targets row */}
-                <div className="grid grid-cols-4 gap-1.5">
-                  {[
-                    { label: 'Cal', value: profile?.daily_calorie_target, unit: 'kcal', color: 'var(--primary)' },
-                    { label: 'Protein', value: profile?.daily_protein_target, unit: 'g', color: '#2196f3' },
-                    { label: 'Carbs', value: profile?.daily_carbs_target, unit: 'g', color: '#ff9800' },
-                    { label: 'Fats', value: profile?.daily_fats_target, unit: 'g', color: '#e91e63' },
-                  ].map((m) => (
-                    <div
-                      key={m.label}
-                      className="rounded-lg px-2 py-1.5 border border-white/5 bg-white/[0.03] text-center"
-                    >
-                      <p className="text-[8px] text-[var(--text-muted)] font-bold uppercase">{m.label}</p>
-                      <p className="text-xs lg:text-sm font-black text-white tabular-nums">
-                        {m.value ?? '--'}
-                        <span className="text-[8px] font-medium text-[var(--text-muted)] ml-0.5">{m.unit}</span>
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Goal progress strip */}
-                <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 border-t border-white/5">
-                  {weightDelta && (
-                    <span className="text-[10px] text-[var(--text-muted)]">
-                      <span className="font-bold text-white">{weightDelta} kg</span> to goal
-                    </span>
-                  )}
-                  {daysLeft !== null && (
-                    <span className="text-[10px] text-[var(--text-muted)] flex items-center gap-1">
-                      <CalendarIcon className="w-3 h-3" />
-                      <span className="font-bold text-blue-400">{daysLeft > 0 ? daysLeft : 0} days</span> left
-                    </span>
-                  )}
-                  {profile?.target_date && (
-                    <span className="text-[10px] text-[var(--text-muted)]">
-                      Target:{' '}
-                      <span className="font-bold text-white">
-                        {new Date(profile.target_date).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })}
-                      </span>
-                    </span>
-                  )}
-                  {!profile?.goal && (
-                    <button
-                      onClick={() => setShowWizard(true)}
-                      className="ml-auto btn-primary px-4 py-1.5 text-xs shadow-[0_0_15px_#00ff8822]"
-                    >
-                      Start Consultation
-                    </button>
-                  )}
-                </div>
-              </div>
-            </header>
-
-            {/* Expert Strategy — 50% right column */}
-            <aside className="relative overflow-hidden bg-gradient-to-br from-[var(--primary)]/5 via-[var(--card-bg)] to-transparent border border-[var(--primary)]/20 rounded-2xl lg:rounded-3xl p-4 lg:p-5 shadow-lg group flex flex-col h-full">
-              <div className="absolute top-0 right-0 p-4 opacity-[0.02] pointer-events-none">
-                <SparklesIcon className="w-24 h-24 text-[var(--primary)]" />
-              </div>
-
-              <div className="relative z-10 flex flex-col h-full gap-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="p-1.5 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20">
-                      <SparklesIcon className="w-5 h-5 text-[var(--primary)]" />
-                    </div>
-                    <div>
-                      <h3 className="text-base lg:text-lg font-black uppercase tracking-tight">
-                        Expert Strategy
-                      </h3>
-                      <p className="text-[9px] text-[var(--text-muted)] font-bold tracking-[0.15em]">
-                        PRO TIPS • ACTIVE PLAN
-                      </p>
-                    </div>
-                  </div>
-                  {profile?.goal && (
-                    <button
-                      onClick={() => setShowWizard(true)}
-                      className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-xs font-bold shrink-0"
-                    >
-                      Modify Plan
-                      <ChevronRightIcon className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-
-                <div className="flex-1 bg-black/20 rounded-xl p-4 lg:p-5 border border-white/5 flex flex-col justify-center min-h-[100px] lg:min-h-0">
-                  <p className="text-white text-sm lg:text-base leading-relaxed font-medium italic opacity-90 line-clamp-4 lg:line-clamp-6">
-                    &ldquo;{profile?.ai_coach_advice || 'Log more data to unlock expert coaching strategies.'}&rdquo;
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="rounded-lg px-3 py-2 bg-white/[0.03] border border-white/5">
-                    <p className="text-[8px] text-[var(--text-muted)] font-bold uppercase">Focus</p>
-                    <p className="text-xs font-bold text-white capitalize truncate">
-                      {profile?.goal?.toLowerCase() || 'Not set'}
-                    </p>
-                  </div>
-                  <div className="rounded-lg px-3 py-2 bg-white/[0.03] border border-white/5">
-                    <p className="text-[8px] text-[var(--text-muted)] font-bold uppercase">Coach Status</p>
-                    <p className="text-xs font-bold text-[var(--primary)]">
-                      {profile?.ai_coach_advice ? 'Active' : 'Awaiting data'}
+                  <div>
+                    <h3 className="text-base lg:text-lg font-black uppercase tracking-tight">
+                      Expert Strategy
+                    </h3>
+                    <p className="text-[9px] text-[var(--text-muted)] font-bold tracking-[0.15em]">
+                      PRO TIPS • ACTIVE PLAN
                     </p>
                   </div>
                 </div>
-
                 {profile?.goal && (
                   <button
                     onClick={() => setShowWizard(true)}
-                    className="lg:hidden w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm font-bold"
+                    className="hidden lg:inline-flex items-center gap-1.5 btn-primary px-4 py-2 text-xs shadow-[0_0_18px_rgba(0,255,136,0.35)] hover:scale-[1.02] active:scale-[0.98] transition-transform"
                   >
                     Modify Plan
-                    <ChevronRightIcon className="w-4 h-4" />
+                    <ChevronRightIcon className="w-3.5 h-3.5" />
                   </button>
                 )}
               </div>
-            </aside>
-          </div>
 
+              <div className="flex-1 bg-black/20 rounded-xl p-4 lg:p-5 border border-white/5 flex flex-col justify-center min-h-[100px] lg:min-h-0">
+                <p className="text-white text-sm lg:text-base leading-relaxed font-medium italic opacity-90 line-clamp-4 lg:line-clamp-6">
+                  &ldquo;{profile?.ai_coach_advice || 'Log more data to unlock expert coaching strategies.'}&rdquo;
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-lg px-3 py-2 bg-white/[0.03] border border-white/5">
+                  <p className="text-[8px] text-[var(--text-muted)] font-bold uppercase">Focus</p>
+                  <p className="text-xs font-bold text-white capitalize truncate">
+                    {profile?.goal?.toLowerCase() || 'Not set'}
+                  </p>
+                </div>
+                <div className="rounded-lg px-3 py-2 bg-white/[0.03] border border-white/5">
+                  <p className="text-[8px] text-[var(--text-muted)] font-bold uppercase">Coach Status</p>
+                  <p className="text-xs font-bold text-[var(--primary)]">
+                    {profile?.ai_coach_advice ? 'Active' : 'Awaiting data'}
+                  </p>
+                </div>
+              </div>
+
+              {profile?.goal && (
+                <button
+                  onClick={() => setShowWizard(true)}
+                  className="lg:hidden w-full flex items-center justify-center gap-2 btn-primary py-3 text-sm shadow-[0_0_18px_rgba(0,255,136,0.35)] active:scale-[0.98] transition-transform"
+                >
+                  Modify Plan
+                  <ChevronRightIcon className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </aside>
+        )}
+      </div>
+
+      {/* Rest of dashboard — hidden while consulting, returns with active data after */}
+      {!showWizard && (
+        <>
           {/* Stats row — compact */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 lg:gap-3">
             <StatCard label="Daily Calories" value={profile?.daily_calorie_target || '--'} unit="kcal" icon="🔥" color="var(--primary)" delay={0} />
