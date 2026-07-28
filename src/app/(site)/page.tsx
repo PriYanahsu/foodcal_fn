@@ -6,7 +6,6 @@ import {
   CameraIcon,
   SparklesIcon,
   ChevronRightIcon,
-  XMarkIcon,
   ChevronLeftIcon,
 } from '@heroicons/react/24/outline';
 import AvatarUpload from '@/features/userProfile/components/AvatarUpload';
@@ -17,7 +16,6 @@ import { useDailyStats } from '@/features/dashboard/hooks/useDailyStats';
 import { createClient } from '@/lib/supabase/client';
 import FitnessSetupWizard from '@/features/fitnessProfile/components/setup/FitnessSetupWizard';
 import { StepTracker } from '@/features/activity/components/StepTracker';
-import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { isFeatureEnabled } from '@/config/features';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -50,33 +48,21 @@ export default function Dashboard() {
 
   const { stats, recentLogs, loading } = useDailyStats(selectedDate + 'T00:00:00');
   const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [profileLoading, setProfileLoading] = useState(true);
-  const [showReminder, setShowReminder] = useState(false);
 
   useEffect(() => {
     async function fetchProfile() {
-      if (!user) {
-        setProfileLoading(false);
-        return;
-      }
+      if (!user) return;
 
-      setProfileLoading(true);
       const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
 
       if (data) {
         setProfile(data);
-        const completion = calculateProfileCompletion(data);
-        if (completion < 100) {
-          setShowReminder(true);
-        }
       }
-      setProfileLoading(false);
     }
 
     fetchProfile();
   }, [user]);
 
-  const completionPercentage = calculateProfileCompletion(profile);
   const userName =
     profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
 
@@ -124,40 +110,13 @@ export default function Dashboard() {
         <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-blue-500/5 blur-[100px]" />
       </div>
 
-      {showReminder && (
-        <motion.div variants={itemVariants} className="relative z-20">
-          <div className="glass-card px-3 py-2.5 sm:px-4 sm:py-3 flex items-center justify-between gap-2 sm:gap-4 border-[var(--primary)]/20 shadow-[0_4px_20px_-5px_rgba(var(--primary-rgb),0.2)]">
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-              <div className="p-1.5 sm:p-2 bg-[var(--primary)]/10 rounded-full text-[var(--primary)] shrink-0">
-                <SparklesIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-              </div>
-              <p className="text-xs sm:text-sm font-medium leading-snug">
-                Profile Incomplete ({completionPercentage}%) —
-                <Link
-                  href="/profile"
-                  className="text-[var(--primary)] hover:underline ml-1 font-bold"
-                >
-                  Complete setup
-                </Link>
-              </p>
-            </div>
-            <button
-              onClick={() => setShowReminder(false)}
-              className="text-[var(--text-muted)] hover:text-white transition-colors p-1"
-            >
-              <XMarkIcon className="w-5 h-5" />
-            </button>
-          </div>
-        </motion.div>
-      )}
-
       {/* Hero Section */}
       <motion.section
         variants={itemVariants}
-        className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4 sm:gap-6 lg:gap-8"
+        className="flex flex-col xl:flex-row justify-between items-stretch xl:items-end gap-3 sm:gap-6 lg:gap-8 mt-1 sm:mt-0"
       >
-        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full xl:w-auto">
-          <motion.div whileHover={{ scale: 1.05 }} className=" shrink-0 p-1 rounded-full">
+        <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 w-full xl:w-auto">
+          <motion.div whileHover={{ scale: 1.05 }} className="shrink-0 rounded-full">
             <AvatarUpload
               uid={user?.id || ''}
               url={profile?.avatar_url ?? null}
@@ -169,8 +128,8 @@ export default function Dashboard() {
               size={56}
             />
           </motion.div>
-          <div className="text-center sm:text-left">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white mb-0.5 sm:mb-1">
+          <div className="text-center sm:text-left min-w-0 w-full sm:w-auto sm:flex-1">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white mb-0.5 leading-tight">
               Hello,{' '}
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-blue-400">
                 {userName}
@@ -186,18 +145,18 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2.5 sm:gap-4 w-full xl:w-auto">
+        <div className="grid grid-cols-2 gap-2 sm:gap-4 w-full xl:w-auto">
           {/* Custom Date Navigator */}
-          <div className="flex items-center bg-[var(--card-bg)]/50 backdrop-blur-md border border-[var(--card-border)] rounded-xl sm:rounded-2xl p-0.5 sm:p-1 shadow-lg w-full sm:w-auto justify-between sm:justify-start relative z-10">
+          <div className="flex items-center bg-[var(--card-bg)]/50 backdrop-blur-md border border-[var(--card-border)] rounded-xl sm:rounded-2xl p-0.5 sm:p-1 shadow-lg w-full sm:w-auto justify-between sm:justify-start relative z-10 h-10 sm:h-auto">
             <button
               onClick={() => handleDateChange(-1)}
-              className="p-2 sm:p-3 hover:bg-white/5 rounded-lg sm:rounded-xl transition-colors text-[var(--text-muted)] hover:text-white shrink-0"
+              className="p-1.5 sm:p-3 hover:bg-white/5 rounded-lg sm:rounded-xl transition-colors text-[var(--text-muted)] hover:text-white shrink-0"
             >
               <ChevronLeftIcon className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
             <div
-              className="px-2 sm:px-6 text-center min-w-[120px] sm:min-w-[140px] relative cursor-pointer group flex-1 sm:flex-none"
+              className="px-1.5 sm:px-6 text-center min-w-0 sm:min-w-[140px] relative cursor-pointer group flex-1 sm:flex-none"
               onClick={() => {
                 // Explicitly show picker for better reliable interaction
                 const input = document.getElementById(
@@ -223,10 +182,10 @@ export default function Dashboard() {
                 className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-20"
                 style={{ colorScheme: 'dark' }}
               />
-              <span className="text-[10px] sm:text-xs text-[var(--text-muted)] font-bold uppercase tracking-wider block mb-0.5 group-hover:text-[var(--primary)] transition-colors pointer-events-none">
+              <span className="text-[9px] sm:text-xs text-[var(--text-muted)] font-bold uppercase tracking-wider block leading-none mb-0.5 group-hover:text-[var(--primary)] transition-colors pointer-events-none">
                 {isToday ? 'Today' : 'Viewing Log'}
               </span>
-              <span className="text-xs sm:text-sm font-bold text-white group-hover:text-[var(--primary)] transition-colors flex items-center justify-center gap-0.5 sm:gap-1 pointer-events-none">
+              <span className="text-[11px] sm:text-sm font-bold text-white group-hover:text-[var(--primary)] transition-colors flex items-center justify-center gap-0.5 sm:gap-1 pointer-events-none leading-tight">
                 {mounted
                   ? new Date(selectedDate + 'T00:00:00').toLocaleDateString(undefined, {
                     month: 'short',
@@ -241,7 +200,7 @@ export default function Dashboard() {
             <button
               onClick={() => handleDateChange(1)}
               disabled={isToday}
-              className={`p-2 sm:p-3 rounded-lg sm:rounded-xl transition-colors shrink-0 ${isToday ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/5 text-[var(--text-muted)] hover:text-white'}`}
+              className={`p-1.5 sm:p-3 rounded-lg sm:rounded-xl transition-colors shrink-0 ${isToday ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/5 text-[var(--text-muted)] hover:text-white'}`}
             >
               <ChevronRightIcon className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
@@ -251,10 +210,10 @@ export default function Dashboard() {
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="btn-primary flex items-center justify-center gap-1.5 sm:gap-2 h-11 sm:h-14 px-3 sm:px-8 rounded-xl sm:rounded-2xl transition-all w-full sm:w-auto"
+              className="btn-primary flex items-center justify-center gap-1.5 sm:gap-2 h-10 sm:h-14 px-3 sm:px-8 rounded-xl sm:rounded-2xl transition-all w-full sm:w-auto"
             >
-              <CameraIcon className="w-5 h-5 sm:w-6 sm:h-6" />
-              <span className="font-black tracking-wide text-xs sm:text-base">LOG MEAL</span>
+              <CameraIcon className="w-4 h-4 sm:w-6 sm:h-6" />
+              <span className="font-black tracking-wide text-[11px] sm:text-base">LOG MEAL</span>
             </motion.button>
           </Link>
         </div>

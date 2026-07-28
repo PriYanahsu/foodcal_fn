@@ -25,8 +25,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
         className={`flex-1 transition-all duration-300 w-full relative ${!isAuthPage ? 'md:ml-64' : ''}`}
       >
         {!isAuthPage && (
-          <div className="md:hidden sticky top-0 z-[60] flex items-center justify-between px-6 py-4 bg-[var(--background)]/80 backdrop-blur-xl border-b border-white/5">
-            <div className="flex items-center gap-3">
+          <div className="md:hidden sticky top-0 z-[60] flex items-center justify-between px-4 py-2.5 bg-[var(--background)]/80 backdrop-blur-xl border-b border-white/5">
+            <div className="flex items-center gap-2.5">
               <button
                 onClick={() => setIsSidebarOpen(true)}
                 className="p-1 rounded-lg hover:bg-white/5 text-[var(--text-muted)]"
@@ -49,13 +49,13 @@ function AppShell({ children }: { children: React.ReactNode }) {
               <img
                 src={BRAND_ASSETS.logo}
                 alt=""
-                className="w-8 h-8 rounded-lg object-contain"
+                className="w-7 h-7 rounded-lg object-contain"
               />
-              <h1 className="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
+              <h1 className="text-lg font-black bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
                 {BRAND_ASSETS.name}
               </h1>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <NotificationBell />
               <NotificationToast />
             </div>

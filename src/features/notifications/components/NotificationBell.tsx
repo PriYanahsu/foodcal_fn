@@ -13,8 +13,9 @@ export const NotificationBell: React.FC = () => {
   return (
     <div className="relative">
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`p-2.5 rounded-xl transition-all duration-300 border ${
+        className={`relative isolate overflow-hidden p-2 rounded-xl transition-all duration-300 border ${
           isOpen
             ? 'bg-[var(--primary)] border-[var(--primary)] text-black shadow-[0_0_20px_#00ff8866]'
             : unreadCount > 0
@@ -23,22 +24,22 @@ export const NotificationBell: React.FC = () => {
         }`}
       >
         <BellIcon className={`w-5 h-5 ${unreadCount > 0 && !isOpen ? 'animate-bounce' : ''}`} />
-
-        <AnimatePresence>
-          {unreadCount > 0 && (
-            <motion.span
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0 }}
-              className={`absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-lg ${
-                isOpen ? 'bg-white text-black' : 'bg-red-500 text-white'
-              }`}
-            >
-              {unreadCount}
-            </motion.span>
-          )}
-        </AnimatePresence>
       </button>
+
+      <AnimatePresence>
+        {unreadCount > 0 && (
+          <motion.span
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0 }}
+            className={`absolute -top-1 -right-1 z-10 min-w-[1.1rem] h-[1.1rem] px-0.5 rounded-full flex items-center justify-center text-[9px] font-bold shadow-lg pointer-events-none ${
+              isOpen ? 'bg-white text-black' : 'bg-red-500 text-white'
+            }`}
+          >
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </motion.span>
+        )}
+      </AnimatePresence>
 
       <NotificationPanel isOpen={isOpen} onClose={() => setIsOpen(false)} />
     </div>

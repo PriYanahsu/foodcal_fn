@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import {
-  CalendarDaysIcon,
   UserIcon,
   TrophyIcon,
   SparklesIcon,
@@ -116,53 +115,62 @@ export default function FitnessSetupWizard({
     setLoading(false);
   };
 
+  const inputClass =
+    'w-full bg-white/5 border border-white/10 px-3 py-2 sm:py-2.5 rounded-xl text-sm focus:border-[var(--primary)] outline-none';
+  const labelClass =
+    'block text-[10px] font-medium mb-1 text-[var(--text-muted)] uppercase tracking-wider';
+
   const WizardContent = (
     <div
-      className={`bg-[var(--card-bg)] border border-[var(--card-border)] w-full rounded-3xl overflow-hidden shadow-2xl relative animate-fade-in ${isInline ? 'max-w-none' : 'max-w-2xl mx-auto'}`}
+      className={`bg-[var(--card-bg)] border border-[var(--card-border)] w-full rounded-2xl overflow-hidden shadow-xl relative animate-fade-in ${
+        isInline ? '' : 'max-w-md mx-auto'
+      }`}
     >
-      {/* Close/Back Button */}
-      {onCancel && (
+      {onCancel && !isInline && (
         <button
+          type="button"
           onClick={onCancel}
-          className="absolute top-6 right-6 z-10 p-2 text-[var(--text-muted)] hover:text-white hover:bg-white/10 rounded-full transition-all"
+          className="absolute top-3 right-3 z-10 p-1.5 text-[var(--text-muted)] hover:text-white hover:bg-white/10 rounded-full transition-all"
           title="Cancel Consultation"
         >
-          <XMarkIcon className="w-6 h-6" />
+          <XMarkIcon className="w-5 h-5" />
         </button>
       )}
 
-      {/* Progress Bar */}
-      <div className="h-1.5 w-full bg-white/5">
+      <div className="h-1 w-full bg-white/5">
         <div
           className="h-full bg-[var(--primary)] transition-all duration-500"
           style={{ width: `${(step / 4) * 100}%` }}
         />
       </div>
 
-      <div className="p-8 md:p-12">
+      <div className="p-4 sm:p-5">
         {step === 1 && (
-          <div className="space-y-8 animate-slide-up">
-            <div className="text-center space-y-2">
-              <div className="w-16 h-16 bg-[var(--primary)]/10 text-[var(--primary)] rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <UserIcon className="w-8 h-8" />
+          <div className="space-y-3.5 sm:space-y-4 animate-slide-up">
+            <div className="text-center space-y-1">
+              <div className="w-10 h-10 bg-[var(--primary)]/10 text-[var(--primary)] rounded-xl flex items-center justify-center mx-auto mb-1.5">
+                <UserIcon className="w-5 h-5" />
               </div>
-              <h2 className="text-3xl font-bold">Tell us about yourself</h2>
-              <p className="text-[var(--text-muted)]">
-                Your physical stats help the AI calculate your base targets.
+              <h2 className="text-lg sm:text-xl font-bold leading-tight">Tell us about yourself</h2>
+              <p className="text-[var(--text-muted)] text-xs">
+                Physical stats help the AI set your base targets.
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
               <div className="col-span-2">
-                <label className="block text-sm font-medium mb-2 text-[var(--text-muted)] uppercase tracking-wider">
-                  Gender
-                </label>
-                <div className="flex gap-4">
+                <label className={labelClass}>Gender</label>
+                <div className="flex gap-2">
                   {['Male', 'Female', 'Other'].map((g) => (
                     <button
                       key={g}
+                      type="button"
                       onClick={() => setStats({ ...stats, gender: g })}
-                      className={`flex-1 py-3 rounded-xl border-2 transition-all ${stats.gender === g ? 'border-[var(--primary)] bg-[var(--primary)]/10 text-white' : 'border-white/10 text-[var(--text-muted)] hover:border-white/30'}`}
+                      className={`flex-1 py-2 sm:py-2.5 rounded-xl border-2 text-sm transition-all ${
+                        stats.gender === g
+                          ? 'border-[var(--primary)] bg-[var(--primary)]/10 text-white'
+                          : 'border-white/10 text-[var(--text-muted)] hover:border-white/30'
+                      }`}
                     >
                       {g}
                     </button>
@@ -170,9 +178,7 @@ export default function FitnessSetupWizard({
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2 text-[var(--text-muted)] uppercase tracking-wider">
-                  Age
-                </label>
+                <label className={labelClass}>Age</label>
                 <input
                   type="number"
                   value={stats.age}
@@ -182,13 +188,11 @@ export default function FitnessSetupWizard({
                       age: e.target.value === '' ? '' : parseInt(e.target.value),
                     })
                   }
-                  className="w-full bg-white/5 border border-white/10 p-3 rounded-xl focus:border-[var(--primary)] outline-none"
+                  className={inputClass}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2 text-[var(--text-muted)] uppercase tracking-wider">
-                  Height (cm)
-                </label>
+                <label className={labelClass}>Height (cm)</label>
                 <input
                   type="number"
                   value={stats.height}
@@ -198,13 +202,11 @@ export default function FitnessSetupWizard({
                       height: e.target.value === '' ? '' : parseInt(e.target.value),
                     })
                   }
-                  className="w-full bg-white/5 border border-white/10 p-3 rounded-xl focus:border-[var(--primary)] outline-none"
+                  className={inputClass}
                 />
               </div>
               <div className="col-span-2">
-                <label className="block text-sm font-medium mb-2 text-[var(--text-muted)] uppercase tracking-wider">
-                  Weight (kg)
-                </label>
+                <label className={labelClass}>Weight (kg)</label>
                 <input
                   type="number"
                   value={stats.weight}
@@ -214,54 +216,56 @@ export default function FitnessSetupWizard({
                       weight: e.target.value === '' ? '' : parseFloat(e.target.value),
                     })
                   }
-                  className="w-full bg-white/5 border border-white/10 p-3 rounded-xl focus:border-[var(--primary)] outline-none"
+                  className={inputClass}
                 />
               </div>
             </div>
 
             <button
+              type="button"
               onClick={nextStep}
-              className="btn-primary w-full flex items-center justify-center gap-2 text-lg"
+              className="btn-primary w-full flex items-center justify-center gap-2 text-sm sm:text-base py-2.5"
             >
-              Next <ArrowRightIcon className="w-5 h-5" />
+              Next <ArrowRightIcon className="w-4 h-4" />
             </button>
           </div>
         )}
 
         {step === 2 && (
-          <div className="space-y-8 animate-slide-up">
-            <div className="text-center space-y-2">
-              <div className="w-16 h-16 bg-[var(--accent)]/10 text-[var(--accent)] rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <TrophyIcon className="w-8 h-8" />
+          <div className="space-y-3.5 sm:space-y-4 animate-slide-up">
+            <div className="text-center space-y-1">
+              <div className="w-10 h-10 bg-[var(--accent)]/10 text-[var(--accent)] rounded-xl flex items-center justify-center mx-auto mb-1.5">
+                <TrophyIcon className="w-5 h-5" />
               </div>
-              <h2 className="text-3xl font-bold">What's your goal?</h2>
-              <p className="text-[var(--text-muted)]">
+              <h2 className="text-lg sm:text-xl font-bold leading-tight">What&apos;s your goal?</h2>
+              <p className="text-[var(--text-muted)] text-xs">
                 Be specific about what you want to achieve.
               </p>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-2.5 sm:space-y-3">
               <div>
-                <label className="block text-sm font-medium mb-2 text-[var(--text-muted)] uppercase tracking-wider">
-                  Objective
-                </label>
-                <div className="flex gap-4">
+                <label className={labelClass}>Objective</label>
+                <div className="grid grid-cols-3 gap-2">
                   {['Lose Weight', 'Maintain Weight', 'Gain Muscle'].map((o) => (
                     <button
                       key={o}
+                      type="button"
                       onClick={() => setGoals({ ...goals, objective: o })}
-                      className={`flex-1 py-3 text-sm rounded-xl border-2 transition-all ${goals.objective === o ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-white' : 'border-white/10 text-[var(--text-muted)] hover:border-white/30'}`}
+                      className={`py-2 sm:py-2.5 px-1 text-[11px] sm:text-xs rounded-xl border-2 transition-all leading-tight ${
+                        goals.objective === o
+                          ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-white'
+                          : 'border-white/10 text-[var(--text-muted)] hover:border-white/30'
+                      }`}
                     >
                       {o}
                     </button>
                   ))}
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-[var(--text-muted)] uppercase tracking-wider">
-                    Target Weight (kg)
-                  </label>
+                  <label className={labelClass}>Target Weight (kg)</label>
                   <input
                     type="number"
                     value={goals.target_weight}
@@ -271,65 +275,65 @@ export default function FitnessSetupWizard({
                         target_weight: e.target.value === '' ? '' : parseFloat(e.target.value),
                       })
                     }
-                    className="w-full bg-white/5 border border-white/10 p-3 rounded-xl focus:border-[var(--accent)] outline-none"
+                    className={`${inputClass} focus:border-[var(--accent)]`}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-[var(--text-muted)] uppercase tracking-wider">
-                    Target Date
-                  </label>
+                  <label className={labelClass}>Target Date</label>
                   <input
                     type="date"
                     value={goals.target_date}
                     onChange={(e) => setGoals({ ...goals, target_date: e.target.value })}
-                    className="w-full bg-white/5 border border-white/10 p-3 rounded-xl focus:border-[var(--accent)] outline-none"
+                    className={`${inputClass} focus:border-[var(--accent)]`}
                     style={{ colorScheme: 'dark' }}
                   />
                 </div>
               </div>
             </div>
 
-            <div className="flex gap-4">
-              <button onClick={prevStep} className="btn-secondary flex-1 py-3">
+            <div className="flex gap-2">
+              <button type="button" onClick={prevStep} className="btn-secondary flex-1 py-2.5 text-sm">
                 Back
               </button>
               <button
+                type="button"
                 onClick={nextStep}
-                className="btn-primary flex-[2] flex items-center justify-center gap-2"
+                className="btn-primary flex-[2] flex items-center justify-center gap-2 py-2.5 text-sm"
               >
-                Next <ArrowRightIcon className="w-5 h-5" />
+                Next <ArrowRightIcon className="w-4 h-4" />
               </button>
             </div>
           </div>
         )}
 
         {step === 3 && (
-          <div className="space-y-10 text-center py-8 animate-slide-up">
-            <div className="relative mx-auto w-32 h-32">
+          <div className="space-y-4 text-center py-1 animate-slide-up">
+            <div className="relative mx-auto w-16 h-16 sm:w-20 sm:h-20">
               <div className="absolute inset-0 bg-[var(--primary)]/20 rounded-full animate-ping" />
               <div className="relative bg-[var(--card-bg)] border-4 border-[var(--primary)] rounded-full w-full h-full flex items-center justify-center">
-                <SparklesIcon className="w-16 h-16 text-[var(--primary)] animate-pulse" />
+                <SparklesIcon className="w-8 h-8 sm:w-10 sm:h-10 text-[var(--primary)] animate-pulse" />
               </div>
             </div>
-            <div className="space-y-4">
-              <h2 className="text-3xl font-bold">Consulting Expert AI Coach</h2>
-              <p className="text-[var(--text-muted)] max-w-md mx-auto">
-                We're analyzing your data to create a feasible, healthy, and high-performance plan
-                specifically for your body.
+            <div className="space-y-1.5">
+              <h2 className="text-lg sm:text-xl font-bold leading-tight">Consulting Expert AI Coach</h2>
+              <p className="text-[var(--text-muted)] text-xs max-w-sm mx-auto">
+                Analyzing your data for a healthy, high-performance plan.
               </p>
             </div>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
               <button
+                type="button"
                 onClick={handleConsultAI}
                 disabled={loading}
-                className="btn-primary py-4 text-xl shadow-[0_0_25px_rgba(0,255,136,0.4)] disabled:opacity-50"
+                className="btn-primary py-2.5 sm:py-3 text-sm sm:text-base shadow-[0_0_20px_rgba(0,255,136,0.35)] disabled:opacity-50"
               >
                 {loading ? 'Analyzing...' : 'Begin Consultation'}
               </button>
               {!loading && (
                 <button
+                  type="button"
                   onClick={prevStep}
-                  className="text-[var(--text-muted)] hover:text-white transition-colors"
+                  className="text-[var(--text-muted)] hover:text-white transition-colors text-xs py-1"
                 >
                   Go Back and Edit Goals
                 </button>
@@ -339,87 +343,95 @@ export default function FitnessSetupWizard({
         )}
 
         {step === 4 && aiResult && (
-          <div className="space-y-8 animate-slide-up max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+          <div className="space-y-3.5 sm:space-y-4 animate-slide-up">
             <div
-              className={`p-6 rounded-3xl border ${aiResult.status === 'approved' ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}
+              className={`p-3 sm:p-3.5 rounded-xl border ${
+                aiResult.status === 'approved'
+                  ? 'bg-green-500/10 border-green-500/20'
+                  : 'bg-red-500/10 border-red-500/20'
+              }`}
             >
               <h3
-                className={`text-2xl font-bold mb-2 flex items-center gap-3 ${aiResult.status === 'approved' ? 'text-green-400' : 'text-red-400'}`}
+                className={`text-base sm:text-lg font-bold mb-1 flex items-center gap-2 ${
+                  aiResult.status === 'approved' ? 'text-green-400' : 'text-red-400'
+                }`}
               >
                 {aiResult.status === 'approved' ? (
-                  <CheckCircleIcon className="w-8 h-8" />
+                  <CheckCircleIcon className="w-5 h-5 shrink-0" />
                 ) : (
-                  '⚠️ Goal Needs Adjustment'
+                  <span>⚠️</span>
                 )}
                 {aiResult.status === 'approved' ? 'Your Plan is Ready!' : 'Reality Check Required'}
               </h3>
-              <p className="text-gray-300 leading-relaxed italic">"{aiResult.reasoning}"</p>
+              <p className="text-gray-300 text-xs leading-relaxed italic">
+                &ldquo;{aiResult.reasoning}&rdquo;
+              </p>
             </div>
 
             {aiResult.status === 'approved' ? (
               <>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="bg-white/5 p-4 rounded-2xl border border-white/10 text-center">
-                    <span className="block text-[var(--primary)] text-2xl font-bold">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="bg-white/5 p-2.5 rounded-xl border border-white/10 text-center">
+                    <span className="block text-[var(--primary)] text-lg font-bold">
                       {aiResult.targets.calories}
                     </span>
-                    <span className="text-[var(--text-muted)] text-xs uppercase tracking-tighter">
-                      Calories
-                    </span>
+                    <span className="text-[var(--text-muted)] text-[10px] uppercase">Calories</span>
                   </div>
-                  <div className="bg-white/5 p-4 rounded-2xl border border-white/10 text-center">
-                    <span className="block text-red-400 text-2xl font-bold">
+                  <div className="bg-white/5 p-2.5 rounded-xl border border-white/10 text-center">
+                    <span className="block text-red-400 text-lg font-bold">
                       {aiResult.targets.protein}g
                     </span>
-                    <span className="text-[var(--text-muted)] text-xs uppercase tracking-tighter">
-                      Protein
-                    </span>
+                    <span className="text-[var(--text-muted)] text-[10px] uppercase">Protein</span>
                   </div>
-                  <div className="bg-white/5 p-4 rounded-2xl border border-white/10 text-center">
-                    <span className="block text-blue-400 text-2xl font-bold">
+                  <div className="bg-white/5 p-2.5 rounded-xl border border-white/10 text-center">
+                    <span className="block text-blue-400 text-lg font-bold">
                       {aiResult.targets.carbs}g
                     </span>
-                    <span className="text-[var(--text-muted)] text-xs uppercase tracking-tighter">
-                      Carbs
-                    </span>
+                    <span className="text-[var(--text-muted)] text-[10px] uppercase">Carbs</span>
                   </div>
-                  <div className="bg-white/5 p-4 rounded-2xl border border-white/10 text-center">
-                    <span className="block text-purple-400 text-2xl font-bold">
+                  <div className="bg-white/5 p-2.5 rounded-xl border border-white/10 text-center">
+                    <span className="block text-purple-400 text-lg font-bold">
                       {aiResult.targets.fats}g
                     </span>
-                    <span className="text-[var(--text-muted)] text-xs uppercase tracking-tighter">
-                      Fats
-                    </span>
+                    <span className="text-[var(--text-muted)] text-[10px] uppercase">Fats</span>
                   </div>
                 </div>
 
-                <div className="bg-[var(--primary)]/5 p-6 rounded-2xl border border-[var(--primary)]/20">
-                  <h4 className="font-bold text-[var(--primary)] mb-2 flex items-center gap-2">
-                    <SparklesIcon className="w-5 h-5" /> Elite Coach Advice
+                <div className="bg-[var(--primary)]/5 p-3 rounded-xl border border-[var(--primary)]/20">
+                  <h4 className="font-bold text-[var(--primary)] mb-1 flex items-center gap-1.5 text-xs">
+                    <SparklesIcon className="w-3.5 h-3.5" /> Elite Coach Advice
                   </h4>
-                  <p className="text-sm text-gray-300 leading-relaxed">{aiResult.advice}</p>
+                  <p className="text-xs text-gray-300 leading-relaxed">{aiResult.advice}</p>
                 </div>
 
-                <div className="flex gap-4 sticky bottom-0 bg-[var(--card-bg)] pt-4">
-                  <button onClick={() => setStep(2)} className="btn-secondary flex-1 py-4">
-                    Wait, I want to change goals
+                <div className="flex flex-col-reverse sm:flex-row gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setStep(2)}
+                    className="btn-secondary flex-1 py-2.5 text-sm"
+                  >
+                    Change goals
                   </button>
                   <button
+                    type="button"
                     onClick={handleSavePlan}
                     disabled={loading}
-                    className="btn-primary flex-[2] py-4 text-xl"
+                    className="btn-primary flex-[2] py-2.5 text-sm"
                   >
                     {loading ? 'Saving Plan...' : 'Activate My Plan'}
                   </button>
                 </div>
               </>
             ) : (
-              <div className="space-y-6 text-center">
-                <p className="text-lg text-gray-300">
-                  Your AI coach suggests modifying your target date or target weight to ensure a
-                  healthy and sustainable transition.
+              <div className="space-y-3 text-center">
+                <p className="text-xs sm:text-sm text-gray-300">
+                  Your AI coach suggests modifying your target date or weight for a healthier plan.
                 </p>
-                <button onClick={() => setStep(2)} className="btn-primary py-4 px-12 text-lg">
+                <button
+                  type="button"
+                  onClick={() => setStep(2)}
+                  className="btn-primary py-2.5 px-6 text-sm"
+                >
                   Adjust My Goals
                 </button>
               </div>
@@ -435,7 +447,7 @@ export default function FitnessSetupWizard({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
       {WizardContent}
     </div>
   );
