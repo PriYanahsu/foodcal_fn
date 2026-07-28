@@ -15,8 +15,23 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { BRAND_ASSETS } from '@/lib/brand-config';
+import { isFeatureEnabled, type FeatureKey } from '@/config/features';
 
-export const DEMO_STEPS = [
+type DemoStep = {
+  title: string;
+  description: string;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  color: string;
+  details: string;
+  fullExplanation: {
+    overview: string;
+    howItWorks: string[];
+    benefits: string[];
+  };
+  feature?: FeatureKey;
+};
+
+export const DEMO_STEPS: DemoStep[] = [
   {
     title: 'AI Profile Setup',
     description:
@@ -174,6 +189,7 @@ export const DEMO_STEPS = [
   },
   {
     title: 'Step Tracking',
+    feature: 'steps',
     description:
       'Sync your daily steps. The AI factors activity into your calorie budget automatically.',
     icon: ArrowPathIcon,
@@ -250,8 +266,12 @@ export const DEMO_STEPS = [
   },
 ];
 
+export function getActiveDemoSteps() {
+  return DEMO_STEPS.filter((step) => !step.feature || isFeatureEnabled(step.feature));
+}
+
 const FeatureModal: React.FC<{
-  feature: (typeof DEMO_STEPS)[0];
+  feature: DemoStep;
   isOpen: boolean;
   onClose: () => void;
 }> = ({ feature, isOpen, onClose }) => {
@@ -364,7 +384,7 @@ const FeatureModal: React.FC<{
   );
 };
 
-export const FeatureCard: React.FC<{ step: (typeof DEMO_STEPS)[0]; index: number }> = ({
+export const FeatureCard: React.FC<{ step: DemoStep; index: number }> = ({
   step,
   index,
 }) => {
@@ -446,8 +466,8 @@ export const AppDemo: React.FC = () => {
       </motion.div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-16">
-        {DEMO_STEPS.map((step, index) => (
-          <FeatureCard key={index} step={step} index={index} />
+        {getActiveDemoSteps().map((step, index) => (
+          <FeatureCard key={step.title} step={step} index={index} />
         ))}
       </div>
 

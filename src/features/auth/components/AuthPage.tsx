@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { LoginForm } from './LoginForm';
 import { SignupForm } from './SignupForm';
 import { Card } from '@/components/ui/Card';
-import { AppDemo, DEMO_STEPS } from '@/features/landing/components/AppDemo';
+import { AppDemo, getActiveDemoSteps } from '@/features/landing/components/AppDemo';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,12 +19,16 @@ export const AuthPage: React.FC = () => {
   const { user } = useAuth();
 
   const resolveAppOrigin = () => {
-    if (typeof window !== 'undefined') return window.location.origin;
+    // Always prefer the browser origin so prod never gets localhost baked in
+    if (typeof window !== 'undefined') {
+      return window.location.origin.replace(/\/$/, '');
+    }
 
     const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
     if (configuredSiteUrl) return configuredSiteUrl.replace(/\/$/, '');
 
-    const vercelUrl = process.env.NEXT_PUBLIC_VERCEL_URL?.trim();
+    const vercelUrl =
+      process.env.NEXT_PUBLIC_VERCEL_URL?.trim() || process.env.VERCEL_URL?.trim();
     if (vercelUrl) {
       const normalizedVercelUrl = /^https?:\/\//.test(vercelUrl)
         ? vercelUrl
@@ -36,7 +40,8 @@ export const AuthPage: React.FC = () => {
   };
 
   const signInWithGoogle = async () => {
-    const isBrowser = typeof window !== 'undefined';
+    if (typeof window === 'undefined') return;
+
     const appOrigin = resolveAppOrigin();
     const redirectTo = `${appOrigin}/auth/callback`;
 
@@ -54,25 +59,40 @@ export const AuthPage: React.FC = () => {
     }
 
     const oauthUrl = data?.url;
-    if (!oauthUrl || !isBrowser) {
+    if (!oauthUrl) {
       console.error('Missing OAuth URL from Supabase.');
       return;
     }
 
-    const outgoingRedirectTo = new URL(oauthUrl).searchParams.get('redirect_to');
+    // Force redirect_to to this origin — Supabase falls back to Site URL (often
+    // localhost) when the requested URL isn't allowlisted.
+    const authorizeUrl = new URL(oauthUrl);
+    authorizeUrl.searchParams.set('redirect_to', redirectTo);
+
+    const outgoingRedirectTo = authorizeUrl.searchParams.get('redirect_to');
     const isLocalHost = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
-    const isProdHost = !isLocalHost;
-    if (isProdHost && outgoingRedirectTo?.includes('localhost')) {
+    if (
+      !isLocalHost &&
+      outgoingRedirectTo &&
+      /localhost|127\.0\.0\.1/i.test(outgoingRedirectTo)
+    ) {
       console.error(
         `Supabase URL Configuration is forcing localhost redirect. Update Auth URL settings. Returned redirect_to: ${outgoingRedirectTo}`
       );
       alert(
-        'Google sign-in is misconfigured in Supabase: redirect target is localhost. Update Supabase Auth > URL Configuration (Site URL + Additional Redirect URLs).'
+        'Google sign-in is misconfigured in Supabase.\n\n' +
+          'Dashboard → Authentication → URL Configuration:\n' +
+          `1. Site URL = ${appOrigin}\n` +
+          `2. Redirect URLs add:\n` +
+          `   ${redirectTo}\n` +
+          `   ${appOrigin}/**\n` +
+          '   http://localhost:3000/**\n' +
+          '   https://*-*.vercel.app/**'
       );
       return;
     }
 
-    window.location.assign(oauthUrl);
+    window.location.assign(authorizeUrl.toString());
   };
 
   useEffect(() => {
@@ -159,7 +179,7 @@ export const AuthPage: React.FC = () => {
 
             {/* Feature Preview Grid */}
             <div className="grid grid-cols-2 gap-4 max-w-xl">
-              {DEMO_STEPS.slice(0, 4).map((step, i) => {
+              {getActiveDemoSteps().slice(0, 4).map((step, i) => {
                 const Icon = step.icon;
                 return (
                   <motion.div
@@ -211,7 +231,7 @@ export const AuthPage: React.FC = () => {
               {/* Mobile Quick Feature Preview */}
               {view === 'landing' && (
                 <div className="grid grid-cols-2 gap-3 w-full px-4 mt-8 mb-4">
-                  {DEMO_STEPS.slice(0, 4).map((step, i) => {
+                  {getActiveDemoSteps().slice(0, 4).map((step, i) => {
                     const Icon = step.icon;
                     return (
                       <motion.div

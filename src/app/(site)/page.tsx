@@ -18,6 +18,7 @@ import { createClient } from '@/lib/supabase/client';
 import FitnessSetupWizard from '@/features/fitnessProfile/components/setup/FitnessSetupWizard';
 import { StepTracker } from '@/features/activity/components/StepTracker';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
+import { isFeatureEnabled } from '@/config/features';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const dynamic = 'force-dynamic';
@@ -446,7 +447,7 @@ export default function Dashboard() {
             </div>
           </Link>
 
-          <StepTracker />
+          {isFeatureEnabled('steps') && <StepTracker />}
 
           {/* Quick Goals */}
           <div className="bg-[var(--card-bg)]/40 backdrop-blur-md border border-[var(--card-border)] rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl space-y-4 sm:space-y-6">

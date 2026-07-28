@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -137,11 +137,24 @@ const Icons = {
   ),
 };
 
-const MENU_ITEMS = [
-  { name: 'Nutrition', path: '/', icon: Icons.Home },
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { BRAND_ASSETS } from '@/lib/brand-config';
+import { isFeatureEnabled, type FeatureKey } from '@/config/features';
+
+type MenuItem = {
+  name: string;
+  path: string;
+  icon: () => ReactNode;
+  feature?: FeatureKey;
+};
+
+const MENU_ITEMS: MenuItem[] = [
+  { name: 'Nutrition', path: '/', icon: Icons.Home, feature: 'nutrition' },
   {
     name: 'Fitness',
     path: '/fitness',
+    feature: 'fitness',
     icon: () => (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -162,6 +175,7 @@ const MENU_ITEMS = [
   {
     name: 'Exercises',
     path: '/exercises',
+    feature: 'exercises',
     icon: () => (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -179,10 +193,11 @@ const MENU_ITEMS = [
       </svg>
     ),
   },
-  { name: 'Scan Food', path: '/scan', icon: Icons.Scan },
+  { name: 'Scan Food', path: '/scan', icon: Icons.Scan, feature: 'scan' },
   {
     name: 'Steps',
     path: '/steps',
+    feature: 'steps',
     icon: () => (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -200,15 +215,15 @@ const MENU_ITEMS = [
       </svg>
     ),
   },
-  { name: 'History', path: '/history', icon: Icons.History },
-  { name: 'Notifications', path: '/notifications', icon: Icons.Bell },
-  { name: 'Profile', path: '/profile', icon: Icons.Profile },
+  { name: 'History', path: '/history', icon: Icons.History, feature: 'history' },
+  { name: 'Notifications', path: '/notifications', icon: Icons.Bell, feature: 'notifications' },
+  { name: 'Profile', path: '/profile', icon: Icons.Profile, feature: 'profile' },
   { name: 'Demo', path: '/hero', icon: Icons.Logout },
 ];
 
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/features/auth/hooks/useAuth';
-import { BRAND_ASSETS } from '@/lib/brand-config';
+const visibleMenuItems = () =>
+  MENU_ITEMS.filter((item) => !item.feature || isFeatureEnabled(item.feature));
+
 
 interface SidebarProps {
   isOpen: boolean;
@@ -220,6 +235,8 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { logout } = useAuth();
   const router = useRouter();
+  const menuItems = visibleMenuItems();
+
 
   const handleLogout = async () => {
     try {
@@ -268,7 +285,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                 </div>
 
                 <nav className="flex-1 space-y-2">
-                  {MENU_ITEMS.map((item) => {
+                  {menuItems.map((item) => {
                     const isActive = pathname === item.path;
                     const Icon = item.icon;
                     return (
@@ -351,7 +368,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
           </div>
 
           <nav className="flex-1 space-y-2">
-            {MENU_ITEMS.map((item) => {
+            {menuItems.map((item) => {
               const isActive = pathname === item.path;
               const Icon = item.icon;
               return (

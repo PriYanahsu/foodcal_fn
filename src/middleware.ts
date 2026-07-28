@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { getDisabledFeaturePaths } from '@/config/features';
 
 export default async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -37,6 +38,13 @@ export default async function proxy(request: NextRequest) {
   // Let the OAuth callback route exchange the code without interference
   if (pathname.startsWith('/auth/callback')) {
     return supabaseResponse;
+  }
+
+  const disabledPaths = getDisabledFeaturePaths();
+  if (disabledPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`))) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = '/';
+    return NextResponse.redirect(redirectUrl);
   }
 
   const protectedRoutes = ['/', '/scan', '/manualAddData', '/history', '/profile'];
