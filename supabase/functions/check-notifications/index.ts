@@ -66,7 +66,7 @@ async function deliverPushNotification(
       console.error(`Push subscription fetch failed for ${userId}:`, error);
     } else if (!subscriptions?.length) {
       console.log(`No push subscriptions for user ${userId} (user must enable push in the app)`);
-      return { sent: 0, via: 'direct' };
+      return { sent: 0, via: 'direct-none' };
     } else {
       let sent = 0;
       for (const row of subscriptions) {
@@ -86,11 +86,17 @@ async function deliverPushNotification(
           }
         }
       }
-      return { sent, via: 'direct' };
+      // Only skip API fallback when at least one device got the push
+      if (sent > 0) {
+        return { sent, via: 'direct' };
+      }
+      console.warn(
+        `Direct push sent=0 for ${userId} — falling back to /api/send-push`
+      );
     }
   }
 
-  // Fallback: Next.js route (needs API_BASE_URL + SUPABASE_SERVICE_ROLE_KEY on Vercel)
+  // Fallback: Next.js route (same path as "Send Test Push", needs matching PUSH_INTERNAL_SECRET)
   if (!apiBaseUrl) {
     console.error('Cannot deliver push: no VAPID on edge and API_BASE_URL missing');
     return { sent: 0, via: 'none' };
@@ -98,8 +104,13 @@ async function deliverPushNotification(
 
   const pushSecret = Deno.env.get('PUSH_INTERNAL_SECRET') || Deno.env.get('CRON_SECRET') || '';
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (pushSecret) headers['x-push-secret'] = pushSecret;
+  if (pushSecret) {
+    headers['x-push-secret'] = pushSecret;
+  } else {
+    console.warn('PUSH_INTERNAL_SECRET / CRON_SECRET not set on edge — /api/send-push may 401');
+  }
 
+  console.log(`Calling fallback ${apiBaseUrl}/api/send-push for ${userId}`);
   const pushResponse = await fetch(`${apiBaseUrl}/api/send-push`, {
     method: 'POST',
     headers,
@@ -115,7 +126,10 @@ async function deliverPushNotification(
 
   const result = await pushResponse.json().catch(() => ({}));
   if (!pushResponse.ok) {
-    console.error(`Fallback /api/send-push failed for ${userId}:`, result);
+    console.error(
+      `Fallback /api/send-push failed for ${userId}: status=${pushResponse.status}`,
+      result
+    );
     return { sent: 0, via: 'api' };
   }
   return { sent: result.sent || 0, via: 'api' };

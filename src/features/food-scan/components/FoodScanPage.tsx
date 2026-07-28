@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useFoodScan } from '../hooks/useFoodScan';
 import { CameraInput } from './CameraInput';
 import { NutritionCard } from './NutritionCard';
 import { AiScanOverlay } from './AiScanOverlay';
+import { SuccessToast } from '@/components/ui/SuccessToast';
 import {
   XMarkIcon,
   SparklesIcon,
@@ -21,6 +22,14 @@ export const FoodScanPage: React.FC = () => {
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [prompt, setPrompt] = useState('');
+  const [toast, setToast] = useState<{
+    message: string;
+    detail?: string;
+    actionLabel?: string;
+    actionHref?: string;
+  } | null>(null);
+
+  const clearToast = useCallback(() => setToast(null), []);
 
   const handleImageSelect = (file: File) => {
     setSelectedFile(file);
@@ -303,8 +312,17 @@ export const FoodScanPage: React.FC = () => {
                         <button
                           onClick={async () => {
                             if (selectedFile && nutritionData) {
+                              const foodName = nutritionData.food_name;
                               const success = await saveFoodLog(selectedFile, nutritionData);
-                              if (success) handleReset();
+                              if (success) {
+                                setToast({
+                                  message: 'Meal logged & saved!',
+                                  detail: `${foodName || 'Your meal'} was added to History. Track calories on your dashboard.`,
+                                  actionLabel: 'View in History',
+                                  actionHref: '/history',
+                                });
+                                handleReset();
+                              }
                             }
                           }}
                           disabled={isSaving}
@@ -353,6 +371,14 @@ export const FoodScanPage: React.FC = () => {
           </motion.div>
         )}
       </div>
+
+      <SuccessToast
+        message={toast?.message ?? null}
+        detail={toast?.detail}
+        actionLabel={toast?.actionLabel}
+        actionHref={toast?.actionHref}
+        onClose={clearToast}
+      />
     </div>
   );
 };

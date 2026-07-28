@@ -458,6 +458,7 @@ export default function FitnessHub() {
                   <WeightProgressWidget
                     userId={user.id}
                     targetWeight={profile?.target_weight || null}
+                    initialWeight={profile?.weight || null}
                     onLogSuccess={fetchProfile}
                     compact
                   />

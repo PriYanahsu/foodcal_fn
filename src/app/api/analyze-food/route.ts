@@ -1,7 +1,235 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, type GenerateContentResult } from '@google/generative-ai';
 
 export const runtime = 'nodejs';
+
+const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
+const MODEL_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+interface GeminiModelInfo {
+  name: string;
+  displayName?: string;
+  description?: string;
+  supportedGenerationMethods?: string[];
+}
+
+interface ListModelsResponse {
+  models?: GeminiModelInfo[];
+  nextPageToken?: string;
+}
+
+interface ModelCache {
+  models: string[];
+  fetchedAt: number;
+}
+
+let modelCache: ModelCache | null = null;
+
+function getApiKey(): string {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) {
+    throw new Error('GEMINI_API_KEY is missing in environment variables');
+  }
+  return key;
+}
+
+/** Strip the `models/` prefix returned by the ListModels API. */
+function normalizeModelName(name: string): string {
+  return name.replace(/^models\//, '');
+}
+
+function supportsGenerateContent(model: GeminiModelInfo): boolean {
+  return (model.supportedGenerationMethods ?? []).includes('generateContent');
+}
+
+/**
+ * Prefer models that advertise multimodal / image input.
+ * Falls back to Gemini family models (multimodal by default) when
+ * the API does not expose an explicit vision capability flag.
+ */
+function supportsVisionInput(model: GeminiModelInfo): boolean {
+  const haystack = [model.name, model.displayName, model.description]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  // Exclude modalities / task-specific models that cannot take food photos
+  const excluded = [
+    'embedding',
+    'embed-content',
+    'aqa',
+    'imagen',
+    'veo',
+    'tts',
+    'robotics',
+    'computer-use',
+  ];
+  if (excluded.some((token) => haystack.includes(token))) {
+    return false;
+  }
+
+  if (
+    haystack.includes('image') ||
+    haystack.includes('vision') ||
+    haystack.includes('multimodal') ||
+    haystack.includes('native image')
+  ) {
+    return true;
+  }
+
+  // Most Gemini generative models accept image parts; Gemma / text-only usually don't advertise it
+  const id = normalizeModelName(model.name).toLowerCase();
+  return id.startsWith('gemini-');
+}
+
+function isRetryableModelError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  const status =
+    typeof error === 'object' &&
+    error !== null &&
+    'status' in error &&
+    typeof (error as { status: unknown }).status === 'number'
+      ? (error as { status: number }).status
+      : undefined;
+
+  const lower = message.toLowerCase();
+
+  return (
+    status === 404 ||
+    status === 429 ||
+    lower.includes('404') ||
+    lower.includes('429') ||
+    lower.includes('not found') ||
+    lower.includes('is not found') ||
+    lower.includes('quota') ||
+    lower.includes('rate limit') ||
+    lower.includes('resource_exhausted') ||
+    lower.includes('deprecated') ||
+    lower.includes('no longer available') ||
+    lower.includes('not supported') ||
+    lower.includes('unavailable')
+  );
+}
+
+/**
+ * Rank models so faster / cheaper flash variants are tried first.
+ */
+function rankModels(a: string, b: string): number {
+  const score = (name: string) => {
+    const n = name.toLowerCase();
+    if (n.includes('flash-lite')) return 0;
+    if (n.includes('flash')) return 1;
+    if (n.includes('pro')) return 3;
+    return 2;
+  };
+  return score(a) - score(b) || a.localeCompare(b);
+}
+
+/**
+ * Fetch all models available to the current API key from the Gemini ListModels API,
+ * filter to generateContent + vision-capable models, and cache the result in memory.
+ */
+async function getAvailableModels(apiKey: string): Promise<string[]> {
+  const now = Date.now();
+
+  if (modelCache && now - modelCache.fetchedAt < MODEL_CACHE_TTL_MS) {
+    console.log(
+      `[analyze-food] Using cached model list (${modelCache.models.length} models, age ${Math.round((now - modelCache.fetchedAt) / 1000)}s)`
+    );
+    return modelCache.models;
+  }
+
+  console.log('[analyze-food] Fetching available models from Gemini ListModels API...');
+
+  const models: GeminiModelInfo[] = [];
+  let pageToken: string | undefined;
+
+  do {
+    const url = new URL(`${GEMINI_API_BASE}/models`);
+    url.searchParams.set('key', apiKey);
+    url.searchParams.set('pageSize', '100');
+    if (pageToken) {
+      url.searchParams.set('pageToken', pageToken);
+    }
+
+    const res = await fetch(url.toString(), {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+    });
+
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Failed to list Gemini models (${res.status}): ${body}`);
+    }
+
+    const data = (await res.json()) as ListModelsResponse;
+    if (data.models?.length) {
+      models.push(...data.models);
+    }
+    pageToken = data.nextPageToken;
+  } while (pageToken);
+
+  const compatible = models
+    .filter((m) => supportsGenerateContent(m) && supportsVisionInput(m))
+    .map((m) => normalizeModelName(m.name))
+    .filter(Boolean)
+    .sort(rankModels);
+
+  // Deduplicate while preserving rank order
+  const unique = [...new Set(compatible)];
+
+  console.log(`[analyze-food] Available vision + generateContent models (${unique.length}):`, unique);
+
+  modelCache = { models: unique, fetchedAt: now };
+  return unique;
+}
+
+/**
+ * Try each compatible model until one successfully generates content.
+ * Skips models that return 404 / 429 / deprecated / not-found style errors.
+ */
+async function generateWithFallback(
+  genAI: GoogleGenerativeAI,
+  apiKey: string,
+  parts: Array<string | { inlineData: { data: string; mimeType: string } }>
+): Promise<GenerateContentResult> {
+  const models = await getAvailableModels(apiKey);
+
+  if (models.length === 0) {
+    throw new Error('No compatible Gemini models found for image generateContent.');
+  }
+
+  const failures: string[] = [];
+
+  for (const modelName of models) {
+    console.log(`[analyze-food] Trying model: ${modelName}`);
+
+    try {
+      const model = genAI.getGenerativeModel({ model: modelName });
+      const result = await model.generateContent(parts);
+      console.log(`[analyze-food] Success with model: ${modelName}`);
+      return result;
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`[analyze-food] Model failed (${modelName}): ${message}`);
+
+      if (isRetryableModelError(error)) {
+        failures.push(`${modelName}: ${message}`);
+        console.log(`[analyze-food] Skipping ${modelName} (retryable) → next model`);
+        continue;
+      }
+
+      // Unexpected non-retryable error still try remaining models so we exhaust the list
+      failures.push(`${modelName}: ${message}`);
+      console.log(`[analyze-food] Skipping ${modelName} (non-retryable but continuing fallback)`);
+    }
+  }
+
+  throw new Error(
+    `All compatible Gemini models failed (${failures.length}/${models.length}). Last errors: ${failures.slice(-3).join(' | ')}`
+  );
+}
 
 export async function POST(req: Request) {
   if (!process.env.GEMINI_API_KEY) {
@@ -17,11 +245,6 @@ export async function POST(req: Request) {
     if (!image) {
       return NextResponse.json({ error: 'Image data is required' }, { status: 400 });
     }
-
-    // Initialize Gemini
-    // const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    // // Use standard alias for best availability (avoids experimental quota limits)
-    // const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 
     // Clean base64 string
     const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
@@ -45,70 +268,18 @@ export async function POST(req: Request) {
         ${additional_prompt ? `User provided additional context: "${additional_prompt}". Take this into account when identifying the food or ingredients.` : ''}
         `;
 
-    // Initialize Gemini
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const apiKey = getApiKey();
+    const genAI = new GoogleGenerativeAI(apiKey);
 
-    // Dynamic fallback models
-    const MODELS = [
-      'gemini-2.5-flash',
-      'gemini-2.0-flash',
-      'gemini-2.0-flash-lite',
-      'gemma-3-27b',
-      'gemma-3-12b',
-      'gemma-3-4b',
-      'gemma-3-1b',
-    ];
-
-    let result;
-
-    for (const modelName of MODELS) {
-      try {
-        console.log(`Trying model: ${modelName}`);
-
-        const model = genAI.getGenerativeModel({
-          model: modelName,
-        });
-
-        result = await model.generateContent([
-          prompt,
-          {
-            inlineData: {
-              data: base64Data,
-              mimeType: 'image/jpeg',
-            },
-          },
-        ]);
-
-        console.log(`Success with: ${modelName}`);
-
-        break;
-      } catch (error: any) {
-        console.error(`Failed on ${modelName}:`, error.message);
-
-        const isQuotaError =
-          error?.status === 429 ||
-          error?.message?.includes('429') ||
-          error?.message?.includes('quota') ||
-          error?.message?.includes('rate limit');
-
-        if (!isQuotaError) {
-          throw error;
-        }
-      }
-    }
-
-    if (!result) {
-      throw new Error('All Gemini models are currently unavailable.');
-    }
-    // const result = await model.generateContent([
-    //   prompt,
-    //   {
-    //     inlineData: {
-    //       data: base64Data,
-    //       mimeType: 'image/jpeg', // Assuming JPEG for simplicity, or we could detect/pass it.
-    //     },
-    //   },
-    // ]);
+    const result = await generateWithFallback(genAI, apiKey, [
+      prompt,
+      {
+        inlineData: {
+          data: base64Data,
+          mimeType: 'image/jpeg',
+        },
+      },
+    ]);
 
     const responseText = result.response.text();
 
@@ -133,21 +304,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ data: analysis });
   } catch (error: any) {
     console.error('Food Analysis Error (Gemini):', error);
-
-    // Debug: List available models if possible
-    try {
-      if (process.env.GEMINI_API_KEY) {
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        // Note: listModels might not be directly exposed on the instance in all SDK versions easily without correct type,
-        // but checking connection is useful.
-        // Using a clearer error message for the user.
-        console.log(
-          "If you are seeing 404, please ensure 'Generative Language API' is ENABLED in your Google Cloud Console."
-        );
-      }
-    } catch (e) {
-      /* ignore */
-    }
 
     return NextResponse.json({ error: error.message || 'Failed to analyze food' }, { status: 500 });
   }

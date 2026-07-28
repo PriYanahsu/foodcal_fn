@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import {
@@ -11,6 +11,7 @@ import {
   CheckCircleIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
+import { SuccessToast } from '@/components/ui/SuccessToast';
 
 interface Stats {
   gender: string;
@@ -25,6 +26,27 @@ interface Goals {
   target_weight: number | '';
   target_date: string;
 }
+
+const ACTIVITY_LEVELS = [
+  'Sedentary',
+  'Lightly Active',
+  'Moderately Active',
+  'Very Active',
+] as const;
+
+const EMPTY_STATS: Stats = {
+  gender: '',
+  age: '',
+  height: '',
+  weight: '',
+  activity_level: '',
+};
+
+const EMPTY_GOALS: Goals = {
+  objective: '',
+  target_weight: '',
+  target_date: '',
+};
 
 export default function FitnessSetupWizard({
   userId,
@@ -41,23 +63,114 @@ export default function FitnessSetupWizard({
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [prefillLoading, setPrefillLoading] = useState(true);
   const [aiResult, setAiResult] = useState<any>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    detail?: string;
+    actionLabel?: string;
+    actionHref?: string;
+  } | null>(null);
+  const clearToast = useCallback(() => setToast(null), []);
 
-  const [stats, setStats] = useState<Stats>({
-    gender: 'Male',
-    age: 25,
-    height: 175,
-    weight: 70,
-    activity_level: 'Moderately Active',
-  });
+  const [stats, setStats] = useState<Stats>(EMPTY_STATS);
+  const [goals, setGoals] = useState<Goals>(EMPTY_GOALS);
 
-  const [goals, setGoals] = useState<Goals>({
-    objective: 'Lose Weight',
-    target_weight: 65,
-    target_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-  });
+  // Prefill from existing profile so Modify Plan shows real data (not demo 70/65)
+  useEffect(() => {
+    let cancelled = false;
 
-  const nextStep = () => setStep((s) => s + 1);
+    async function loadProfile() {
+      setPrefillLoading(true);
+      const { data } = await supabase
+        .from('profiles')
+        .select(
+          'gender, age, height, weight, activity_level, goal, target_weight, target_date'
+        )
+        .eq('id', userId)
+        .single();
+
+      if (cancelled) return;
+
+      if (data) {
+        const weight = data.weight ?? '';
+        const targetWeight = data.target_weight ?? '';
+        let objective = data.goal || '';
+        if (weight !== '' && targetWeight !== '') {
+          if (weight > targetWeight) objective = 'Lose Weight';
+          else if (weight < targetWeight) objective = 'Gain Muscle';
+          else objective = 'Maintain Weight';
+        }
+        setStats({
+          gender: data.gender || '',
+          age: data.age ?? '',
+          height: data.height ?? '',
+          weight,
+          activity_level: data.activity_level || '',
+        });
+        setGoals({
+          objective,
+          target_weight: targetWeight,
+          target_date: data.target_date || '',
+        });
+      }
+      setPrefillLoading(false);
+    }
+
+    if (userId) loadProfile();
+    else setPrefillLoading(false);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  const canProceedStep1 =
+    !!stats.gender &&
+    stats.age !== '' &&
+    stats.height !== '' &&
+    stats.weight !== '' &&
+    !!stats.activity_level;
+
+  const canProceedStep2 =
+    !!goals.objective && goals.target_weight !== '' && !!goals.target_date;
+
+  /** Derive goal from current vs target weight; lock other options */
+  const derivedObjective = ((): string | null => {
+    if (stats.weight === '' || goals.target_weight === '') return null;
+    if (stats.weight > goals.target_weight) return 'Lose Weight';
+    if (stats.weight < goals.target_weight) return 'Gain Muscle';
+    return 'Maintain Weight';
+  })();
+
+  const isObjectiveAllowed = (o: string) => !derivedObjective || o === derivedObjective;
+
+  const setTargetWeight = (value: number | '') => {
+    const next = {
+      ...goals,
+      target_weight: value,
+    };
+    if (stats.weight !== '' && value !== '') {
+      if (stats.weight > value) next.objective = 'Lose Weight';
+      else if (stats.weight < value) next.objective = 'Gain Muscle';
+      else next.objective = 'Maintain Weight';
+    }
+    setGoals(next);
+  };
+
+  const nextStep = () => {
+    // Sync objective when entering goals step / moving forward with weights set
+    if (step === 1 && stats.weight !== '' && goals.target_weight !== '') {
+      const obj =
+        stats.weight > goals.target_weight
+          ? 'Lose Weight'
+          : stats.weight < goals.target_weight
+            ? 'Gain Muscle'
+            : 'Maintain Weight';
+      if (goals.objective !== obj) setGoals((g) => ({ ...g, objective: obj }));
+    }
+    setStep((s) => s + 1);
+  };
   const prevStep = () => setStep((s) => s - 1);
 
   const handleConsultAI = async () => {
@@ -107,12 +220,21 @@ export default function FitnessSetupWizard({
       .eq('id', userId);
 
     if (!error) {
-      onComplete();
-      router.refresh();
+      setToast({
+        message: 'Plan saved to Fitness Hub!',
+        detail:
+          'Your calorie, protein, carbs & fat targets are live. Check Fitness Hub & dashboard to track them.',
+        actionLabel: 'Open Fitness Hub',
+        actionHref: '/fitness',
+      });
+      window.setTimeout(() => {
+        onComplete();
+        router.refresh();
+      }, 2400);
     } else {
       alert('Failed to save your plan. Please try again.');
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const inputClass =
@@ -157,74 +279,102 @@ export default function FitnessSetupWizard({
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-              <div className="col-span-2">
-                <label className={labelClass}>Gender</label>
-                <div className="flex gap-2">
-                  {['Male', 'Female', 'Other'].map((g) => (
-                    <button
-                      key={g}
-                      type="button"
-                      onClick={() => setStats({ ...stats, gender: g })}
-                      className={`flex-1 py-2 sm:py-2.5 rounded-xl border-2 text-sm transition-all ${
-                        stats.gender === g
-                          ? 'border-[var(--primary)] bg-[var(--primary)]/10 text-white'
-                          : 'border-white/10 text-[var(--text-muted)] hover:border-white/30'
-                      }`}
-                    >
-                      {g}
-                    </button>
-                  ))}
+            {prefillLoading ? (
+              <div className="h-28 rounded-xl bg-white/5 animate-pulse" />
+            ) : (
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+                <div className="col-span-2">
+                  <label className={labelClass}>Gender</label>
+                  <div className="flex gap-2">
+                    {['Male', 'Female', 'Other'].map((g) => (
+                      <button
+                        key={g}
+                        type="button"
+                        onClick={() => setStats({ ...stats, gender: g })}
+                        className={`flex-1 py-2 sm:py-2.5 rounded-xl border-2 text-sm transition-all ${
+                          stats.gender === g
+                            ? 'border-[var(--primary)] bg-[var(--primary)]/10 text-white'
+                            : 'border-white/10 text-[var(--text-muted)] hover:border-white/30'
+                        }`}
+                      >
+                        {g}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className={labelClass}>Age</label>
+                  <input
+                    type="number"
+                    value={stats.age}
+                    placeholder="Your age"
+                    onChange={(e) =>
+                      setStats({
+                        ...stats,
+                        age: e.target.value === '' ? '' : parseInt(e.target.value),
+                      })
+                    }
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Height (cm)</label>
+                  <input
+                    type="number"
+                    value={stats.height}
+                    placeholder="e.g. 175"
+                    onChange={(e) =>
+                      setStats({
+                        ...stats,
+                        height: e.target.value === '' ? '' : parseInt(e.target.value),
+                      })
+                    }
+                    className={inputClass}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className={labelClass}>Weight (kg)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={stats.weight}
+                    placeholder="Your current weight"
+                    onChange={(e) =>
+                      setStats({
+                        ...stats,
+                        weight: e.target.value === '' ? '' : parseFloat(e.target.value),
+                      })
+                    }
+                    className={inputClass}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className={labelClass}>Activity Level</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {ACTIVITY_LEVELS.map((level) => (
+                      <button
+                        key={level}
+                        type="button"
+                        onClick={() => setStats({ ...stats, activity_level: level })}
+                        className={`py-2 px-2 text-[11px] sm:text-xs rounded-xl border-2 transition-all text-left ${
+                          stats.activity_level === level
+                            ? 'border-[var(--primary)] bg-[var(--primary)]/10 text-white'
+                            : 'border-white/10 text-[var(--text-muted)] hover:border-white/30'
+                        }`}
+                      >
+                        {level}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
-              <div>
-                <label className={labelClass}>Age</label>
-                <input
-                  type="number"
-                  value={stats.age}
-                  onChange={(e) =>
-                    setStats({
-                      ...stats,
-                      age: e.target.value === '' ? '' : parseInt(e.target.value),
-                    })
-                  }
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Height (cm)</label>
-                <input
-                  type="number"
-                  value={stats.height}
-                  onChange={(e) =>
-                    setStats({
-                      ...stats,
-                      height: e.target.value === '' ? '' : parseInt(e.target.value),
-                    })
-                  }
-                  className={inputClass}
-                />
-              </div>
-              <div className="col-span-2">
-                <label className={labelClass}>Weight (kg)</label>
-                <input
-                  type="number"
-                  value={stats.weight}
-                  onChange={(e) =>
-                    setStats({
-                      ...stats,
-                      weight: e.target.value === '' ? '' : parseFloat(e.target.value),
-                    })
-                  }
-                  className={inputClass}
-                />
-              </div>
-            </div>
+            )}
 
             <button
               type="button"
               onClick={nextStep}
-              className="btn-primary w-full flex items-center justify-center gap-2 text-sm sm:text-base py-2.5"
+              disabled={prefillLoading || !canProceedStep1}
+              className="btn-primary w-full flex items-center justify-center gap-2 text-sm sm:text-base py-2.5 disabled:opacity-40"
             >
               Next <ArrowRightIcon className="w-4 h-4" />
             </button>
@@ -247,33 +397,54 @@ export default function FitnessSetupWizard({
               <div>
                 <label className={labelClass}>Objective</label>
                 <div className="grid grid-cols-3 gap-2">
-                  {['Lose Weight', 'Maintain Weight', 'Gain Muscle'].map((o) => (
-                    <button
-                      key={o}
-                      type="button"
-                      onClick={() => setGoals({ ...goals, objective: o })}
-                      className={`py-2 sm:py-2.5 px-1 text-[11px] sm:text-xs rounded-xl border-2 transition-all leading-tight ${
-                        goals.objective === o
-                          ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-white'
-                          : 'border-white/10 text-[var(--text-muted)] hover:border-white/30'
-                      }`}
-                    >
-                      {o}
-                    </button>
-                  ))}
+                  {['Lose Weight', 'Maintain Weight', 'Gain Muscle'].map((o) => {
+                    const allowed = isObjectiveAllowed(o);
+                    const selected = goals.objective === o;
+                    return (
+                      <button
+                        key={o}
+                        type="button"
+                        disabled={!allowed}
+                        onClick={() => {
+                          if (!allowed) return;
+                          setGoals({ ...goals, objective: o });
+                        }}
+                        title={
+                          !allowed && derivedObjective
+                            ? `Locked — based on your weight vs target, goal is ${derivedObjective}`
+                            : undefined
+                        }
+                        className={`py-2 sm:py-2.5 px-1 text-[11px] sm:text-xs rounded-xl border-2 transition-all leading-tight ${
+                          selected
+                            ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-white'
+                            : allowed
+                              ? 'border-white/10 text-[var(--text-muted)] hover:border-white/30'
+                              : 'border-white/5 text-white/20 cursor-not-allowed opacity-40'
+                        }`}
+                      >
+                        {o}
+                      </button>
+                    );
+                  })}
                 </div>
+                {derivedObjective && (
+                  <p className="text-[10px] text-[var(--text-muted)] mt-1.5">
+                    Auto-set from weight ({stats.weight} kg) → target ({goals.target_weight} kg)
+                  </p>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
                   <label className={labelClass}>Target Weight (kg)</label>
                   <input
                     type="number"
+                    step="0.1"
                     value={goals.target_weight}
+                    placeholder="Your goal weight"
                     onChange={(e) =>
-                      setGoals({
-                        ...goals,
-                        target_weight: e.target.value === '' ? '' : parseFloat(e.target.value),
-                      })
+                      setTargetWeight(
+                        e.target.value === '' ? '' : parseFloat(e.target.value)
+                      )
                     }
                     className={`${inputClass} focus:border-[var(--accent)]`}
                   />
@@ -298,7 +469,8 @@ export default function FitnessSetupWizard({
               <button
                 type="button"
                 onClick={nextStep}
-                className="btn-primary flex-[2] flex items-center justify-center gap-2 py-2.5 text-sm"
+                disabled={!canProceedStep2}
+                className="btn-primary flex-[2] flex items-center justify-center gap-2 py-2.5 text-sm disabled:opacity-40"
               >
                 Next <ArrowRightIcon className="w-4 h-4" />
               </button>
@@ -472,12 +644,32 @@ export default function FitnessSetupWizard({
   );
 
   if (isInline) {
-    return WizardContent;
+    return (
+      <>
+        {WizardContent}
+        <SuccessToast
+          message={toast?.message ?? null}
+          detail={toast?.detail}
+          actionLabel={toast?.actionLabel}
+          actionHref={toast?.actionHref}
+          onClose={clearToast}
+          durationMs={2800}
+        />
+      </>
+    );
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
       {WizardContent}
+      <SuccessToast
+        message={toast?.message ?? null}
+        detail={toast?.detail}
+        actionLabel={toast?.actionLabel}
+        actionHref={toast?.actionHref}
+        onClose={clearToast}
+        durationMs={2800}
+      />
     </div>
   );
 }
