@@ -314,11 +314,40 @@ export default function FitnessSetupWizard({
                 <SparklesIcon className="w-8 h-8 sm:w-10 sm:h-10 text-[var(--primary)] animate-pulse" />
               </div>
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2.5">
               <h2 className="text-lg sm:text-xl font-bold leading-tight">Consulting Expert AI Coach</h2>
               <p className="text-[var(--text-muted)] text-xs max-w-sm mx-auto">
-                Analyzing your data for a healthy, high-performance plan.
+                Analyzing your stats & goals to build a plan that fits your body.
               </p>
+              <div className="text-left max-w-sm mx-auto rounded-xl border border-white/10 bg-white/[0.03] p-3 space-y-2">
+                <p className="text-[11px] font-semibold text-white">What you&apos;ll get on your dashboard:</p>
+                <ul className="space-y-1.5 text-[11px] text-[var(--text-muted)] leading-relaxed">
+                  <li className="flex gap-2">
+                    <span className="text-[var(--primary)] shrink-0">•</span>
+                    <span>
+                      <span className="text-white font-medium">Daily calorie target</span> — how much energy to eat for your goal
+                    </span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-[var(--primary)] shrink-0">•</span>
+                    <span>
+                      <span className="text-white font-medium">Protein, carbs &amp; fats</span> — macro targets to hit each day
+                    </span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-[var(--primary)] shrink-0">•</span>
+                    <span>
+                      <span className="text-white font-medium">Coach advice</span> — short tips tailored to your plan
+                    </span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-[var(--primary)] shrink-0">•</span>
+                    <span>
+                      Log meals afterward and track progress against these targets in real time
+                    </span>
+                  </li>
+                </ul>
+              </div>
             </div>
             <div className="flex flex-col gap-2">
               <button
