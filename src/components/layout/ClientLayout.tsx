@@ -25,7 +25,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
         className={`flex-1 transition-all duration-300 w-full relative ${!isAuthPage ? 'md:ml-64' : ''}`}
       >
         {!isAuthPage && (
-          <div className="md:hidden sticky top-0 z-[60] flex items-center justify-between px-4 py-2.5 bg-[var(--background)]/80 backdrop-blur-xl border-b border-white/5">
+          <div className="md:hidden sticky top-0 z-[80] flex items-center justify-between px-4 py-2.5 bg-[var(--background)] border-b border-white/5">
             <div className="flex items-center gap-2.5">
               <button
                 onClick={() => setIsSidebarOpen(true)}
@@ -63,7 +63,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
         )}
 
         {!isAuthPage && (
-          <div className="hidden md:flex absolute top-4 right-4 z-50 items-center gap-3">
+          <div className="hidden md:flex absolute top-4 right-4 z-[80] items-center gap-3">
             <NotificationBell />
             <NotificationToast />
           </div>

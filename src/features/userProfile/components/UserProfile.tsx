@@ -19,6 +19,7 @@ import {
   FireIcon,
 } from '@heroicons/react/24/outline';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
+import FitnessSetupWizard from '@/features/fitnessProfile/components/setup/FitnessSetupWizard';
 
 export const dynamic = 'force-dynamic';
 
@@ -167,6 +168,8 @@ export default function UserProfile() {
     target_date: null,
   });
   const [showReminder, setShowReminder] = useState(false);
+  const [showConsult, setShowConsult] = useState(false);
+  const [offerConsult, setOfferConsult] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(
     null
   );
@@ -293,7 +296,11 @@ export default function UserProfile() {
       setProfile(updatedProfile);
       setSavedProfile(updatedProfile);
       setIsEditing(false);
-      setFeedback({ type: 'success', message: 'Profile saved successfully.' });
+      setOfferConsult(true);
+      setFeedback({
+        type: 'success',
+        message: 'Profile saved. Run AI Consult to refresh your calorie plan.',
+      });
 
       const newCompletion = calculateProfileCompletion(updatedProfile);
       if (newCompletion === 100) setShowReminder(false);
@@ -647,13 +654,25 @@ export default function UserProfile() {
                   Fitness Goals
                 </h3>
                 {!isEditing && (
-                  <button
-                    type="button"
-                    onClick={startEditing}
-                    className="text-sm text-[var(--primary)] hover:underline"
-                  >
-                    Edit
-                  </button>
+                  <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <button
+                      type="button"
+                      onClick={startEditing}
+                      className="text-sm text-[var(--primary)] hover:underline"
+                    >
+                      Edit
+                    </button>
+                    {user && (
+                      <button
+                        type="button"
+                        onClick={() => setShowConsult(true)}
+                        className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold px-3 py-1.5 rounded-lg bg-[var(--primary)] text-black shadow-[0_0_14px_rgba(0,255,136,0.3)] hover:opacity-90 active:scale-[0.98] transition-all"
+                      >
+                        <SparklesIcon className="w-3.5 h-3.5" />
+                        Consult
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -730,6 +749,26 @@ export default function UserProfile() {
                   </Button>
                 </div>
               )}
+
+              {offerConsult && !isEditing && user && (
+                <div className="mt-5 p-3.5 rounded-xl border border-[var(--primary)]/25 bg-[var(--primary)]/8 flex flex-col sm:flex-row sm:items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-white">Goals saved</p>
+                    <p className="text-xs text-[var(--text-muted)] mt-0.5">
+                      Run AI Consult here — no need to open Fitness Hub.
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => setShowConsult(true)}
+                    className="w-full sm:w-auto shrink-0 shadow-[0_0_16px_rgba(0,255,136,0.3)]"
+                  >
+                    <span className="inline-flex items-center gap-2">
+                      <SparklesIcon className="w-4 h-4" />
+                      Consult AI Plan
+                    </span>
+                  </Button>
+                </div>
+              )}
             </Card>
 
             <Card className="p-5 bg-gradient-to-br from-[var(--primary)]/10 via-[var(--card-bg)] to-transparent border border-[var(--primary)]/20 shadow-xl">
@@ -740,17 +779,29 @@ export default function UserProfile() {
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold">Need AI calorie targets?</h3>
                   <p className="text-[var(--text-muted)] text-sm mt-0.5">
-                    After updating your stats here, open Fitness Hub to regenerate your AI plan.
+                    Consult from profile to regenerate macros & coach advice without leaving this page.
                   </p>
                 </div>
-                <Link href="/fitness" className="w-full sm:w-auto shrink-0">
-                  <Button variant="outline" className="w-full sm:w-auto">
+                <div className="flex w-full sm:w-auto gap-2 shrink-0">
+                  <Button
+                    onClick={() => user && setShowConsult(true)}
+                    disabled={!user}
+                    className="flex-1 sm:flex-none shadow-[0_0_14px_rgba(0,255,136,0.28)]"
+                  >
                     <span className="inline-flex items-center gap-2">
-                      Fitness Hub
-                      <ArrowRightIcon className="w-4 h-4" />
+                      Consult
+                      <SparklesIcon className="w-4 h-4" />
                     </span>
                   </Button>
-                </Link>
+                  <Link href="/fitness" className="flex-1 sm:flex-none">
+                    <Button variant="outline" className="w-full">
+                      <span className="inline-flex items-center gap-2">
+                        Fitness Hub
+                        <ArrowRightIcon className="w-4 h-4" />
+                      </span>
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </Card>
           </div>
@@ -804,8 +855,7 @@ export default function UserProfile() {
             <Card className="p-6 bg-gradient-to-br from-[var(--input-bg)] to-[var(--card-bg)] border border-[var(--card-border)] shadow-xl">
               <h4 className="font-bold text-lg mb-2 text-purple-400">Pro Tip</h4>
               <p className="text-sm text-[var(--text-muted)]">
-                Update your weight weekly here — then refresh your AI plan in Fitness Hub if your
-                goal changed.
+                Update weight or goals here, then hit <span className="text-[var(--primary)] font-semibold">Consult</span> to refresh AI macros without leaving Profile.
               </p>
             </Card>
           </div>
@@ -828,6 +878,18 @@ export default function UserProfile() {
             </Button>
           </div>
         </div>
+      )}
+
+      {showConsult && user && (
+        <FitnessSetupWizard
+          userId={user.id}
+          onCancel={() => setShowConsult(false)}
+          onComplete={() => {
+            setShowConsult(false);
+            setOfferConsult(false);
+            fetchProfile();
+          }}
+        />
       )}
     </div>
   );

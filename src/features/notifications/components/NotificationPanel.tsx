@@ -40,7 +40,7 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, on
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[60] bg-black/40 md:bg-transparent md:pointer-events-none"
+              className="fixed z-[55] left-0 right-0 bottom-0 top-14 md:top-0 md:left-64 bg-[#07122a]/75 backdrop-blur-md"
               onClick={onClose}
             />
 
@@ -60,8 +60,8 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, on
               "
             >
               {/* Inner shell keeps radius clipped cleanly during scale anim */}
-              <div className="h-full max-h-[min(80vh,560px)] flex flex-col overflow-hidden rounded-2xl border border-white/15 bg-[var(--card-bg)]/95 backdrop-blur-xl shadow-2xl">
-                <div className="shrink-0 px-4 py-3.5 border-b border-white/10 bg-white/[0.04]">
+              <div className="h-full max-h-[min(80vh,560px)] flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-[var(--background)] shadow-2xl">
+                <div className="shrink-0 px-4 py-3.5 border-b border-white/10 bg-[var(--card-bg)]">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <h3 className="font-semibold text-base leading-tight">Notifications</h3>
@@ -127,7 +127,7 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, on
                   )}
                 </div>
 
-                <div className="flex-1 overflow-y-auto overscroll-contain p-3 space-y-2 custom-scrollbar min-h-[120px]">
+                <div className="flex-1 overflow-y-auto overscroll-contain p-3 space-y-2 custom-scrollbar min-h-[120px] bg-[var(--background)]">
                   <AnimatePresence initial={false} mode="popLayout">
                     {unread.length > 0 ? (
                       unread.map((notif) => (
@@ -147,7 +147,7 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, on
                         exit={{ opacity: 0 }}
                         className="py-12 px-4 text-center"
                       >
-                        <div className="mx-auto w-12 h-12 rounded-xl bg-white/5 ring-1 ring-white/10 flex items-center justify-center mb-3">
+                        <div className="mx-auto w-12 h-12 rounded-xl bg-[var(--card-bg)] ring-1 ring-white/10 flex items-center justify-center mb-3">
                           <BellIcon className="w-5 h-5 text-gray-500" />
                         </div>
                         <h4 className="font-medium text-sm text-gray-300">No new notifications</h4>
@@ -159,13 +159,13 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, on
                   </AnimatePresence>
                 </div>
 
-                <div className="shrink-0 p-3 border-t border-white/10 bg-black/25 flex flex-col gap-2">
+                <div className="shrink-0 p-3 border-t border-white/10 bg-[var(--card-bg)] flex flex-col gap-2">
                   {permission === 'granted' && hasPushSubscription && (
                     <button
                       type="button"
                       onClick={() => sendTestPush()}
                       disabled={isSubscribing}
-                      className="text-xs bg-white/8 hover:bg-white/12 text-white font-semibold py-2 px-3 rounded-xl border border-white/10 transition-colors flex items-center justify-center gap-2"
+                      className="text-xs bg-[var(--background)] hover:bg-white/10 text-white font-semibold py-2 px-3 rounded-xl border border-white/10 transition-colors flex items-center justify-center gap-2"
                     >
                       <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
                       Send Test Push

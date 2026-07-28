@@ -89,8 +89,8 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
           ${compact ? 'p-3 sm:p-3.5' : 'p-3.5 sm:p-4'}
           ${
             notification.isRead
-              ? 'bg-white/[0.03] border-white/5'
-              : 'bg-white/[0.07] border-white/15 active:bg-white/10'
+              ? 'bg-[var(--card-bg)] border-white/10 opacity-80'
+              : 'bg-[var(--card-bg)] border-white/15 active:border-[var(--primary)]/30'
           }
         `}
       >
