@@ -5,6 +5,12 @@ import webpush from 'npm:web-push@3.6.7';
 /** Service-role client — avoid ReturnType<typeof createClient> (wrong overload / generics). */
 type EdgeSupabase = SupabaseClient<any, 'public', any>;
 
+type PushSubscriptionRow = {
+  id: string;
+  endpoint: string;
+  subscription: { endpoint?: string; [key: string]: unknown } | null;
+};
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers':
@@ -60,10 +66,12 @@ async function deliverPushNotification(
   });
 
   if (canSendDirect) {
-    const { data: subscriptions, error } = await supabase
+    const { data, error } = await supabase
       .from('push_subscriptions')
       .select('id, endpoint, subscription')
       .eq('user_id', userId);
+
+    const subscriptions = data as PushSubscriptionRow[] | null;
 
     if (error) {
       console.error(`Push subscription fetch failed for ${userId}:`, error);
