@@ -15,9 +15,87 @@ import {
   CalendarIcon,
   UserCircleIcon,
   ChevronRightIcon,
+  ChevronDownIcon,
   XMarkIcon,
+  BoltIcon,
+  HeartIcon,
 } from '@heroicons/react/24/outline';
-import Link from 'next/link';
+
+function calcBmi(weight: number | null, height: number | null): string {
+  if (!weight || !height) return '--';
+  return (weight / Math.pow(height / 100, 2)).toFixed(1);
+}
+
+function daysUntilTarget(date: string | null): number | null {
+  if (!date) return null;
+  return Math.ceil((new Date(date).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+}
+
+function CollapsibleSection({
+  title,
+  subtitle,
+  icon: Icon,
+  defaultOpen = false,
+  children,
+  className = '',
+  headerClassName = '',
+}: {
+  title: string;
+  subtitle?: string;
+  icon: React.ComponentType<{ className?: string }>;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+  className?: string;
+  headerClassName?: string;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <section
+      className={`bg-[var(--card-bg)]/80 backdrop-blur-xl border border-[var(--card-border)] rounded-2xl lg:rounded-3xl shadow-lg overflow-hidden ${className}`}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={`lg:hidden w-full flex items-center justify-between gap-3 p-4 text-left ${headerClassName}`}
+        aria-expanded={open}
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="p-2 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 shrink-0">
+            <Icon className="w-5 h-5 text-[var(--primary)]" />
+          </div>
+          <div className="min-w-0">
+            <h3 className="font-bold text-white text-sm truncate">{title}</h3>
+            {subtitle && (
+              <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider truncate">
+                {subtitle}
+              </p>
+            )}
+          </div>
+        </div>
+        <ChevronDownIcon
+          className={`w-5 h-5 text-[var(--text-muted)] shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+
+      <div className="hidden lg:flex items-center gap-3 p-5 lg:p-6 pb-0">
+        <div className="p-2 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20">
+          <Icon className="w-5 h-5 text-[var(--primary)]" />
+        </div>
+        <div>
+          <h3 className="font-bold text-white">{title}</h3>
+          {subtitle && (
+            <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider">
+              {subtitle}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className={`${open ? 'block' : 'hidden'} lg:block p-4 lg:p-6 lg:pt-4`}>{children}</div>
+    </section>
+  );
+}
 
 interface ProfileData {
   full_name: string | null;
@@ -61,6 +139,12 @@ export default function FitnessHub() {
 
   const completionPercentage = calculateProfileCompletion(profile);
   const [showReminder, setShowReminder] = useState(false);
+  const bmi = calcBmi(profile?.weight ?? null, profile?.height ?? null);
+  const daysLeft = daysUntilTarget(profile?.target_date ?? null);
+  const weightDelta =
+    profile?.weight && profile?.target_weight
+      ? (profile.weight - profile.target_weight).toFixed(1)
+      : null;
 
   useEffect(() => {
     fetchProfile();
@@ -75,28 +159,28 @@ export default function FitnessHub() {
   }
 
   return (
-    <div className="page-container max-w-7xl space-y-12 pb-20">
+    <div className="page-container max-w-7xl space-y-3 sm:space-y-4 lg:space-y-4 pb-24 lg:pb-6">
       {showReminder && (
         <div className="animate-slide-up">
-          <div className="bg-gradient-to-r from-orange-500/20 to-transparent border border-orange-500/30 p-4 rounded-2xl flex items-center justify-between backdrop-blur-md">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-orange-500/20 text-orange-400">
-                <FireIcon className="w-5 h-5" />
+          <div className="bg-gradient-to-r from-orange-500/20 to-transparent border border-orange-500/30 p-3 rounded-xl flex items-center justify-between backdrop-blur-md">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="p-1.5 rounded-lg bg-orange-500/20 text-orange-400 shrink-0">
+                <FireIcon className="w-4 h-4" />
               </div>
-              <div>
-                <p className="font-bold text-white text-sm">
+              <div className="min-w-0">
+                <p className="font-bold text-white text-xs">
                   Profile Incomplete ({completionPercentage}%)
                 </p>
-                <p className="text-[var(--text-muted)] text-xs">
-                  For maximum AI accuracy, please ensure all profile details are set.
+                <p className="text-[var(--text-muted)] text-[10px] truncate">
+                  Complete your profile for maximum AI accuracy.
                 </p>
               </div>
             </div>
             <button
               onClick={() => setShowReminder(false)}
-              className="text-white/40 hover:text-white transition-colors"
+              className="text-white/40 hover:text-white transition-colors shrink-0"
             >
-              <XMarkIcon className="w-5 h-5" />
+              <XMarkIcon className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -135,70 +219,193 @@ export default function FitnessHub() {
         </section>
       ) : (
         <>
-          {/* Compact Hero Header */}
-          <header className="relative py-8 md:py-10 px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-[var(--primary)]/10 via-transparent to-transparent border border-[var(--card-border)] shadow-xl">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
-              <TrophyIcon className="w-40 h-40 text-[var(--primary)]" />
-            </div>
-
-            <div className="relative z-10 space-y-3">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] text-[10px] font-bold uppercase tracking-widest">
-                <SparklesIcon className="w-3 h-3" />
-                Elite AI Coaching Active
-              </div>
-              <h1 className="text-3xl md:text-5xl font-black tracking-tight">
-                Fitness{' '}
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] font-outline-2">
-                  Hub
-                </span>
-              </h1>
-              <p className="text-lg text-[var(--text-muted)] max-w-xl leading-relaxed font-medium">
-                {profile?.goal
-                  ? `Optimizing for ${profile.goal.toLowerCase()} with AI precision.`
-                  : 'Build your expert coaching profile to begin.'}
-              </p>
-
-              {!profile?.goal && (
-                <button
-                  onClick={() => setShowWizard(true)}
-                  className="mt-4 btn-primary px-6 py-3 text-base shadow-[0_0_20px_#00ff8822]"
-                >
-                  Start AI Consultation
-                </button>
-              )}
-            </div>
-          </header>
-
-          {/* Main Layout Grid */}
-          <div className="space-y-10">
-            {/* 1. Expert Coaching (Sleek Strategy Card) */}
-            <aside className="relative overflow-hidden bg-gradient-to-br from-[var(--primary)]/5 via-[var(--card-bg)] to-transparent border border-[var(--primary)]/20 rounded-3xl p-6 md:p-8 shadow-lg group">
-              <div className="absolute top-0 right-0 p-6 opacity-[0.02] pointer-events-none group-hover:scale-110 transition-transform duration-700">
-                <SparklesIcon className="w-32 h-32 text-[var(--primary)]" />
+          {/* Top Row: Fitness Hub + Expert Strategy — 50/50 on desktop */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4 lg:items-stretch">
+            {/* Fitness Hub — detailed */}
+            <header className="relative py-5 px-5 lg:py-5 lg:px-6 rounded-2xl lg:rounded-3xl overflow-hidden bg-gradient-to-br from-[var(--primary)]/10 via-transparent to-transparent border border-[var(--card-border)] shadow-xl flex flex-col h-full">
+              <div className="absolute top-0 right-0 p-4 opacity-[0.03] pointer-events-none">
+                <TrophyIcon className="w-28 h-28 text-[var(--primary)]" />
               </div>
 
-              <div className="relative z-10 flex flex-col md:flex-row gap-6 items-center">
-                <div className="flex-1 space-y-4">
-                  <div className="flex items-center gap-3 text-[var(--primary)]">
-                    <div className="p-2 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 shadow-[0_0_10px_rgba(0,255,136,0.1)]">
-                      <SparklesIcon className="w-6 h-6" />
+              <div className="relative z-10 flex flex-col h-full gap-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-1.5 min-w-0">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] text-[9px] font-bold uppercase tracking-widest">
+                      <SparklesIcon className="w-3 h-3" />
+                      Elite AI Coaching
+                    </div>
+                    <h1 className="text-2xl lg:text-3xl font-black tracking-tight leading-tight">
+                      Fitness{' '}
+                      <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
+                        Hub
+                      </span>
+                    </h1>
+                    <p className="text-sm text-[var(--text-muted)] leading-snug font-medium">
+                      {profile?.goal
+                        ? `Optimizing for ${profile.goal.toLowerCase()} with AI precision.`
+                        : 'Build your expert coaching profile to begin.'}
+                    </p>
+                  </div>
+                  <div className="shrink-0 text-center">
+                    <div className="relative w-12 h-12 lg:w-14 lg:h-14">
+                      <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                        <circle cx="18" cy="18" r="15.5" fill="none" stroke="white" strokeOpacity="0.08" strokeWidth="3" />
+                        <circle
+                          cx="18"
+                          cy="18"
+                          r="15.5"
+                          fill="none"
+                          stroke="var(--primary)"
+                          strokeWidth="3"
+                          strokeDasharray={`${completionPercentage} 100`}
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      <span className="absolute inset-0 flex items-center justify-center text-[10px] lg:text-xs font-black text-white">
+                        {completionPercentage}%
+                      </span>
+                    </div>
+                    <p className="text-[9px] text-[var(--text-muted)] font-bold uppercase mt-0.5">Profile</p>
+                  </div>
+                </div>
+
+                {/* Quick metrics grid */}
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { label: 'Weight', value: profile?.weight ? `${profile.weight} kg` : '--' },
+                    { label: 'Target', value: profile?.target_weight ? `${profile.target_weight} kg` : '--' },
+                    { label: 'BMI', value: bmi },
+                    { label: 'Height', value: profile?.height ? `${profile.height} cm` : '--' },
+                    { label: 'Activity', value: profile?.activity_level?.replace('_', ' ') || '--' },
+                    {
+                      label: 'Age / Sex',
+                      value:
+                        profile?.age || profile?.gender
+                          ? `${profile?.age ?? '--'} · ${profile?.gender ?? '--'}`
+                          : '--',
+                    },
+                  ].map((item) => (
+                    <div
+                      key={item.label}
+                      className="bg-black/20 rounded-lg px-2 py-1.5 border border-white/5"
+                    >
+                      <p className="text-[8px] lg:text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-wider truncate">
+                        {item.label}
+                      </p>
+                      <p className="text-[11px] lg:text-xs font-bold text-white truncate capitalize">
+                        {item.value}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Macro targets row */}
+                <div className="grid grid-cols-4 gap-1.5">
+                  {[
+                    { label: 'Cal', value: profile?.daily_calorie_target, unit: 'kcal', color: 'var(--primary)' },
+                    { label: 'Protein', value: profile?.daily_protein_target, unit: 'g', color: '#2196f3' },
+                    { label: 'Carbs', value: profile?.daily_carbs_target, unit: 'g', color: '#ff9800' },
+                    { label: 'Fats', value: profile?.daily_fats_target, unit: 'g', color: '#e91e63' },
+                  ].map((m) => (
+                    <div
+                      key={m.label}
+                      className="rounded-lg px-2 py-1.5 border border-white/5 bg-white/[0.03] text-center"
+                    >
+                      <p className="text-[8px] text-[var(--text-muted)] font-bold uppercase">{m.label}</p>
+                      <p className="text-xs lg:text-sm font-black text-white tabular-nums">
+                        {m.value ?? '--'}
+                        <span className="text-[8px] font-medium text-[var(--text-muted)] ml-0.5">{m.unit}</span>
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Goal progress strip */}
+                <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 border-t border-white/5">
+                  {weightDelta && (
+                    <span className="text-[10px] text-[var(--text-muted)]">
+                      <span className="font-bold text-white">{weightDelta} kg</span> to goal
+                    </span>
+                  )}
+                  {daysLeft !== null && (
+                    <span className="text-[10px] text-[var(--text-muted)] flex items-center gap-1">
+                      <CalendarIcon className="w-3 h-3" />
+                      <span className="font-bold text-blue-400">{daysLeft > 0 ? daysLeft : 0} days</span> left
+                    </span>
+                  )}
+                  {profile?.target_date && (
+                    <span className="text-[10px] text-[var(--text-muted)]">
+                      Target:{' '}
+                      <span className="font-bold text-white">
+                        {new Date(profile.target_date).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </span>
+                    </span>
+                  )}
+                  {!profile?.goal && (
+                    <button
+                      onClick={() => setShowWizard(true)}
+                      className="ml-auto btn-primary px-4 py-1.5 text-xs shadow-[0_0_15px_#00ff8822]"
+                    >
+                      Start Consultation
+                    </button>
+                  )}
+                </div>
+              </div>
+            </header>
+
+            {/* Expert Strategy — 50% right column */}
+            <aside className="relative overflow-hidden bg-gradient-to-br from-[var(--primary)]/5 via-[var(--card-bg)] to-transparent border border-[var(--primary)]/20 rounded-2xl lg:rounded-3xl p-4 lg:p-5 shadow-lg group flex flex-col h-full">
+              <div className="absolute top-0 right-0 p-4 opacity-[0.02] pointer-events-none">
+                <SparklesIcon className="w-24 h-24 text-[var(--primary)]" />
+              </div>
+
+              <div className="relative z-10 flex flex-col h-full gap-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-1.5 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20">
+                      <SparklesIcon className="w-5 h-5 text-[var(--primary)]" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-black uppercase tracking-tight">
+                      <h3 className="text-base lg:text-lg font-black uppercase tracking-tight">
                         Expert Strategy
                       </h3>
-                      <p className="text-[10px] text-[var(--text-muted)] font-bold tracking-[0.2em]">
+                      <p className="text-[9px] text-[var(--text-muted)] font-bold tracking-[0.15em]">
                         PRO TIPS • ACTIVE PLAN
                       </p>
                     </div>
                   </div>
+                  {profile?.goal && (
+                    <button
+                      onClick={() => setShowWizard(true)}
+                      className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-xs font-bold shrink-0"
+                    >
+                      Modify Plan
+                      <ChevronRightIcon className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
 
-                  <div className="bg-black/20 rounded-2xl p-6 border border-white/5">
-                    <p className="text-white text-lg leading-snug font-medium italic opacity-90">
-                      "
-                      {profile?.ai_coach_advice ||
-                        'Log more data to unlock expert coaching strategies.'}
-                      "
+                <div className="flex-1 bg-black/20 rounded-xl p-4 lg:p-5 border border-white/5 flex flex-col justify-center min-h-[100px] lg:min-h-0">
+                  <p className="text-white text-sm lg:text-base leading-relaxed font-medium italic opacity-90 line-clamp-4 lg:line-clamp-6">
+                    &ldquo;{profile?.ai_coach_advice || 'Log more data to unlock expert coaching strategies.'}&rdquo;
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="rounded-lg px-3 py-2 bg-white/[0.03] border border-white/5">
+                    <p className="text-[8px] text-[var(--text-muted)] font-bold uppercase">Focus</p>
+                    <p className="text-xs font-bold text-white capitalize truncate">
+                      {profile?.goal?.toLowerCase() || 'Not set'}
+                    </p>
+                  </div>
+                  <div className="rounded-lg px-3 py-2 bg-white/[0.03] border border-white/5">
+                    <p className="text-[8px] text-[var(--text-muted)] font-bold uppercase">Coach Status</p>
+                    <p className="text-xs font-bold text-[var(--primary)]">
+                      {profile?.ai_coach_advice ? 'Active' : 'Awaiting data'}
                     </p>
                   </div>
                 </div>
@@ -206,138 +413,135 @@ export default function FitnessHub() {
                 {profile?.goal && (
                   <button
                     onClick={() => setShowWizard(true)}
-                    className="w-full md:w-auto flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all group/btn"
+                    className="lg:hidden w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm font-bold"
                   >
-                    <span className="font-bold text-sm tracking-tight whitespace-nowrap">
-                      Modify Plan
-                    </span>
-                    <ChevronRightIcon className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                    Modify Plan
+                    <ChevronRightIcon className="w-4 h-4" />
                   </button>
                 )}
               </div>
             </aside>
+          </div>
 
-            {/* 2. Dashboard Content */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-              {/* Stats & Progression Column */}
-              <div className="lg:col-span-3 space-y-8">
-                {/* Compact Stat Cards Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <StatCard
-                    label="Daily Calories"
-                    value={profile?.daily_calorie_target || '--'}
-                    unit="kcal"
-                    icon="🔥"
-                    color="var(--primary)"
+          {/* Stats row — compact */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 lg:gap-3">
+            <StatCard label="Daily Calories" value={profile?.daily_calorie_target || '--'} unit="kcal" icon="🔥" color="var(--primary)" delay={0} />
+            <StatCard label="Protein Goal" value={profile?.daily_protein_target || '--'} unit="g" icon="🥩" color="#2196f3" delay={0.05} />
+            <StatCard label="Carbs Goal" value={profile?.daily_carbs_target || '--'} unit="g" icon="🍞" color="#ff9800" delay={0.1} />
+            <StatCard label="Fats Goal" value={profile?.daily_fats_target || '--'} unit="g" icon="🥑" color="#e91e63" delay={0.15} />
+            <StatCard
+              label="Target Weight"
+              value={profile?.target_weight || '--'}
+              unit="kg"
+              icon="🎯"
+              color="#9c27b0"
+              delay={0.2}
+            />
+          </div>
+
+          {/* Bottom grid — progression + sidebar */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 lg:gap-4">
+            <div className="lg:col-span-3">
+              <CollapsibleSection
+                title="Progression Tracking"
+                subtitle="Weight logs & trends"
+                icon={ScaleIcon}
+                defaultOpen={true}
+                className="shadow-xl"
+              >
+                {user && (
+                  <WeightProgressWidget
+                    userId={user.id}
+                    targetWeight={profile?.target_weight || null}
+                    onLogSuccess={fetchProfile}
+                    compact
                   />
-                  <StatCard
-                    label="Protein Goal"
-                    value={profile?.daily_protein_target || '--'}
-                    unit="g"
-                    icon="🥩"
-                    color="#2196f3"
-                  />
-                  <StatCard
-                    label="Target Weight"
-                    value={profile?.target_weight || '--'}
-                    unit="kg"
-                    icon="🎯"
-                    color="#ff9800"
-                  />
-                </div>
+                )}
+              </CollapsibleSection>
+            </div>
 
-                {/* Weight Section */}
-                <section className="bg-[var(--card-bg)]/80 backdrop-blur-xl border border-[var(--card-border)] rounded-3xl p-8 shadow-xl relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 p-8 opacity-[0.02] pointer-events-none group-hover:rotate-12 transition-transform duration-1000">
-                    <ScaleIcon className="w-48 h-48 text-[var(--primary)]" />
-                  </div>
-
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-8">
-                      <h2 className="text-2xl font-bold flex items-center gap-3">
-                        <ScaleIcon className="w-8 h-8 text-[var(--primary)]" />
-                        Progression Tracking
-                      </h2>
-                    </div>
-
-                    {user && (
-                      <WeightProgressWidget
-                        userId={user.id}
-                        targetWeight={profile?.target_weight || null}
-                        onLogSuccess={fetchProfile}
-                      />
-                    )}
-                  </div>
-                </section>
-              </div>
-
-              {/* Info Side Column */}
-              <div className="space-y-8">
-                {/* Physical Profile Summary */}
-                <div className="bg-[var(--card-bg)]/80 backdrop-blur-xl border border-[var(--card-border)] rounded-3xl p-8 space-y-6 shadow-lg">
-                  <h3 className="text-xl font-bold flex items-center gap-2">
-                    <UserCircleIcon className="w-6 h-6 text-[var(--primary)]" />
-                    Physical Data
-                  </h3>
-                  <ul className="space-y-3">
-                    {[
-                      {
-                        label: 'Current Weight',
-                        value: `${profile?.weight || '--'} kg`,
-                        icon: ScaleIcon,
-                      },
-                      {
-                        label: 'Target Weight',
-                        value: `${profile?.target_weight || '--'} kg`,
-                        icon: TrophyIcon,
-                      },
-                      { label: 'Height', value: `${profile?.height || '--'} cm`, icon: ScaleIcon },
-                      { label: 'Objective', value: profile?.goal || 'Not Set', icon: SparklesIcon },
-                    ].map((item, i) => (
-                      <li
-                        key={i}
-                        className="flex justify-between items-center py-2.5 border-b border-white/5 last:border-0 group/stat"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="p-1.5 rounded-lg bg-white/5 text-[var(--text-muted)] group-hover/stat:text-[var(--primary)] transition-colors">
-                            <item.icon className="w-3.5 h-3.5" />
-                          </div>
-                          <span className="text-[var(--text-muted)] text-sm font-medium">
-                            {item.label}
-                          </span>
+            <div className="space-y-3 lg:space-y-4">
+              <CollapsibleSection
+                title="Physical Data"
+                subtitle="Body metrics"
+                icon={UserCircleIcon}
+                defaultOpen={false}
+              >
+                <ul className="space-y-2">
+                  {[
+                    { label: 'Current Weight', value: `${profile?.weight || '--'} kg`, icon: ScaleIcon },
+                    { label: 'Target Weight', value: `${profile?.target_weight || '--'} kg`, icon: TrophyIcon },
+                    { label: 'Height', value: `${profile?.height || '--'} cm`, icon: BoltIcon },
+                    { label: 'BMI', value: bmi, icon: HeartIcon },
+                    { label: 'Objective', value: profile?.goal || 'Not Set', icon: SparklesIcon },
+                    {
+                      label: 'Activity',
+                      value: profile?.activity_level?.replace('_', ' ') || 'Not Set',
+                      icon: FireIcon,
+                    },
+                  ].map((item, i) => (
+                    <li
+                      key={i}
+                      className="flex justify-between items-center py-2 border-b border-white/5 last:border-0 group/stat"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="p-1 rounded-lg bg-white/5 text-[var(--text-muted)] group-hover/stat:text-[var(--primary)] transition-colors">
+                          <item.icon className="w-3.5 h-3.5" />
                         </div>
-                        <span className="font-bold text-white text-sm group-hover/stat:text-[var(--primary)] transition-colors">
-                          {item.value}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                        <span className="text-[var(--text-muted)] text-xs font-medium">{item.label}</span>
+                      </div>
+                      <span className="font-bold text-white text-xs capitalize group-hover/stat:text-[var(--primary)] transition-colors">
+                        {item.value}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </CollapsibleSection>
 
-                {/* Target Date Box */}
-                <div className="bg-gradient-to-br from-blue-500/10 to-transparent border border-blue-500/20 rounded-3xl p-6 shadow-md group">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2 rounded-xl bg-blue-500/20 text-blue-400">
-                      <CalendarIcon className="w-5 h-5" />
-                    </div>
-                    <span className="text-sm font-bold uppercase tracking-widest text-blue-400">
-                      Roadmap
-                    </span>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-xs text-[var(--text-muted)]">Goal Completion Date</p>
-                    <p className="text-2xl font-black text-white group-hover:text-blue-400 transition-colors tabular-nums">
+              <CollapsibleSection
+                title="Roadmap"
+                subtitle="Goal timeline"
+                icon={CalendarIcon}
+                defaultOpen={false}
+                className="bg-gradient-to-br from-blue-500/10 to-transparent border-blue-500/20"
+              >
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-wider">
+                      Goal Completion
+                    </p>
+                    <p className="text-xl font-black text-white tabular-nums">
                       {profile?.target_date
                         ? new Date(profile.target_date).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })
                         : 'Setting...'}
                     </p>
                   </div>
+                  {daysLeft !== null && (
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                      <CalendarIcon className="w-4 h-4 text-blue-400 shrink-0" />
+                      <div>
+                        <p className="text-[10px] text-[var(--text-muted)]">Days remaining</p>
+                        <p className="text-lg font-black text-blue-400 tabular-nums">
+                          {daysLeft > 0 ? daysLeft : 0}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {weightDelta && (
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20">
+                      <TrophyIcon className="w-4 h-4 text-[var(--primary)] shrink-0" />
+                      <div>
+                        <p className="text-[10px] text-[var(--text-muted)]">Weight to lose/gain</p>
+                        <p className="text-lg font-black text-[var(--primary)] tabular-nums">{weightDelta} kg</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
+              </CollapsibleSection>
             </div>
           </div>
         </>

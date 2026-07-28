@@ -75,6 +75,15 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, on
                     )}
                   </div>
                 )}
+                {permission === 'granted' && !hasPushSubscription && (
+                  <button
+                    onClick={requestPermission}
+                    disabled={isSubscribing}
+                    className="text-xs bg-[var(--primary)] text-black px-2 py-1 rounded hover:opacity-90 transition-opacity disabled:opacity-50 font-bold"
+                  >
+                    {isSubscribing ? 'Fixing...' : 'Fix Push'}
+                  </button>
+                )}
                 {permission === 'granted' && hasPushSubscription && (
                   <span className="text-xs text-green-400 flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>

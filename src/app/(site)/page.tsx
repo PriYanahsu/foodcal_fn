@@ -116,7 +116,7 @@ export default function Dashboard() {
       initial="hidden"
       animate="show"
       variants={containerVariants}
-      className="page-container max-w-7xl space-y-6 sm:space-y-8 lg:space-y-10 min-h-screen relative"
+      className="page-container max-w-7xl space-y-4 sm:space-y-6 lg:space-y-8 min-h-screen relative"
     >
       {/* Background Decor */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
@@ -261,7 +261,7 @@ export default function Dashboard() {
       </motion.section>
 
       {/* Stats Grid */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
         <StatCard
           label="Calories"
           value={Math.round(stats.calories)}

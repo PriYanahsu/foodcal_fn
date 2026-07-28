@@ -100,25 +100,33 @@ self.addEventListener('push', function (event) {
     console.warn('[Service Worker] Push event contains no data. Using default message.');
   }
 
+  // Prefer absolute URLs for icons (push clients often reject relative paths)
+  const origin = self.location.origin;
+  const resolveUrl = (value) => {
+    if (!value) return origin + '/foodCalLogo.jpeg';
+    if (value.startsWith('http://') || value.startsWith('https://')) return value;
+    return origin + (value.startsWith('/') ? value : '/' + value);
+  };
+
   // Mobile-optimized notification options
   const options = {
     body: notificationData.body,
-    icon: notificationData.icon,
-    badge: notificationData.badge,
-    vibrate: [200, 100, 200, 100, 200], // More pronounced vibration for mobile notifications
-    tag: notificationData.title + '-' + Date.now(), // Unique tag if we want multiple to show up
+    icon: resolveUrl(notificationData.icon),
+    badge: resolveUrl(notificationData.badge),
+    vibrate: [200, 100, 200, 100, 200],
+    tag: notificationData.title + '-' + Date.now(),
     requireInteraction: false,
     silent: false,
     renotify: true,
     data: {
-      url: notificationData.data?.url || self.location.origin + '/',
+      url: notificationData.data?.url || origin + '/',
       timestamp: Date.now(),
     },
     actions: [
       {
         action: 'open',
         title: 'View App',
-        icon: '/foodCalLogo.jpeg',
+        icon: origin + '/foodCalLogo.jpeg',
       },
     ],
   };

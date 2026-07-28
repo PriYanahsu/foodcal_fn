@@ -11,8 +11,16 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [permission, setPermission] = useState<NotificationPermission>('default');
+  const [hasPushSubscription, setHasPushSubscription] = useState(false);
+  const [isSubscribing, setIsSubscribing] = useState(false);
+  const hasPushSubscriptionRef = React.useRef(false);
   const { user } = useAuth();
   const supabase = createClient();
+
+  useEffect(() => {
+    hasPushSubscriptionRef.current = hasPushSubscription;
+  }, [hasPushSubscription]);
 
   // 1. Load from Supabase DB on mount
   useEffect(() => {
@@ -80,12 +88,16 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
           setNotifications((prev) => [newNotif, ...prev]);
 
-          // Trigger System Notification
-          if (
+          // In-app only when tab is open. OS push when closed is handled by Web Push → SW.
+          // Avoid duplicate OS banners when a push subscription already exists.
+          const shouldShowLocalOsNotif =
             typeof window !== 'undefined' &&
             'Notification' in window &&
-            Notification.permission === 'granted'
-          ) {
+            Notification.permission === 'granted' &&
+            !document.hidden &&
+            !hasPushSubscriptionRef.current;
+
+          if (shouldShowLocalOsNotif) {
             const showOptions = {
               body: newNotif.message,
               icon: '/foodCalLogo.jpeg',
@@ -131,19 +143,117 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
   }, [user, supabase]);
 
-  const [permission, setPermission] = useState<NotificationPermission>('default');
-  const [hasPushSubscription, setHasPushSubscription] = useState(false);
-  const [isSubscribing, setIsSubscribing] = useState(false);
-
-  // Check for existing push subscription
+  // Check for existing push subscription; auto-repair if permission granted but sub missing
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator && user) {
-      navigator.serviceWorker.ready.then(async (registration) => {
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator) || !user) return;
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const registration = await navigator.serviceWorker.ready;
         const subscription = await registration.pushManager.getSubscription();
-        setHasPushSubscription(!!subscription);
-      });
-    }
+        if (cancelled) return;
+
+        if (subscription) {
+          setHasPushSubscription(true);
+          // Re-sync to DB in case previous save failed
+          try {
+            await fetch('/api/push-subscribe', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                endpoint: subscription.endpoint,
+                keys: {
+                  p256dh: arrayBufferToBase64(subscription.getKey('p256dh')!),
+                  auth: arrayBufferToBase64(subscription.getKey('auth')!),
+                },
+              }),
+            });
+          } catch (e) {
+            console.warn('Failed to re-sync push subscription:', e);
+          }
+          return;
+        }
+
+        setHasPushSubscription(false);
+
+        // Permission already granted but no PushManager subscription → create one
+        if (Notification.permission === 'granted') {
+          console.log('Permission granted but no push subscription — auto-subscribing...');
+          await ensurePushSubscription(registration);
+        }
+      } catch (e) {
+        console.warn('Push subscription check failed:', e);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
+
+  async function ensurePushSubscription(registration: ServiceWorkerRegistration) {
+    const vapidPublicKey = getVapidPublicKey();
+    if (!vapidPublicKey) return false;
+
+    try {
+      setIsSubscribing(true);
+      const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+      let pushSubscription = await registration.pushManager.getSubscription();
+      if (!pushSubscription) {
+        pushSubscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: applicationServerKey as BufferSource,
+        });
+      }
+
+      const response = await fetch('/api/push-subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          endpoint: pushSubscription.endpoint,
+          keys: {
+            p256dh: arrayBufferToBase64(pushSubscription.getKey('p256dh')!),
+            auth: arrayBufferToBase64(pushSubscription.getKey('auth')!),
+          },
+        }),
+      });
+
+      if (response.ok) {
+        setHasPushSubscription(true);
+        return true;
+      }
+      console.error('Auto-subscribe save failed:', await response.json().catch(() => ({})));
+      return false;
+    } catch (e) {
+      console.error('Auto-subscribe failed:', e);
+      return false;
+    } finally {
+      setIsSubscribing(false);
+    }
+  }
+
+  // Helper functions
+  function urlBase64ToUint8Array(base64String: string): Uint8Array {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+    const rawData = atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+
+  function arrayBufferToBase64(buffer: ArrayBuffer): string {
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+  }
 
   const requestPermission = useCallback(async () => {
     if (typeof window === 'undefined' || !('Notification' in window)) {
@@ -349,27 +459,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setPermission(Notification.permission);
     }
   }, []);
-
-  // Helper functions
-  function urlBase64ToUint8Array(base64String: string): Uint8Array {
-    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-    const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
-    const rawData = atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-  }
-
-  function arrayBufferToBase64(buffer: ArrayBuffer): string {
-    const bytes = new Uint8Array(buffer);
-    let binary = '';
-    for (let i = 0; i < bytes.byteLength; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    return btoa(binary);
-  }
 
   const addNotification = useCallback(
     async (notif: Omit<AppNotification, 'id' | 'timestamp' | 'isRead'>) => {

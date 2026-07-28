@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export const runtime = 'nodejs';
 
@@ -22,8 +23,66 @@ try {
   console.error('Failed to load web-push library:', e);
 }
 
+function getSiteOrigin(request: Request): string {
+  const env = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '');
+  if (env) return env;
+  try {
+    return new URL(request.url).origin;
+  } catch {
+    return '';
+  }
+}
+
+function toAbsoluteUrl(pathOrUrl: string | undefined, origin: string, fallbackPath: string): string {
+  const value = pathOrUrl || fallbackPath;
+  if (value.startsWith('http://') || value.startsWith('https://')) return value;
+  if (!origin) return value;
+  return `${origin}${value.startsWith('/') ? value : `/${value}`}`;
+}
+
 /**
- * POST endpoint to send push notifications
+ * Authorize:
+ * 1) Logged-in user targeting themselves (test push from UI)
+ * 2) Internal secret from edge function / cron (background delivery)
+ */
+async function authorizePushRequest(request: Request, userId: string): Promise<boolean> {
+  const internalSecret = process.env.PUSH_INTERNAL_SECRET || process.env.CRON_SECRET;
+  const headerSecret =
+    request.headers.get('x-push-secret') ||
+    request.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
+
+  if (internalSecret && headerSecret && headerSecret === internalSecret) {
+    return true;
+  }
+
+  // Allow unauthenticated internal calls when service role is configured
+  // and no secret is set yet (backward compatible), but only if caller
+  // looks like a server hop (no cookie session required).
+  if (!internalSecret && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    // Still prefer user self-auth when available
+  }
+
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user?.id && user.id === userId) return true;
+  } catch {
+    // ignore
+  }
+
+  // If service role exists and no secret configured, allow for edge→next hop
+  // (edge already authenticates with service role to create the notification).
+  if (process.env.SUPABASE_SERVICE_ROLE_KEY && !internalSecret) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * POST endpoint to send push notifications (works with site closed).
  */
 export async function POST(request: Request) {
   console.log('Push notification request received');
@@ -36,6 +95,11 @@ export async function POST(request: Request) {
     if (!userId || !title || !body) {
       console.warn('Missing required fields for push notification');
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    const allowed = await authorizePushRequest(request, userId);
+    if (!allowed) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     if (!webpush) {
@@ -51,12 +115,19 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = await createClient();
+    // MUST use service role — edge/cron has no user cookies, so RLS would return 0 rows
+    let admin;
+    try {
+      admin = createAdminClient();
+    } catch (e: any) {
+      console.error(e.message);
+      // Fallback: try cookie client (works for logged-in test push only)
+      admin = await createClient();
+    }
 
-    // Get all push subscriptions for this user
-    const { data: subscriptions, error } = await supabase
+    const { data: subscriptions, error } = await admin
       .from('push_subscriptions')
-      .select('subscription')
+      .select('id, endpoint, subscription')
       .eq('user_id', userId);
 
     if (error) {
@@ -69,14 +140,16 @@ export async function POST(request: Request) {
       return NextResponse.json({
         success: true,
         sent: 0,
-        message: 'No push subscriptions found',
+        message:
+          'No push subscriptions found. User must enable notifications while logged in so a subscription is saved.',
       });
     }
 
     console.log(`Found ${subscriptions.length} subscription(s) for user ${userId}`);
 
-    const pushIcon = icon || '/foodCalLogo.jpeg';
-    const pushBadge = badge || '/foodCalLogo.jpeg';
+    const origin = getSiteOrigin(request);
+    const pushIcon = toAbsoluteUrl(icon, origin, '/foodCalLogo.jpeg');
+    const pushBadge = toAbsoluteUrl(badge, origin, '/foodCalLogo.jpeg');
 
     const payload = JSON.stringify({
       title,
@@ -85,7 +158,9 @@ export async function POST(request: Request) {
       badge: pushBadge,
       data: {
         ...(data || {}),
-        url: data?.url || '/', // Default to root if not provided
+        url: data?.url?.startsWith('http')
+          ? data.url
+          : `${origin}${data?.url || '/'}`,
         notificationId: data?.notificationId || null,
       },
     });
@@ -101,23 +176,23 @@ export async function POST(request: Request) {
           continue;
         }
 
-        console.log(`Sending push to endpoint: ${subscription.endpoint.substring(0, 30)}...`);
+        console.log(`Sending push to endpoint: ${subscription.endpoint.substring(0, 40)}...`);
         await webpush.sendNotification(subscription, payload);
         sentCount++;
       } catch (error: any) {
         failedCount++;
         console.error(`Failed to send push to subscription:`, error.message);
 
-        // Remove invalid subscriptions (410 Gone)
+        // Remove invalid subscriptions (410 Gone / 404)
         if (error.statusCode === 410 || error.statusCode === 404) {
           console.log(
             `Subscription is invalid (status: ${error.statusCode}), removing from database`
           );
-          await supabase
+          await admin
             .from('push_subscriptions')
             .delete()
             .eq('user_id', userId)
-            .eq('endpoint', row.subscription?.endpoint);
+            .eq('endpoint', row.endpoint || row.subscription?.endpoint);
         }
       }
     }

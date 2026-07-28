@@ -1,9 +1,125 @@
 import { createClient } from '@supabase/supabase-js';
+// @ts-expect-error Deno npm import
+import webpush from 'npm:web-push@3.6.7';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type, x-push-secret',
 };
+
+function initWebPush(): boolean {
+  const vapidPublicKey =
+    Deno.env.get('VAPID_PUBLIC_KEY') || Deno.env.get('NEXT_PUBLIC_VAPID_PUBLIC_KEY');
+  const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY');
+  const vapidEmail = Deno.env.get('VAPID_EMAIL') || 'mailto:noreply@foodcal.com';
+
+  if (!vapidPublicKey || !vapidPrivateKey) {
+    console.warn('VAPID keys not set on edge function — will fall back to API_BASE_URL /api/send-push');
+    return false;
+  }
+
+  webpush.setVapidDetails(vapidEmail, vapidPublicKey, vapidPrivateKey);
+  return true;
+}
+
+/**
+ * Deliver browser push even when the website is closed.
+ * Prefer direct web-push from edge (service role can read subscriptions).
+ * Fall back to Next.js /api/send-push if VAPID isn't configured here.
+ */
+async function deliverPushNotification(
+  supabase: ReturnType<typeof createClient>,
+  opts: {
+    userId: string;
+    title: string;
+    body: string;
+    type: string;
+    suggestion: string | null;
+    apiBaseUrl: string | null;
+    siteOrigin: string;
+    canSendDirect: boolean;
+  }
+): Promise<{ sent: number; via: string }> {
+  const { userId, title, body, type, suggestion, apiBaseUrl, siteOrigin, canSendDirect } = opts;
+  const icon = `${siteOrigin}/foodCalLogo.jpeg`;
+  const badge = icon;
+  const payload = JSON.stringify({
+    title,
+    body,
+    icon,
+    badge,
+    data: {
+      type,
+      suggestion,
+      url: `${siteOrigin}/`,
+    },
+  });
+
+  if (canSendDirect) {
+    const { data: subscriptions, error } = await supabase
+      .from('push_subscriptions')
+      .select('id, endpoint, subscription')
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error(`Push subscription fetch failed for ${userId}:`, error);
+    } else if (!subscriptions?.length) {
+      console.log(`No push subscriptions for user ${userId} (user must enable push in the app)`);
+      return { sent: 0, via: 'direct' };
+    } else {
+      let sent = 0;
+      for (const row of subscriptions) {
+        const sub = row.subscription;
+        if (!sub?.endpoint) continue;
+        try {
+          await webpush.sendNotification(sub, payload);
+          sent++;
+        } catch (err: any) {
+          console.error(`Direct push failed for ${userId}:`, err?.message || err);
+          if (err?.statusCode === 410 || err?.statusCode === 404) {
+            await supabase
+              .from('push_subscriptions')
+              .delete()
+              .eq('user_id', userId)
+              .eq('endpoint', row.endpoint || sub.endpoint);
+          }
+        }
+      }
+      return { sent, via: 'direct' };
+    }
+  }
+
+  // Fallback: Next.js route (needs API_BASE_URL + SUPABASE_SERVICE_ROLE_KEY on Vercel)
+  if (!apiBaseUrl) {
+    console.error('Cannot deliver push: no VAPID on edge and API_BASE_URL missing');
+    return { sent: 0, via: 'none' };
+  }
+
+  const pushSecret = Deno.env.get('PUSH_INTERNAL_SECRET') || Deno.env.get('CRON_SECRET') || '';
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (pushSecret) headers['x-push-secret'] = pushSecret;
+
+  const pushResponse = await fetch(`${apiBaseUrl}/api/send-push`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      userId,
+      title,
+      body,
+      icon,
+      badge,
+      data: { type, suggestion, url: '/' },
+    }),
+  });
+
+  const result = await pushResponse.json().catch(() => ({}));
+  if (!pushResponse.ok) {
+    console.error(`Fallback /api/send-push failed for ${userId}:`, result);
+    return { sent: 0, via: 'api' };
+  }
+  return { sent: result.sent || 0, via: 'api' };
+}
 
 // Helper function to get AI coaching advice
 async function getCoachingAdvice(
@@ -286,27 +402,23 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const isTestMode = url.searchParams.get('test') === 'true';
 
-    let apiBaseUrl = Deno.env.get('API_BASE_URL');
+    let apiBaseUrl = Deno.env.get('API_BASE_URL') || Deno.env.get('NEXT_PUBLIC_SITE_URL') || null;
     if (!apiBaseUrl) {
-      // Fallback: try to derive from SUPABASE_URL if it looks like a local or custom setup
-      // but ideally this should be set as a secret
-      const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-      if (supabaseUrl.includes('localhost') || supabaseUrl.includes('127.0.0.1')) {
+      const supabaseUrlEnv = Deno.env.get('SUPABASE_URL') || '';
+      if (supabaseUrlEnv.includes('localhost') || supabaseUrlEnv.includes('127.0.0.1')) {
         apiBaseUrl = 'http://localhost:3000';
-      } else {
-        console.warn(
-          'API_BASE_URL not set. Push notifications will likely fail if derived incorrectly.'
-        );
       }
     }
-
     if (apiBaseUrl) {
+      apiBaseUrl = apiBaseUrl.replace(/\/$/, '');
       console.log(`Using API Base URL: ${apiBaseUrl}`);
-    } else {
-      console.error(
-        'CRITICAL: API_BASE_URL not set and could not be resolved. Web Push will NOT work.'
-      );
     }
+
+    const canSendDirect = initWebPush();
+    const siteOrigin = apiBaseUrl || 'https://food-cal-fe-ewy4.vercel.app';
+    console.log(
+      `Push delivery: direct=${canSendDirect}, fallbackApi=${!!apiBaseUrl}, origin=${siteOrigin}`
+    );
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -537,50 +649,23 @@ Deno.serve(async (req) => {
           console.log(`User ${profile.id}: Notification record created successfully`);
           results.notificationsSent++;
 
-          // Send push notification if API base URL is available
-          if (apiBaseUrl) {
-            try {
-              const pushPayload = {
-                userId: profile.id,
-                title: notification.title,
-                body: notification.message,
-                icon: '/foodCalLogo.jpeg',
-                badge: '/foodCalLogo.jpeg',
-                data: {
-                  type: notification.type,
-                  suggestion: suggestion,
-                },
-              };
-
-              console.log(
-                `Attempting to send push notification to user ${profile.id} via ${apiBaseUrl}/api/send-push`
-              );
-
-              const pushResponse = await fetch(`${apiBaseUrl}/api/send-push`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(pushPayload),
-              });
-
-              // Log push notification result for debugging
-              if (!pushResponse.ok) {
-                const errorData = await pushResponse.json().catch(() => ({}));
-                console.error(
-                  `Failed to send push notification for user ${profile.id}:`,
-                  errorData
-                );
-              } else {
-                const successData = await pushResponse.json().catch(() => ({}));
-                console.log(
-                  `Push notification successfully sent for user ${profile.id}:`,
-                  successData
-                );
-              }
-            } catch (error) {
-              console.error(`Error calling push notification API for user ${profile.id}:`, error);
-            }
+          // Browser push — works when website is closed (SW receives it)
+          try {
+            const pushResult = await deliverPushNotification(supabase, {
+              userId: profile.id,
+              title: notification.title,
+              body: notification.message,
+              type: notification.type,
+              suggestion,
+              apiBaseUrl,
+              siteOrigin,
+              canSendDirect,
+            });
+            console.log(
+              `Push for ${profile.id}: sent=${pushResult.sent} via=${pushResult.via}`
+            );
+          } catch (error) {
+            console.error(`Error delivering push for user ${profile.id}:`, error);
           }
         }
       } catch (e) {
