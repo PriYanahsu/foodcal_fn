@@ -88,20 +88,22 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
           setNotifications((prev) => [newNotif, ...prev]);
 
-          // In-app only when tab is open. OS push when closed is handled by Web Push → SW.
-          // Avoid duplicate OS banners when a push subscription already exists.
+          // Tab visible → show local OS banner immediately (Realtime).
+          // Tab hidden/closed → Web Push from edge/cron handles the device popup.
+          // Use a stable tag so a late push for the same notif replaces instead of duplicating.
           const shouldShowLocalOsNotif =
             typeof window !== 'undefined' &&
             'Notification' in window &&
             Notification.permission === 'granted' &&
-            !document.hidden &&
-            !hasPushSubscriptionRef.current;
+            !document.hidden;
 
           if (shouldShowLocalOsNotif) {
-            const showOptions = {
+            const showOptions: NotificationOptions = {
               body: newNotif.message,
               icon: '/foodCalLogo.jpeg',
               badge: '/foodCalLogo.jpeg',
+              tag: `foodcal-${newNotif.id}`,
+              renotify: true,
             };
 
             if ('serviceWorker' in navigator) {

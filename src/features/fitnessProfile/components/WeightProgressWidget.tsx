@@ -12,16 +12,19 @@ interface WeightLog {
 export default function WeightProgressWidget({
   userId,
   targetWeight,
+  initialWeight = null,
   onLogSuccess,
   compact = false,
 }: {
   userId: string;
   targetWeight: number | null;
+  /** Profile weight fallback when no weight_logs yet */
+  initialWeight?: number | null;
   onLogSuccess?: () => void;
   compact?: boolean;
 }) {
   const supabase = createClient();
-  const [currentWeight, setCurrentWeight] = useState<number | null>(null);
+  const [currentWeight, setCurrentWeight] = useState<number | null>(initialWeight);
   const [loading, setLoading] = useState(true);
   const [isLogging, setIsLogging] = useState(false);
   const [newWeight, setNewWeight] = useState('');
@@ -29,7 +32,7 @@ export default function WeightProgressWidget({
   useEffect(() => {
     async function fetchLatestWeight() {
       setLoading(true);
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('weight_logs')
         .select('weight')
         .eq('user_id', userId)
@@ -38,12 +41,16 @@ export default function WeightProgressWidget({
 
       if (data && data.length > 0) {
         setCurrentWeight(data[0].weight);
+      } else if (initialWeight != null) {
+        setCurrentWeight(initialWeight);
+      } else {
+        setCurrentWeight(null);
       }
       setLoading(false);
     }
 
     if (userId) fetchLatestWeight();
-  }, [userId]);
+  }, [userId, initialWeight]);
 
   const handleLogWeight = async () => {
     const weightValue = parseFloat(newWeight);
@@ -86,7 +93,14 @@ export default function WeightProgressWidget({
           <ScaleIcon className="w-4 h-4" /> Progression Metric
         </h3>
         <button
-          onClick={() => setIsLogging(!isLogging)}
+          onClick={() => {
+            setIsLogging(!isLogging);
+            if (!isLogging) {
+              setNewWeight(currentWeight != null ? String(currentWeight) : '');
+            } else {
+              setNewWeight('');
+            }
+          }}
           className="group/add p-1.5 hover:bg-[var(--primary)]/10 rounded-lg transition-all text-[var(--text-muted)] hover:text-[var(--primary)]"
         >
           <PlusIcon className="w-5 h-5 group-hover/add:rotate-90 transition-transform" />
