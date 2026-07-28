@@ -57,15 +57,16 @@ export const useAuth = () => {
     try {
       const response = await signupApi(credentials);
       if (response.success) {
-        // Token is handled by cookie via supabase client
-        // Force logout to ensure manual login flow
-        await supabase.auth.signOut();
-
-        if (response.error && response.error.includes('email')) {
-          // This is actually an info message, not an error
-          setError(response.error);
+        // Session cookie is set by supabase signUp when email confirm is off
+        if (response.token) {
+          return { success: true, authenticated: true };
         }
-        return { success: true, message: response.error };
+        // Email confirmation required — no session yet
+        return {
+          success: true,
+          authenticated: false,
+          message: response.error || 'Please check your email to confirm your account.',
+        };
       } else {
         setError(response.error || 'Signup failed');
         return { success: false, error: response.error };

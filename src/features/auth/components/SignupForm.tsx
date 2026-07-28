@@ -17,6 +17,8 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
   const [validationError, setValidationError] = useState<string | null>(null);
   const { signup, isLoading, error } = useAuth();
   const [success, setSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -51,8 +53,13 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
     });
 
     if (result.success) {
+      if (result.authenticated) {
+        router.push(ROUTES.HOME);
+        return;
+      }
+      // Email confirmation required — no session yet
+      setSuccessMessage(result.message || 'Please check your email to confirm your account.');
       setSuccess(true);
-      // Wait for 2 seconds then switch to login
       setTimeout(() => {
         onSuccess();
       }, 2000);
@@ -74,7 +81,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
         </div>
         <h3 className="text-xl font-bold text-white mb-2">Account Created!</h3>
         <p className="text-[var(--text-muted)] mb-6">
-          Your account has been successfully created.
+          {successMessage || 'Your account has been successfully created.'}
           <br />
           Redirecting to login...
         </p>
