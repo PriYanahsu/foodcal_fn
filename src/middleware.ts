@@ -47,7 +47,7 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  const protectedRoutes = ['/', '/scan', '/manualAddData', '/history', '/profile'];
+  const protectedRoutes = ['/', '/scan', '/manualAddData', '/history', '/profile', '/settings'];
   const isProtectedRoute = protectedRoutes.some(
     (path) => pathname === path || (path !== '/' && pathname.startsWith(path))
   );

@@ -135,9 +135,37 @@ const Icons = {
       />
     </svg>
   ),
+  Settings: () => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      className="w-6 h-6"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.174.1.347.223.526.356.27.197.617.246.91.117l1.21-.537a1.125 1.125 0 0 1 1.45.54l1.298 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.45.541l-1.21-.536c-.294-.13-.64-.08-.912.118-.18.133-.352.256-.526.355-.332.183-.582.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a7.698 7.698 0 0 1-.526-.355c-.27-.199-.617-.247-.91-.118l-1.21.536a1.125 1.125 0 0 1-1.45-.54l-1.298-2.248a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.003-.827a1.125 1.125 0 0 1-.26-1.43l1.298-2.247a1.125 1.125 0 0 1 1.45-.541l1.21.537c.293.129.64.079.91-.117.18-.133.353-.257.527-.356.332-.183.582-.495.644-.869l.214-1.28Z"
+      />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+    </svg>
+  ),
+  Chevron: ({ open }: { open: boolean }) => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`}
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+    </svg>
+  ),
 };
 
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { BRAND_ASSETS } from '@/lib/brand-config';
 import { isFeatureEnabled, type FeatureKey } from '@/config/features';
@@ -147,6 +175,13 @@ type MenuItem = {
   path: string;
   icon: () => ReactNode;
   feature?: FeatureKey;
+};
+
+type SettingsLink = {
+  name: string;
+  path: string;
+  feature?: FeatureKey;
+  danger?: boolean;
 };
 
 const MENU_ITEMS: MenuItem[] = [
@@ -230,13 +265,120 @@ interface SidebarProps {
   setIsOpen: (open: boolean) => void;
 }
 
+const SETTINGS_LINKS: SettingsLink[] = [
+  { name: 'All settings', path: '/settings' },
+  { name: 'Edit Profile', path: '/profile', feature: 'profile' },
+  { name: 'Notifications', path: '/notifications', feature: 'notifications' },
+  { name: 'Privacy Policy', path: '/privacy' },
+  { name: 'Terms of Service', path: '/terms' },
+  { name: 'Delete Account', path: '/settings?delete=1', danger: true },
+];
+
+function SidebarFooter({
+  isLoggingOut,
+  onLogout,
+  onNavigate,
+}: {
+  isLoggingOut: boolean;
+  onLogout: () => void;
+  onNavigate?: () => void;
+}) {
+  const pathname = usePathname();
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const isSettingsActive = pathname === '/settings' || pathname.startsWith('/settings/');
+
+  const settingsLinks = SETTINGS_LINKS.filter(
+    (item) => !item.feature || isFeatureEnabled(item.feature)
+  );
+
+  return (
+    <div className="pt-6 border-t border-[var(--card-border)] space-y-1">
+      <button
+        type="button"
+        onClick={() => setSettingsOpen((v) => !v)}
+        className={`flex items-center gap-3 px-4 py-3 rounded-xl w-full transition-colors ${
+          isSettingsActive
+            ? 'text-[var(--primary)] bg-[var(--primary)]/10'
+            : 'text-gray-400 hover:text-white hover:bg-white/5'
+        }`}
+      >
+        <Icons.Settings />
+        <span className="flex-1 text-left">Settings</span>
+        <Icons.Chevron open={settingsOpen} />
+      </button>
+
+      <AnimatePresence initial={false}>
+        {settingsOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="ml-4 pl-3 border-l border-[var(--card-border)] space-y-0.5 py-1">
+              {settingsLinks.map((item) => (
+                <Link
+                  key={item.path + item.name}
+                  href={item.path}
+                  onClick={onNavigate}
+                  className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                    item.danger
+                      ? 'text-red-400 hover:bg-red-500/10 hover:text-red-300'
+                      : pathname === item.path
+                        ? 'text-white bg-white/5'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <button
+        type="button"
+        onClick={onLogout}
+        disabled={isLoggingOut}
+        className="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl w-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {isLoggingOut ? (
+          <svg
+            className="animate-spin h-5 w-5 text-red-400"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            />
+          </svg>
+        ) : (
+          <Icons.Logout />
+        )}
+        <span>{isLoggingOut ? 'Logging Out...' : 'Log Out'}</span>
+      </button>
+    </div>
+  );
+}
+
 export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   const pathname = usePathname();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { logout } = useAuth();
-  const router = useRouter();
   const menuItems = visibleMenuItems();
-
 
   const handleLogout = async () => {
     try {
@@ -314,39 +456,11 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                   })}
                 </nav>
 
-                <div className="pt-6 border-t border-[var(--card-border)]">
-                  <button
-                    onClick={handleLogout}
-                    disabled={isLoggingOut}
-                    className="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl w-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isLoggingOut ? (
-                      <svg
-                        className="animate-spin h-5 w-5 text-red-400"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                    ) : (
-                      <Icons.Logout />
-                    )}
-                    <span>{isLoggingOut ? 'Logging Out...' : 'Log Out'}</span>
-                  </button>
-                </div>
+                <SidebarFooter
+                  isLoggingOut={isLoggingOut}
+                  onLogout={handleLogout}
+                  onNavigate={() => setIsOpen(false)}
+                />
               </div>
             </motion.div>
           </>
@@ -397,39 +511,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
             })}
           </nav>
 
-          <div className="pt-6 border-t border-[var(--card-border)]">
-            <button
-              onClick={handleLogout}
-              disabled={isLoggingOut}
-              className="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl w-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoggingOut ? (
-                <svg
-                  className="animate-spin h-5 w-5 text-red-400"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-              ) : (
-                <Icons.Logout />
-              )}
-              <span>{isLoggingOut ? 'Logging Out...' : 'Log Out'}</span>
-            </button>
-          </div>
+          <SidebarFooter isLoggingOut={isLoggingOut} onLogout={handleLogout} />
         </div>
       </div>
     </>
