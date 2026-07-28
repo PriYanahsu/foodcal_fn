@@ -1,5 +1,5 @@
 import { XMarkIcon, ArrowsRightLeftIcon } from '@heroicons/react/24/outline';
-import { RefObject } from 'react';
+import { RefObject, useEffect } from 'react';
 
 interface CameraOverlayProps {
   onCapture: () => void;
@@ -18,22 +18,35 @@ export const CameraOverlay = ({
   canvasRef,
   error,
 }: CameraOverlayProps) => {
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [onClose]);
+
   return (
     <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center animate-fade-in overflow-hidden">
-      {/* Header - Floating on top of camera */}
-      <div className="absolute top-0 left-0 right-0 flex justify-between items-center p-4 md:p-6 z-20">
+      {/* Header */}
+      <div className="absolute top-0 left-0 right-0 flex justify-between items-center p-4 md:p-6 z-30">
         <button
+          type="button"
           onClick={onClose}
-          className="p-3 rounded-2xl bg-black/40 text-white backdrop-blur-xl hover:bg-black/60 transition-all border border-white/10"
+          aria-label="Close camera"
+          className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-black/60 text-white backdrop-blur-xl hover:bg-black/80 transition-all border border-white/15 shadow-lg"
         >
-          <XMarkIcon className="w-6 h-6" />
+          <XMarkIcon className="w-5 h-5 shrink-0" />
+          <span className="text-xs font-black uppercase tracking-widest">Close</span>
         </button>
         <div className="hidden sm:block text-white text-[10px] font-black uppercase tracking-[0.2em] opacity-40 bg-black/40 px-4 py-2 rounded-full backdrop-blur-xl border border-white/5">
-          Scanning Mode Active
+          AI Camera Active
         </div>
         <button
+          type="button"
           onClick={onSwitchCamera}
-          className="p-3 rounded-2xl bg-black/40 text-white backdrop-blur-xl hover:bg-black/60 transition-all border border-white/10"
+          aria-label="Switch camera"
+          className="p-3 rounded-2xl bg-black/60 text-white backdrop-blur-xl hover:bg-black/80 transition-all border border-white/15 shadow-lg"
           title="Switch Camera"
         >
           <ArrowsRightLeftIcon className="w-6 h-6" />
@@ -75,19 +88,40 @@ export const CameraOverlay = ({
         </div>
       </div>
 
-      {/* Bottom Controls - Floating on bottom */}
-      <div className="absolute bottom-8 md:bottom-12 left-0 right-0 flex justify-center items-center z-20">
-        <button
-          onClick={onCapture}
-          className="group relative flex items-center justify-center transition-transform active:scale-90"
-        >
-          {/* Ring */}
-          <div className="absolute w-24 h-24 md:w-28 md:h-28 rounded-full border-[6px] border-white/20 group-hover:border-[var(--primary)]/30 transition-all" />
-          {/* Shutter Button */}
-          <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white group-hover:bg-[var(--primary)] shadow-2xl transition-all flex items-center justify-center">
-            <div className="w-[90%] h-[90%] rounded-full border-2 border-black/5" />
-          </div>
-        </button>
+      {/* Bottom controls */}
+      <div className="absolute bottom-0 left-0 right-0 z-30 px-6 pb-8 md:pb-12 pt-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+        <div className="flex items-center justify-between max-w-lg mx-auto">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-white/10 text-white border border-white/15 backdrop-blur-xl hover:bg-white/15 transition-all min-w-[100px] justify-center"
+          >
+            <XMarkIcon className="w-5 h-5" />
+            <span className="text-xs font-bold uppercase tracking-wider">Cancel</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onCapture}
+            aria-label="Capture photo"
+            className="group relative flex items-center justify-center transition-transform active:scale-90"
+          >
+            <div className="absolute w-24 h-24 md:w-28 md:h-28 rounded-full border-[6px] border-white/25 group-hover:border-[var(--primary)]/40 transition-all" />
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white group-hover:bg-[var(--primary)] shadow-2xl transition-all flex items-center justify-center">
+              <div className="w-[90%] h-[90%] rounded-full border-2 border-black/5" />
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={onSwitchCamera}
+            aria-label="Switch camera"
+            className="flex items-center justify-center p-3 rounded-2xl bg-white/10 text-white border border-white/15 backdrop-blur-xl hover:bg-white/15 transition-all min-w-[100px]"
+            title="Switch Camera"
+          >
+            <ArrowsRightLeftIcon className="w-6 h-6" />
+          </button>
+        </div>
       </div>
 
       <canvas ref={canvasRef} className="hidden" />
