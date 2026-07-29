@@ -68,30 +68,32 @@ export default function AvatarUpload({
           src={avatarUrl}
           alt="Avatar"
           className={`${isEditing ? 'border-4 border-white' : 'border-[var(--card-border)]'} rounded-full object-cover shadow-lg`}
-          style={{ height: size, width: size }}
+          style={{ height: size, width: size, maxWidth: '100%' }}
         />
       ) : (
         <div
           className="rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] flex items-center justify-center text-white font-bold border-4 border-[var(--background)] shadow-lg"
-          style={{ height: size, width: size, fontSize: size * 0.4 }}
+          style={{ height: size, width: size, fontSize: size * 0.4, maxWidth: '100%' }}
         >
           ?
         </div>
       )}
 
-      <div style={{ width: size }} className="absolute bottom-0 left-0 right-0 flex justify-center">
-        {isEditing && (
+      {isEditing && (
+        <div className="absolute bottom-1 right-1">
           <label
             htmlFor="single"
-            className="bg-[var(--card-bg)] p-2 rounded-full cursor-pointer hover:bg-gray-700 transition-colors border border-[var(--card-border)] shadow-md"
+            className="bg-[var(--card-bg)] p-1.5 rounded-full cursor-pointer hover:bg-gray-700 transition-colors border border-[var(--card-border)] shadow-md flex items-center justify-center"
           >
             {uploading ? (
-              <div className="animate-spin h-5 w-5 border-2 border-[var(--primary)] border-t-transparent rounded-full" />
+              <div className="animate-spin h-3.5 w-3.5 border-2 border-[var(--primary)] border-t-transparent rounded-full" />
             ) : (
-              <CameraIcon className="h-5 w-5 text-gray-300" />
+              <CameraIcon className="h-3.5 w-3.5 text-gray-300" />
             )}
           </label>
-        )}
+        </div>
+      )}
+      <div style={{ width: size }} className="absolute bottom-0 left-0 right-0 flex justify-center">
         <input
           style={{
             visibility: 'hidden',

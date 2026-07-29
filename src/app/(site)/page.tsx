@@ -129,7 +129,7 @@ export default function Dashboard() {
                 supabase.from('profiles').update({ avatar_url: url }).eq('id', user?.id).then();
                 setProfile((prev) => (prev ? { ...prev, avatar_url: url } : null));
               }}
-              size={56}
+              size={96}
             />
           </motion.div>
           <div className="text-center sm:text-left min-w-0 w-full sm:w-auto sm:flex-1">

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -333,119 +334,160 @@ export default function UserProfile() {
   return (
     <div className="page-container max-w-5xl pb-28 md:pb-8">
       <div className="px-0 sm:px-2">
-        {showReminder && (
-          <div className="mb-6 animate-slide-up">
-            <div className="bg-gradient-to-r from-[var(--primary)]/20 to-transparent border border-[var(--primary)]/30 p-4 rounded-2xl flex items-center justify-between backdrop-blur-md gap-4">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="p-2 rounded-xl bg-[var(--primary)]/20 text-[var(--primary)] shrink-0">
-                  <SparklesIcon className="w-5 h-5" />
+        <AnimatePresence initial={false}>
+          {showReminder && (
+            <motion.div
+              key="reminder"
+              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+              animate={{ opacity: 1, height: 'auto', marginBottom: 24 }}
+              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="overflow-hidden"
+            >
+              <div className="bg-gradient-to-r from-[var(--primary)]/20 to-transparent border border-[var(--primary)]/30 p-4 rounded-2xl flex items-center justify-between backdrop-blur-md gap-4">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="p-2 rounded-xl bg-[var(--primary)]/20 text-[var(--primary)] shrink-0">
+                    <SparklesIcon className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-white text-sm">
+                      Profile {completionPercentage}% complete
+                    </p>
+                    <p className="text-[var(--text-muted)] text-xs">
+                      Fill in the missing details below for more accurate AI recommendations.
+                    </p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="font-bold text-white text-sm">
-                    Profile {completionPercentage}% complete
-                  </p>
-                  <p className="text-[var(--text-muted)] text-xs">
-                    Fill in the missing details below for more accurate AI recommendations.
-                  </p>
-                </div>
+                {!isEditing && (
+                  <Button size="sm" onClick={startEditing} className="shrink-0 hidden sm:inline-flex">
+                    Complete now
+                  </Button>
+                )}
+                <button
+                  onClick={() => setShowReminder(false)}
+                  className="text-white/40 hover:text-white transition-colors shrink-0"
+                  aria-label="Dismiss reminder"
+                >
+                  <XMarkIcon className="w-5 h-5" />
+                </button>
               </div>
-              {!isEditing && (
-                <Button size="sm" onClick={startEditing} className="shrink-0 hidden sm:inline-flex">
-                  Complete now
+            </motion.div>
+          )}
+
+          {feedback && (
+            <motion.div
+              key="feedback"
+              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+              animate={{ opacity: 1, height: 'auto', marginBottom: 24 }}
+              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              className={`overflow-hidden rounded-xl border text-sm font-medium ${
+                feedback.type === 'success'
+                  ? 'bg-[var(--primary)]/10 border-[var(--primary)]/30 text-[var(--primary)]'
+                  : 'bg-red-500/10 border-red-500/30 text-red-400'
+              }`}
+            >
+              <div className="p-4">{feedback.message}</div>
+            </motion.div>
+          )}
+
+          {isEditing && (
+            <motion.div
+              key="editing-bar"
+              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+              animate={{ opacity: 1, height: 'auto', marginBottom: 24 }}
+              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="overflow-hidden"
+            >
+              <div className="flex items-center justify-between gap-3 p-4 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/25">
+                <div className="flex items-center gap-2 text-sm text-white">
+                  <PencilSquareIcon className="w-5 h-5 text-[var(--primary)] shrink-0" />
+                  <span>Editing — tap Save when you&apos;re done. Cancel discards changes.</span>
+                </div>
+                <button
+                  onClick={cancelEditing}
+                  className="text-sm text-[var(--text-muted)] hover:text-white transition-colors shrink-0"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="relative mb-6 flex flex-col sm:flex-row sm:items-center gap-3">
+          {/* Row 1: Avatar + name */}
+          <div className="flex items-center gap-4 flex-1 min-w-0">
+            <div className="relative z-10 shrink-0">
+              <AvatarUpload
+                uid={user?.id || ''}
+                url={profile.avatar_url ?? null}
+                isEditing
+                onUpload={(url) => {
+                  const newProfile = { ...profile, avatar_url: url };
+                  setProfile(newProfile);
+                  setSavedProfile((prev) => (prev ? { ...prev, avatar_url: url } : newProfile));
+                  supabase.from('profiles').update({ avatar_url: url }).eq('id', user?.id).then();
+                  if (calculateProfileCompletion(newProfile) === 100) setShowReminder(false);
+                  setFeedback({ type: 'success', message: 'Profile photo updated.' });
+                }}
+                size={typeof window !== 'undefined' && window.innerWidth < 640 ? 96 : 150}
+              />
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg sm:text-3xl font-bold text-white truncate leading-tight">
+                {profile.full_name || 'Your Name'}
+              </h1>
+              <p className="text-xs sm:text-base text-[var(--text-muted)] truncate mt-0.5">@{profile.username || 'username'}</p>
+              <p className="text-xs sm:text-base text-[var(--text-muted)] truncate">{profile.email}</p>
+            </div>
+
+            {/* Buttons inline on desktop */}
+            <div className="hidden sm:flex items-center gap-2 shrink-0">
+              {!isEditing ? (
+                <Button onClick={startEditing} className="btn-primary !px-3 !py-2 text-sm">
+                  <span className="inline-flex items-center gap-1.5">
+                    <PencilSquareIcon className="w-3.5 h-3.5" />
+                    Edit
+                  </span>
+                </Button>
+              ) : (
+                <Button onClick={handleUpdate} disabled={saving} isLoading={saving} className="btn-primary !px-3 !py-2 text-sm">
+                  {saving ? '...' : 'Save'}
                 </Button>
               )}
-              <button
-                onClick={() => setShowReminder(false)}
-                className="text-white/40 hover:text-white transition-colors shrink-0"
-                aria-label="Dismiss reminder"
+              <Button
+                variant="outline"
+                onClick={async () => { await logout(); window.location.href = '/login'; }}
+                className="!px-3 !py-2 text-sm text-red-400 border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-red-500/10 whitespace-nowrap"
               >
-                <XMarkIcon className="w-5 h-5" />
-              </button>
+                Sign Out
+              </Button>
             </div>
           </div>
-        )}
 
-        {feedback && (
-          <div
-            className={`mb-6 p-4 rounded-xl border text-sm font-medium ${
-              feedback.type === 'success'
-                ? 'bg-[var(--primary)]/10 border-[var(--primary)]/30 text-[var(--primary)]'
-                : 'bg-red-500/10 border-red-500/30 text-red-400'
-            }`}
-          >
-            {feedback.message}
-          </div>
-        )}
-
-        {isEditing && (
-          <div className="mb-6 flex items-center justify-between gap-3 p-4 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/25">
-            <div className="flex items-center gap-2 text-sm text-white">
-              <PencilSquareIcon className="w-5 h-5 text-[var(--primary)] shrink-0" />
-              <span>Editing — tap Save when you&apos;re done. Cancel discards changes.</span>
-            </div>
-            <button
-              onClick={cancelEditing}
-              className="text-sm text-[var(--text-muted)] hover:text-white transition-colors shrink-0"
-            >
-              Cancel
-            </button>
-          </div>
-        )}
-
-        <div className="relative mb-6 flex items-center gap-4">
-          <div className="relative z-10 shrink-0">
-            <AvatarUpload
-              uid={user?.id || ''}
-              url={profile.avatar_url ?? null}
-              isEditing
-              onUpload={(url) => {
-                const newProfile = { ...profile, avatar_url: url };
-                setProfile(newProfile);
-                setSavedProfile((prev) => (prev ? { ...prev, avatar_url: url } : newProfile));
-                supabase.from('profiles').update({ avatar_url: url }).eq('id', user?.id).then();
-                if (calculateProfileCompletion(newProfile) === 100) setShowReminder(false);
-                setFeedback({ type: 'success', message: 'Profile photo updated.' });
-              }}
-              size={72}
-            />
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <h1 className="text-lg sm:text-xl font-bold text-white truncate leading-tight">
-              {profile.full_name || 'Your Name'}
-            </h1>
-            <p className="text-xs text-[var(--text-muted)] truncate">@{profile.username || 'username'}</p>
-            <p className="text-xs text-[var(--text-muted)] truncate">{profile.email}</p>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
+          {/* Row 2: Buttons on mobile only */}
+          <div className="flex sm:hidden items-center gap-2">
             {!isEditing ? (
-              <Button onClick={startEditing} className="btn-primary !px-3 !py-2 text-sm">
-                <span className="inline-flex items-center gap-1.5">
-                  <PencilSquareIcon className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Edit</span>
+              <Button onClick={startEditing} className="btn-primary flex-1 py-2 text-sm">
+                <span className="inline-flex items-center justify-center gap-1.5">
+                  <PencilSquareIcon className="w-4 h-4" />
+                  Edit Profile
                 </span>
               </Button>
             ) : (
-              <Button
-                onClick={handleUpdate}
-                disabled={saving}
-                isLoading={saving}
-                className="btn-primary !px-3 !py-2 text-sm"
-              >
-                {saving ? '...' : 'Save'}
+              <Button onClick={handleUpdate} disabled={saving} isLoading={saving} className="btn-primary flex-1 py-2 text-sm">
+                {saving ? 'Saving...' : 'Save Changes'}
               </Button>
             )}
             <Button
               variant="outline"
-              onClick={async () => {
-                await logout();
-                window.location.href = '/login';
-              }}
-              className="!px-3 !py-2 text-sm text-red-400 border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-red-500/10"
+              onClick={async () => { await logout(); window.location.href = '/login'; }}
+              className="flex-1 py-2 text-sm text-red-400 border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-red-500/10 whitespace-nowrap"
             >
-              <span className="hidden sm:inline">Sign Out</span>
-              <span className="sm:hidden">Out</span>
+              Sign Out
             </Button>
           </div>
         </div>
