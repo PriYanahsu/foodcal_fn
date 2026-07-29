@@ -7,6 +7,8 @@ import {
   SparklesIcon,
   ChevronRightIcon,
   ChevronLeftIcon,
+  LockClosedIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 import AvatarUpload from '@/features/userProfile/components/AvatarUpload';
 import { ROUTES } from '@/constants/routes';
@@ -41,6 +43,7 @@ export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toLocaleDateString('en-CA'));
   const [mounted, setMounted] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
+  const [showNoPlanModal, setShowNoPlanModal] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -66,11 +69,12 @@ export default function Dashboard() {
   const userName =
     profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
 
+  const hasPlan = !!profile?.goal;
   const goals = {
-    calories: profile?.daily_calorie_target || 2200,
-    protein: profile?.daily_protein_target || 150,
-    carbs: profile?.daily_carbs_target || 250,
-    fats: profile?.daily_fats_target || 70,
+    calories: profile?.daily_calorie_target ?? null,
+    protein: profile?.daily_protein_target ?? null,
+    carbs: profile?.daily_carbs_target ?? null,
+    fats: profile?.daily_fats_target ?? null,
   };
 
   // Date Navigation Handlers
@@ -220,41 +224,52 @@ export default function Dashboard() {
       </motion.section>
 
       {/* Stats Grid */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
+      <section
+        className={`grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 relative ${!hasPlan ? 'cursor-pointer' : ''}`}
+        onClick={!hasPlan ? () => setShowNoPlanModal(true) : undefined}
+      >
+        {!hasPlan && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-black/40 backdrop-blur-[2px] border border-white/5">
+            <div className="flex items-center gap-2 px-4 py-2 bg-[var(--card-bg)] border border-white/10 rounded-xl shadow-lg">
+              <LockClosedIcon className="w-4 h-4 text-[var(--primary)]" />
+              <span className="text-sm font-bold text-white">Set up your AI plan to unlock</span>
+            </div>
+          </div>
+        )}
         <StatCard
           label="Calories"
-          value={Math.round(stats.calories)}
-          unit={`/ ${goals.calories}`}
+          value={hasPlan ? Math.round(stats.calories) : '--'}
+          unit={hasPlan && goals.calories ? `/ ${goals.calories}` : ''}
           icon="🔥"
           color="#ff4757"
-          progress={Math.min((stats.calories / goals.calories) * 100, 100)}
+          progress={hasPlan && goals.calories ? Math.min((stats.calories / goals.calories) * 100, 100) : undefined}
           delay={0.1}
         />
         <StatCard
           label="Protein"
-          value={Math.round(stats.protein)}
-          unit={`/ ${goals.protein}g`}
+          value={hasPlan ? Math.round(stats.protein) : '--'}
+          unit={hasPlan && goals.protein ? `/ ${goals.protein}g` : ''}
           icon="🥩"
           color="#00ff88"
-          progress={Math.min((stats.protein / goals.protein) * 100, 100)}
+          progress={hasPlan && goals.protein ? Math.min((stats.protein / goals.protein) * 100, 100) : undefined}
           delay={0.2}
         />
         <StatCard
           label="Carbs"
-          value={Math.round(stats.carbs)}
-          unit={`/ ${goals.carbs}g`}
+          value={hasPlan ? Math.round(stats.carbs) : '--'}
+          unit={hasPlan && goals.carbs ? `/ ${goals.carbs}g` : ''}
           icon="🍞"
           color="#2f81f7"
-          progress={Math.min((stats.carbs / goals.carbs) * 100, 100)}
+          progress={hasPlan && goals.carbs ? Math.min((stats.carbs / goals.carbs) * 100, 100) : undefined}
           delay={0.3}
         />
         <StatCard
           label="Fats"
-          value={Math.round(stats.fats)}
-          unit={`/ ${goals.fats}g`}
+          value={hasPlan ? Math.round(stats.fats) : '--'}
+          unit={hasPlan && goals.fats ? `/ ${goals.fats}g` : ''}
           icon="🥑"
           color="#bd34fe"
-          progress={Math.min((stats.fats / goals.fats) * 100, 100)}
+          progress={hasPlan && goals.fats ? Math.min((stats.fats / goals.fats) * 100, 100) : undefined}
           delay={0.4}
         />
       </section>
@@ -381,8 +396,8 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <h3 className="font-bold text-lg leading-tight text-white">Fitness Hub</h3>
-                    <p className="text-[10px] font-bold text-[var(--primary)] uppercase tracking-widest">
-                      AI Coach Active
+                    <p className={`text-[10px] font-bold uppercase tracking-widest ${hasPlan ? 'text-[var(--primary)]' : 'text-gray-500'}`}>
+                      {hasPlan ? 'AI Coach Active' : 'No plan yet'}
                     </p>
                   </div>
                 </div>
@@ -457,6 +472,76 @@ export default function Dashboard() {
           }}
         />
       )}
+
+      {/* No Plan Modal */}
+      <AnimatePresence>
+        {showNoPlanModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+            onClick={() => setShowNoPlanModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 20 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              className="bg-[var(--card-bg)] border border-white/10 rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-5 relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setShowNoPlanModal(false)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
+              >
+                <XMarkIcon className="w-5 h-5" />
+              </button>
+
+              <div className="flex flex-col items-center text-center gap-3">
+                <div className="p-4 rounded-2xl bg-[var(--primary)]/10 border border-[var(--primary)]/20">
+                  <LockClosedIcon className="w-8 h-8 text-[var(--primary)]" />
+                </div>
+                <h2 className="text-xl font-black text-white">Unlock Your Nutrition Targets</h2>
+                <p className="text-sm text-gray-400 leading-relaxed">
+                  Your calorie, protein, carbs, and fat targets are locked until you complete a quick{' '}
+                  <span className="text-white font-semibold">AI plan consultation</span>. It takes under 2 minutes.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-4 gap-2 opacity-40 select-none pointer-events-none">
+                {[
+                  { label: 'Cal', icon: '🔥' },
+                  { label: 'Protein', icon: '🥩' },
+                  { label: 'Carbs', icon: '🍞' },
+                  { label: 'Fats', icon: '🥑' },
+                ].map((m) => (
+                  <div key={m.label} className="rounded-xl border border-white/10 bg-white/[0.03] p-2 text-center">
+                    <div className="text-base mb-1">{m.icon}</div>
+                    <p className="text-[9px] text-gray-500 font-bold uppercase">{m.label}</p>
+                    <p className="text-sm font-black text-white/30">--</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <Link href="/fitness" onClick={() => setShowNoPlanModal(false)}>
+                  <button className="w-full btn-primary py-3 text-sm font-bold rounded-xl shadow-[0_0_20px_#00ff8833] hover:scale-[1.02] active:scale-[0.98] transition-transform flex items-center justify-center gap-2">
+                    <SparklesIcon className="w-4 h-4" />
+                    Start AI Plan Consultation
+                  </button>
+                </Link>
+                <button
+                  onClick={() => setShowNoPlanModal(false)}
+                  className="w-full py-2.5 text-sm text-gray-500 hover:text-white transition-colors font-medium"
+                >
+                  Maybe later
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
