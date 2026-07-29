@@ -146,6 +146,13 @@ function parseOptionalNumber(value: string): number | '' {
   return Number.isFinite(n) ? n : '';
 }
 
+function deriveGoal(weight: number | '', targetWeight: number | null | undefined): string | null {
+  if (weight === '' || !targetWeight) return null;
+  if (weight > targetWeight) return 'Lose Weight';
+  if (weight < targetWeight) return 'Gain Muscle';
+  return 'Maintain Weight';
+}
+
 export default function UserProfile() {
   const supabase = createClient();
   const { user, logout } = useAuth();
@@ -325,7 +332,7 @@ export default function UserProfile() {
 
   return (
     <div className="page-container max-w-5xl pb-28 md:pb-8">
-      <div className="px-4 md:px-8">
+      <div className="px-0 sm:px-2">
         {showReminder && (
           <div className="mb-6 animate-slide-up">
             <div className="bg-gradient-to-r from-[var(--primary)]/20 to-transparent border border-[var(--primary)]/30 p-4 rounded-2xl flex items-center justify-between backdrop-blur-md gap-4">
@@ -385,8 +392,8 @@ export default function UserProfile() {
           </div>
         )}
 
-        <div className="relative mb-8 flex flex-col md:flex-row items-center md:items-end gap-6">
-          <div className="relative z-10">
+        <div className="relative mb-6 flex items-center gap-4">
+          <div className="relative z-10 shrink-0">
             <AvatarUpload
               uid={user?.id || ''}
               url={profile.avatar_url ?? null}
@@ -399,27 +406,24 @@ export default function UserProfile() {
                 if (calculateProfileCompletion(newProfile) === 100) setShowReminder(false);
                 setFeedback({ type: 'success', message: 'Profile photo updated.' });
               }}
-              size={120}
+              size={72}
             />
-            <p className="text-center text-xs text-[var(--text-muted)] mt-2">
-              Tap camera to change photo
-            </p>
           </div>
 
-          <div className="flex-1 text-center md:text-left space-y-1">
-            <h1 className="text-2xl md:text-3xl font-bold text-white">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg sm:text-xl font-bold text-white truncate leading-tight">
               {profile.full_name || 'Your Name'}
             </h1>
-            <p className="text-[var(--text-muted)]">@{profile.username || 'username'}</p>
-            <p className="text-sm text-[var(--text-muted)]">{profile.email}</p>
+            <p className="text-xs text-[var(--text-muted)] truncate">@{profile.username || 'username'}</p>
+            <p className="text-xs text-[var(--text-muted)] truncate">{profile.email}</p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <div className="flex items-center gap-2 shrink-0">
             {!isEditing ? (
-              <Button onClick={startEditing} className="btn-primary flex-1 md:flex-none">
-                <span className="inline-flex items-center gap-2">
-                  <PencilSquareIcon className="w-4 h-4" />
-                  Edit Profile
+              <Button onClick={startEditing} className="btn-primary !px-3 !py-2 text-sm">
+                <span className="inline-flex items-center gap-1.5">
+                  <PencilSquareIcon className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Edit</span>
                 </span>
               </Button>
             ) : (
@@ -427,9 +431,9 @@ export default function UserProfile() {
                 onClick={handleUpdate}
                 disabled={saving}
                 isLoading={saving}
-                className="btn-primary flex-1 md:flex-none"
+                className="btn-primary !px-3 !py-2 text-sm"
               >
-                {saving ? 'Saving...' : 'Save Changes'}
+                {saving ? '...' : 'Save'}
               </Button>
             )}
             <Button
@@ -438,9 +442,10 @@ export default function UserProfile() {
                 await logout();
                 window.location.href = '/login';
               }}
-              className="flex-1 md:flex-none text-red-400 border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-red-500/10"
+              className="!px-3 !py-2 text-sm text-red-400 border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-red-500/10"
             >
-              Sign Out
+              <span className="hidden sm:inline">Sign Out</span>
+              <span className="sm:hidden">Out</span>
             </Button>
           </div>
         </div>
@@ -580,9 +585,11 @@ export default function UserProfile() {
                       max={400}
                       step="0.1"
                       value={profile.weight}
-                      onChange={(e) =>
-                        setProfile({ ...profile, weight: parseOptionalNumber(e.target.value) })
-                      }
+                      onChange={(e) => {
+                        const w = parseOptionalNumber(e.target.value);
+                        const derived = deriveGoal(w, profile.target_weight);
+                        setProfile({ ...profile, weight: w, ...(derived ? { goal: derived } : {}) });
+                      }}
                       placeholder="e.g. 70"
                     />
                   </div>
@@ -647,10 +654,10 @@ export default function UserProfile() {
             </Card>
 
             <Card className="p-6 md:p-8 bg-[var(--card-bg)] border border-[var(--card-border)] shadow-xl">
-              <div className="flex items-start justify-between gap-3 mb-6">
-                <h3 className="text-xl font-bold flex items-center gap-2">
-                  <span className="w-1 h-6 bg-[var(--primary)] rounded-full" />
-                  <FireIcon className="w-5 h-5 text-[var(--primary)]" />
+              <div className="flex items-center justify-between gap-3 mb-6">
+                <h3 className="text-xl font-bold flex items-center gap-2 whitespace-nowrap">
+                  <span className="w-1 h-6 bg-[var(--primary)] rounded-full shrink-0" />
+                  <FireIcon className="w-5 h-5 text-[var(--primary)] shrink-0" />
                   Fitness Goals
                 </h3>
                 {!isEditing && (
@@ -679,15 +686,29 @@ export default function UserProfile() {
               {isEditing ? (
                 <div className="space-y-5">
                   <div>
-                    <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
-                      Objective
-                    </label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-[var(--foreground)]">
+                        Objective
+                      </label>
+                      {deriveGoal(profile.weight, profile.target_weight ?? null) && (
+                        <span className="text-[10px] text-[var(--primary)] font-semibold">
+                          Auto-set from weight vs target
+                        </span>
+                      )}
+                    </div>
                     <ChoiceChips
                       options={GOALS}
                       value={profile.goal}
                       onChange={(goal) => setProfile({ ...profile, goal })}
                       accent="accent"
                     />
+                    {deriveGoal(profile.weight, profile.target_weight ?? null) && (
+                      <p className="text-xs text-[var(--text-muted)] mt-1.5">
+                        Current <span className="text-white font-medium">{profile.weight} kg</span> → Target{' '}
+                        <span className="text-white font-medium">{profile.target_weight} kg</span> — goal auto-corrected to{' '}
+                        <span className="text-[var(--primary)] font-semibold">{profile.goal}</span>
+                      </p>
+                    )}
                   </div>
 
                   <div className="grid sm:grid-cols-2 gap-4">
@@ -700,9 +721,12 @@ export default function UserProfile() {
                       value={profile.target_weight ?? ''}
                       onChange={(e) => {
                         const next = parseOptionalNumber(e.target.value);
+                        const tw = next === '' ? null : (next as number);
+                        const derived = deriveGoal(profile.weight, tw);
                         setProfile({
                           ...profile,
-                          target_weight: next === '' ? null : next,
+                          target_weight: tw,
+                          ...(derived ? { goal: derived } : {}),
                         });
                       }}
                       placeholder="e.g. 65"
@@ -794,10 +818,10 @@ export default function UserProfile() {
                     </span>
                   </Button>
                   <Link href="/fitness" className="flex-1 sm:flex-none">
-                    <Button variant="outline" className="w-full">
+                    <Button variant="outline" className="w-full whitespace-nowrap">
                       <span className="inline-flex items-center gap-2">
                         Fitness Hub
-                        <ArrowRightIcon className="w-4 h-4" />
+                        <ArrowRightIcon className="w-4 h-4 shrink-0" />
                       </span>
                     </Button>
                   </Link>

@@ -291,39 +291,41 @@ export default function FitnessHub() {
               ))}
             </div>
 
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 border-t border-white/5">
-              {weightDelta && (
-                <span className="text-[10px] text-[var(--text-muted)]">
-                  <span className="font-bold text-white">{weightDelta} kg</span> to goal
-                </span>
-              )}
-              {daysLeft !== null && (
-                <span className="text-[10px] text-[var(--text-muted)] flex items-center gap-1">
-                  <CalendarIcon className="w-3 h-3" />
-                  <span className="font-bold text-blue-400">{daysLeft > 0 ? daysLeft : 0} days</span> left
-                </span>
-              )}
-              {profile?.target_date && (
-                <span className="text-[10px] text-[var(--text-muted)]">
-                  Target:{' '}
-                  <span className="font-bold text-white">
-                    {new Date(profile.target_date).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })}
+            {profile?.goal ? (
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 border-t border-white/5">
+                {weightDelta && (
+                  <span className="text-[10px] text-[var(--text-muted)]">
+                    <span className="font-bold text-white">{weightDelta} kg</span> to goal
                   </span>
-                </span>
-              )}
-              {!profile?.goal && !showWizard && (
-                <button
-                  onClick={() => setShowWizard(true)}
-                  className="ml-auto btn-primary px-4 py-1.5 text-xs shadow-[0_0_15px_#00ff8822]"
-                >
-                  Start Consultation
-                </button>
-              )}
-            </div>
+                )}
+                {daysLeft !== null && (
+                  <span className="text-[10px] text-[var(--text-muted)] flex items-center gap-1">
+                    <CalendarIcon className="w-3 h-3" />
+                    <span className="font-bold text-blue-400">{daysLeft > 0 ? daysLeft : 0} days</span> left
+                  </span>
+                )}
+                {profile?.target_date && (
+                  <span className="text-[10px] text-[var(--text-muted)]">
+                    Target:{' '}
+                    <span className="font-bold text-white">
+                      {new Date(profile.target_date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </span>
+                  </span>
+                )}
+              </div>
+            ) : !showWizard ? (
+              <button
+                onClick={() => setShowWizard(true)}
+                className="w-full btn-primary py-2.5 text-sm font-bold rounded-xl shadow-[0_0_20px_#00ff8833] hover:scale-[1.01] active:scale-[0.99] transition-transform flex items-center justify-center gap-2"
+              >
+                <SparklesIcon className="w-4 h-4" />
+                Start AI Consultation
+              </button>
+            ) : null}
           </div>
         </header>
 
