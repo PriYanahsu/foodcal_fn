@@ -10,11 +10,16 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BRAND_ASSETS } from '@/lib/brand-config';
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '@/features/theme/context/ThemeContext';
+
+const GOOGLE_BTN =
+  'w-full py-4 px-6 bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 font-bold text-lg rounded-2xl transition-all flex items-center justify-center gap-3 shadow-xl border border-[var(--card-border)]';
 
 export const AuthPage: React.FC = () => {
   const [view, setView] = useState<'landing' | 'login' | 'signup'>('landing');
   const router = useRouter();
   const supabase = createClient();
+  const { theme, toggleTheme } = useTheme();
 
   const { user } = useAuth();
 
@@ -110,7 +115,7 @@ export const AuthPage: React.FC = () => {
       whileTap={{ scale: 0.95 }}
       transition={{ type: 'spring', stiffness: 400, damping: 25 }}
       onClick={() => setView('landing')}
-      className="mb-6 text-[var(--text-muted)] hover:text-white flex items-center gap-2 transition-colors group text-sm font-semibold py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 backdrop-blur-md w-fit"
+      className="mb-6 text-[var(--text-muted)] hover:text-[var(--foreground)] flex items-center gap-2 transition-colors group text-sm font-semibold py-2 px-3 rounded-xl bg-[var(--surface)] hover:bg-[var(--surface-strong)] border border-[var(--card-border)] backdrop-blur-md w-fit"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -132,12 +137,30 @@ export const AuthPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen w-full bg-[#050505] text-white flex flex-col overflow-x-hidden selection:bg-[var(--primary)] selection:text-black">
+    <div className="min-h-screen w-full bg-[var(--background)] text-[var(--foreground)] flex flex-col overflow-x-hidden selection:bg-[var(--primary)] selection:text-black">
+      <button
+        type="button"
+        onClick={toggleTheme}
+        aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        className="fixed top-4 right-4 z-[90] inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] text-sm font-semibold text-[var(--foreground)] hover:border-[var(--primary)]/40 shadow-lg backdrop-blur-md transition-colors"
+      >
+        {theme === 'dark' ? (
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-[var(--primary)]">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+          </svg>
+        ) : (
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-[var(--primary)]">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
+          </svg>
+        )}
+        <span className="hidden sm:inline">{theme === 'dark' ? 'Light' : 'Dark'}</span>
+      </button>
+
       {/* Desktop Side-by-Side Context */}
       <main className="flex-1 flex flex-col lg:flex-row lg:min-h-screen relative">
         {/* Left Side: Branding & Premium Demo Context (Hidden on Mobile) */}
         <div className="hidden lg:flex lg:w-1/2 flex-col justify-center p-16 relative overflow-hidden bg-[radial-gradient(circle_at_top_left,_var(--primary)_0%,_transparent_25%),_radial-gradient(circle_at_bottom_right,_var(--secondary)_0%,_transparent_25%)]">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
+          <div className="absolute inset-0 bg-[var(--background)]/50 backdrop-blur-[2px]" />
 
           <div className="relative z-10 space-y-10">
             <motion.div
@@ -150,7 +173,7 @@ export const AuthPage: React.FC = () => {
                 className="w-12 h-12 object-contain rounded-xl shadow-xl"
                 alt=""
               />
-              <h2 className="text-3xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
+              <h2 className="text-3xl font-black tracking-tighter text-[var(--foreground)]">
                 {BRAND_ASSETS.name}
               </h2>
             </motion.div>
@@ -163,7 +186,7 @@ export const AuthPage: React.FC = () => {
                 className="text-4xl xl:text-5xl font-black leading-tight tracking-tight"
               >
                 Your Personal <br />
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] via-white to-[var(--secondary)]">
+                <span className="text-[var(--primary)]">
                   AI Health Coach
                 </span>
               </motion.h1>
@@ -171,7 +194,7 @@ export const AuthPage: React.FC = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4 }}
-                className="text-lg text-gray-400 max-w-md leading-relaxed"
+                className="text-lg text-[var(--text-muted)] max-w-md leading-relaxed"
               >
                 {BRAND_ASSETS.tagline}. Optimized for your body, powered by intelligence.
               </motion.p>
@@ -187,15 +210,15 @@ export const AuthPage: React.FC = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 + i * 0.1 }}
-                    className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm group hover:border-[var(--primary)]/30 transition-all"
+                    className="p-4 rounded-2xl bg-[var(--surface)] border border-[var(--card-border)] backdrop-blur-sm group hover:border-[var(--primary)]/30 transition-all"
                   >
                     <div
-                      className={`w-10 h-10 rounded-lg bg-gradient-to-br ${step.color} p-2 mb-3 shadow-lg flex items-center justify-center text-white`}
+                      className={`w-10 h-10 rounded-lg bg-gradient-to-br ${step.color} p-2 mb-3 shadow-lg flex items-center justify-center text-[var(--foreground)]`}
                     >
                       <Icon className="w-5 h-5" />
                     </div>
                     <h4 className="font-bold text-sm mb-1">{step.title}</h4>
-                    <p className="text-xs text-gray-500 line-clamp-2">{step.description}</p>
+                    <p className="text-xs text-[var(--text-muted)] line-clamp-2">{step.description}</p>
                   </motion.div>
                 );
               })}
@@ -205,12 +228,12 @@ export const AuthPage: React.FC = () => {
           {/* Decorative Elements */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] opacity-20 pointer-events-none">
             <div className="absolute inset-0 rounded-full border border-[var(--primary)]/20 animate-[pulse_8s_infinite]" />
-            <div className="absolute inset-[100px] rounded-full border border-white/5 animate-[pulse_12s_infinite]" />
+            <div className="absolute inset-[100px] rounded-full border border-[var(--card-border)] animate-[pulse_12s_infinite]" />
           </div>
         </div>
 
         {/* Right Side: Auth Forms */}
-        <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-6 sm:p-12 lg:min-h-screen relative z-10 bg-black">
+        <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-6 sm:p-12 lg:min-h-screen relative z-10 bg-[var(--background)]">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -223,7 +246,7 @@ export const AuthPage: React.FC = () => {
                 className="w-16 h-16 object-contain rounded-2xl shadow-2xl"
                 alt=""
               />
-              <h1 className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
+              <h1 className="text-4xl font-black text-[var(--primary)]">
                 {BRAND_ASSETS.name}
               </h1>
               <p className="text-[var(--text-muted)] text-sm max-w-xs">{BRAND_ASSETS.tagline}</p>
@@ -239,14 +262,14 @@ export const AuthPage: React.FC = () => {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 + i * 0.1 }}
-                        className="p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md flex flex-col items-center text-center group"
+                        className="p-3 rounded-2xl bg-[var(--surface)] border border-[var(--card-border)] backdrop-blur-md flex flex-col items-center text-center group"
                       >
                         <div
-                          className={`w-8 h-8 rounded-lg bg-gradient-to-br ${step.color} p-1.5 mb-2 shadow-lg flex items-center justify-center text-white`}
+                          className={`w-8 h-8 rounded-lg bg-gradient-to-br ${step.color} p-1.5 mb-2 shadow-lg flex items-center justify-center text-[var(--foreground)]`}
                         >
                           <Icon className="w-4 h-4" />
                         </div>
-                        <h4 className="font-bold text-[9px] uppercase tracking-widest text-gray-300">
+                        <h4 className="font-bold text-[9px] uppercase tracking-widest text-[var(--text-muted)]">
                           {step.title}
                         </h4>
                       </motion.div>
@@ -256,7 +279,7 @@ export const AuthPage: React.FC = () => {
               )}
             </div>
 
-            <Card className="p-8 sm:p-10 bg-[#111111]/80 backdrop-blur-2xl border border-white/10 shadow-[0_30px_100px_-20px_rgba(0,0,0,0.8)] rounded-3xl relative overflow-visible ring-1 ring-white/5 w-full">
+            <Card className="p-8 sm:p-10 bg-[var(--card-bg)] backdrop-blur-2xl border border-[var(--card-border)] shadow-xl rounded-3xl relative overflow-visible ring-1 ring-[var(--card-border)] w-full">
               <AnimatePresence mode="wait" initial={false}>
                 {view === 'landing' && (
                   <motion.div
@@ -269,7 +292,7 @@ export const AuthPage: React.FC = () => {
                   >
                     <div className="text-center">
                       <h2 className="text-2xl font-bold mb-2">Ready to start?</h2>
-                      <p className="text-gray-500 text-sm">
+                      <p className="text-[var(--text-muted)] text-sm">
                         Create an account or sign in to track macros
                       </p>
                     </div>
@@ -280,7 +303,7 @@ export const AuthPage: React.FC = () => {
                         whileHover={{ scale: 1.02, y: -2 }}
                         whileTap={{ scale: 0.98 }}
                         transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                        className="w-full py-4 px-6 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-black font-black text-lg rounded-2xl shadow-[0_10px_30px_-10px_#00ff8866] hover:shadow-[0_20px_40px_-10px_#00ff88aa] transition-all flex items-center justify-center gap-2"
+                        className="w-full py-4 px-6 bg-[var(--btn-primary)] hover:bg-[var(--btn-primary-hover)] text-black font-black text-lg rounded-2xl shadow-[0_10px_30px_-10px_#76b90066] hover:shadow-[0_20px_40px_-10px_#76b900aa] transition-all flex items-center justify-center gap-2"
                       >
                         Sign In
                         <svg
@@ -303,17 +326,17 @@ export const AuthPage: React.FC = () => {
                         whileHover={{ scale: 1.02, y: -2 }}
                         whileTap={{ scale: 0.98 }}
                         transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                        className="w-full py-4 px-6 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white font-bold text-lg rounded-2xl transition-all"
+                        className="w-full py-4 px-6 bg-[var(--btn-primary)] hover:bg-[var(--btn-primary-hover)] text-black font-bold text-lg rounded-2xl transition-all"
                       >
                         Create Free Account
                       </motion.button>
 
                       <div className="relative py-2">
                         <div className="absolute inset-0 flex items-center">
-                          <span className="w-full border-t border-white/10"></span>
+                          <span className="w-full border-t border-[var(--card-border)]"></span>
                         </div>
                         <div className="relative flex justify-center text-xs uppercase">
-                          <span className="bg-[#111111] px-4 text-gray-500 font-bold tracking-widest">
+                          <span className="bg-[var(--card-bg)] px-4 text-[var(--text-muted)] font-bold tracking-widest">
                             or
                           </span>
                         </div>
@@ -324,7 +347,7 @@ export const AuthPage: React.FC = () => {
                         whileHover={{ scale: 1.02, y: -2 }}
                         whileTap={{ scale: 0.98 }}
                         transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                        className="w-full py-4 px-6 bg-white text-black font-bold text-lg rounded-2xl transition-all flex items-center justify-center gap-3 shadow-xl"
+                        className={GOOGLE_BTN}
                       >
                         <svg className="w-6 h-6" viewBox="0 0 24 24">
                           <path
@@ -360,17 +383,17 @@ export const AuthPage: React.FC = () => {
                   >
                     <BackButton />
                     <div className="text-center mb-8">
-                      <h2 className="text-3xl font-black mb-2 text-white">Welcome Back</h2>
-                      <p className="text-gray-500 text-sm">Sign in to your intelligent coach</p>
+                      <h2 className="text-3xl font-black mb-2 text-[var(--foreground)]">Welcome Back</h2>
+                      <p className="text-[var(--text-muted)] text-sm">Sign in to your intelligent coach</p>
                     </div>
                     <LoginForm />
 
                     <div className="relative py-6">
                       <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t border-white/10"></span>
+                        <span className="w-full border-t border-[var(--card-border)]"></span>
                       </div>
                       <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-[#111111] px-4 text-gray-500 font-bold tracking-widest">
+                        <span className="bg-[var(--card-bg)] px-4 text-[var(--text-muted)] font-bold tracking-widest">
                           or
                         </span>
                       </div>
@@ -381,7 +404,7 @@ export const AuthPage: React.FC = () => {
                       whileHover={{ scale: 1.02, y: -2 }}
                       whileTap={{ scale: 0.98 }}
                       transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                      className="w-full py-4 px-6 bg-white text-black font-bold text-lg rounded-2xl transition-all flex items-center justify-center gap-3 shadow-xl mb-4"
+                      className={`${GOOGLE_BTN} mb-4`}
                     >
                       <svg className="w-6 h-6" viewBox="0 0 24 24">
                         <path
@@ -416,19 +439,19 @@ export const AuthPage: React.FC = () => {
                   >
                     <BackButton />
                     <div className="text-center mb-8">
-                      <h2 className="text-3xl font-black mb-2 text-white">
+                      <h2 className="text-3xl font-black mb-2 text-[var(--foreground)]">
                         Join {BRAND_ASSETS.name}
                       </h2>
-                      <p className="text-gray-500 text-sm">Your transformation starts today</p>
+                      <p className="text-[var(--text-muted)] text-sm">Your transformation starts today</p>
                     </div>
                     <SignupForm onSuccess={() => setView('login')} />
 
                     <div className="relative py-6">
                       <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t border-white/10"></span>
+                        <span className="w-full border-t border-[var(--card-border)]"></span>
                       </div>
                       <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-[#111111] px-4 text-gray-500 font-bold tracking-widest">
+                        <span className="bg-[var(--card-bg)] px-4 text-[var(--text-muted)] font-bold tracking-widest">
                           or
                         </span>
                       </div>
@@ -439,7 +462,7 @@ export const AuthPage: React.FC = () => {
                       whileHover={{ scale: 1.02, y: -2 }}
                       whileTap={{ scale: 0.98 }}
                       transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                      className="w-full py-4 px-6 bg-white text-black font-bold text-lg rounded-2xl transition-all flex items-center justify-center gap-3 shadow-xl mb-4"
+                      className={`${GOOGLE_BTN} mb-4`}
                     >
                       <svg className="w-6 h-6" viewBox="0 0 24 24">
                         <path
@@ -472,7 +495,7 @@ export const AuthPage: React.FC = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1, duration: 1 }}
-                className="lg:hidden mt-12 flex flex-col items-center gap-3 text-gray-500 cursor-pointer group"
+                className="lg:hidden mt-12 flex flex-col items-center gap-3 text-[var(--text-muted)] cursor-pointer group"
                 onClick={() => {
                   document
                     .getElementById('mobile-demo-anchor')
@@ -513,15 +536,15 @@ export const AuthPage: React.FC = () => {
       {/* Mobile/Full Demo Section */}
       <div
         id="app-demo"
-        className="w-full bg-[#080808] border-t border-white/10 relative z-20 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]"
+        className="w-full bg-[var(--background)] border-t border-[var(--card-border)] relative z-20 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]"
       >
         <div id="mobile-demo-anchor" className="absolute -top-20" />
         <AppDemo />
       </div>
 
       {/* Footer */}
-      <footer className="py-12 px-6 border-t border-white/5 bg-black/50 text-center">
-        <p className="text-gray-600 text-xs font-mono uppercase tracking-widest">
+      <footer className="py-12 px-6 border-t border-[var(--card-border)] bg-[var(--card-bg)] text-center">
+        <p className="text-[var(--text-muted)] text-xs font-mono uppercase tracking-widest">
           © 2026 {BRAND_ASSETS.name} • Precision AI Nutrition
         </p>
       </footer>

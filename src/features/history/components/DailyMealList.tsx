@@ -86,7 +86,7 @@ export default function DailyMealList({ date }: DailyMealListProps) {
       <div className="space-y-4">
         <Link
           href="/history"
-          className="inline-flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-white transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors"
         >
           <ArrowLeftIcon className="w-4 h-4" /> Back to history
         </Link>
@@ -102,7 +102,7 @@ export default function DailyMealList({ date }: DailyMealListProps) {
       <div className="flex items-center justify-between gap-3 shrink-0">
         <Link
           href="/history"
-          className="inline-flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-white transition-colors shrink-0"
+          className="inline-flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors shrink-0"
         >
           <ArrowLeftIcon className="w-4 h-4" /> Back
         </Link>
@@ -139,7 +139,7 @@ export default function DailyMealList({ date }: DailyMealListProps) {
                     <ClockIcon className="h-4 w-4 text-[var(--primary)]" />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="font-bold text-sm text-white truncate">{meal.food_name}</h3>
+                    <h3 className="font-bold text-sm text-[var(--foreground)] truncate">{meal.food_name}</h3>
                     <p className="text-[10px] text-[var(--text-muted)] capitalize flex items-center gap-2">
                       {meal.meal_type}
                       <span className="opacity-40">·</span>

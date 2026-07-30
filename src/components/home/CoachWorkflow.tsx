@@ -26,7 +26,7 @@ const WorkflowStep = ({
     whileInView={{ opacity: 1, x: 0 }}
     viewport={{ once: true }}
     transition={{ duration: 0.5, delay }}
-    className="flex gap-4 p-6 rounded-3xl bg-white/5 border border-white/10 hover:border-[var(--primary)]/30 hover:bg-white/[0.08] transition-all group"
+    className="flex gap-4 p-6 rounded-3xl bg-[var(--surface)] border border-[var(--card-border)] hover:border-[var(--primary)]/30 hover:bg-[var(--surface-strong)] transition-all group"
   >
     <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
       {icon}
@@ -85,7 +85,7 @@ export const CoachWorkflow: React.FC = () => {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7 }}
-              className="glass-card p-2 aspect-[4/5] rounded-[3rem] relative overflow-hidden border-white/20 shadow-2xl"
+              className="glass-card p-2 aspect-[4/5] rounded-[3rem] relative overflow-hidden border-[var(--card-border)] shadow-2xl"
             >
               <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-black/80 z-10" />
 
@@ -95,8 +95,8 @@ export const CoachWorkflow: React.FC = () => {
                 <div className="flex justify-between items-center opacity-40">
                   <span className="text-xs font-bold">9:41</span>
                   <div className="flex gap-1.5">
-                    <div className="w-4 h-4 rounded-full border border-white/40" />
-                    <div className="w-4 h-4 rounded-full border border-white/40" />
+                    <div className="w-4 h-4 rounded-full border border-[var(--card-border)]" />
+                    <div className="w-4 h-4 rounded-full border border-[var(--card-border)]" />
                   </div>
                 </div>
 
@@ -105,7 +105,7 @@ export const CoachWorkflow: React.FC = () => {
                   initial={{ y: -50, opacity: 0 }}
                   whileInView={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.5, duration: 0.5 }}
-                  className="bg-white/10 backdrop-blur-xl border border-white/20 p-4 rounded-2xl flex gap-3 shadow-lg"
+                  className="bg-[var(--surface-strong)] backdrop-blur-xl border border-[var(--card-border)] p-4 rounded-2xl flex gap-3 shadow-lg"
                 >
                   <div className="w-10 h-10 rounded-xl bg-[var(--primary)] flex items-center justify-center text-black">
                     <BellIcon className="w-6 h-6" />
@@ -136,7 +136,7 @@ export const CoachWorkflow: React.FC = () => {
                     muscle recovery. Try adding 200ml more water to stay hydrated!"
                   </p>
                   <div className="flex items-center gap-2 pt-2">
-                    <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
+                    <div className="flex-1 h-1 bg-[var(--surface-strong)] rounded-full overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
                         whileInView={{ width: '85%' }}

@@ -89,8 +89,8 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
           ${compact ? 'p-3 sm:p-3.5' : 'p-3.5 sm:p-4'}
           ${
             notification.isRead
-              ? 'bg-[var(--card-bg)] border-white/10 opacity-80'
-              : 'bg-[var(--card-bg)] border-white/15 active:border-[var(--primary)]/30'
+              ? 'bg-[var(--card-bg)] border-[var(--card-border)] opacity-80'
+              : 'bg-[var(--card-bg)] border-[var(--card-border)] active:border-[var(--primary)]/30'
           }
         `}
       >
@@ -118,7 +118,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
                 <div className="flex items-center gap-2 min-w-0">
                   <h4
                     className={`text-sm font-semibold truncate leading-snug ${
-                      notification.isRead ? 'text-gray-400' : 'text-white'
+                      notification.isRead ? 'text-[var(--text-muted)]' : 'text-[var(--foreground)]'
                     }`}
                   >
                     {notification.title}
@@ -128,7 +128,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
                   )}
                 </div>
                 <p
-                  className={`text-xs text-gray-400 mt-1 leading-relaxed ${
+                  className={`text-xs text-[var(--text-muted)] mt-1 leading-relaxed ${
                     compact ? 'line-clamp-2' : 'line-clamp-3'
                   }`}
                 >
@@ -144,7 +144,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
                     e.stopPropagation();
                     onRemove(notification.id);
                   }}
-                  className="shrink-0 -mr-1 -mt-0.5 p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/10 transition-colors"
+                  className="shrink-0 -mr-1 -mt-0.5 p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-strong)] transition-colors"
                 >
                   <XMarkIcon className="w-4 h-4" />
                 </button>
@@ -158,7 +158,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
               </div>
             )}
 
-            <p className="text-[10px] text-gray-500 mt-2 tabular-nums">
+            <p className="text-[10px] text-[var(--text-muted)] mt-2 tabular-nums">
               {formatRelativeTime(notification.timestamp)}
             </p>
           </div>

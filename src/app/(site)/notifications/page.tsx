@@ -67,7 +67,7 @@ export default function NotificationsPage() {
               <button
                 type="button"
                 onClick={markAllAsRead}
-                className="btn-secondary flex items-center gap-1.5 py-2 px-3 h-9 text-xs border-[var(--primary)]/30 text-[var(--primary)]"
+                className="btn-secondary flex items-center gap-1.5 py-2 px-3 h-9 text-xs"
               >
                 <CheckIcon className="w-4 h-4" />
                 Mark all read
@@ -77,7 +77,7 @@ export default function NotificationsPage() {
               <button
                 type="button"
                 onClick={clearRead}
-                className="btn-secondary flex items-center gap-1.5 py-2 px-3 h-9 text-xs text-gray-400"
+                className="btn-secondary flex items-center gap-1.5 py-2 px-3 h-9 text-xs"
               >
                 <TrashIcon className="w-3.5 h-3.5" />
                 Clear read
@@ -89,7 +89,7 @@ export default function NotificationsPage() {
 
       {notifications.length > 0 && (
         <div className="flex items-center gap-3 text-xs text-[var(--text-muted)]">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/5 border border-white/10 px-3 py-1">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--surface)] border border-[var(--card-border)] px-3 py-1">
             {unreadCount > 0 ? (
               <>
                 <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] animate-pulse" />
@@ -115,7 +115,7 @@ export default function NotificationsPage() {
                 exit={{ opacity: 0 }}
                 className="space-y-2.5"
               >
-                <h2 className="text-[11px] font-semibold uppercase tracking-wider text-gray-500 px-1">
+                <h2 className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)] px-1">
                   {label}
                 </h2>
                 <div className="space-y-2.5">
@@ -136,10 +136,10 @@ export default function NotificationsPage() {
               key="empty"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] flex flex-col items-center justify-center py-16 sm:py-20 px-6 text-center"
+              className="rounded-2xl border border-dashed border-[var(--card-border)] bg-[var(--surface)] flex flex-col items-center justify-center py-16 sm:py-20 px-6 text-center"
             >
-              <div className="w-16 h-16 rounded-2xl bg-white/5 ring-1 ring-white/10 flex items-center justify-center mb-5">
-                <BellIcon className="w-7 h-7 text-gray-500" />
+              <div className="w-16 h-16 rounded-2xl bg-[var(--surface)] ring-1 ring-white/10 flex items-center justify-center mb-5">
+                <BellIcon className="w-7 h-7 text-[var(--text-muted)]" />
               </div>
               <h3 className="text-lg font-semibold mb-1.5">No notifications yet</h3>
               <p className="text-[var(--text-muted)] max-w-xs text-sm leading-relaxed">

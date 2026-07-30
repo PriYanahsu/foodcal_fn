@@ -54,7 +54,7 @@ const MISSING_FIELD_LABELS: Partial<Record<keyof ProfileData, string>> = {
 };
 
 const selectClass =
-  'w-full px-4 py-2.5 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] appearance-none';
+  'w-full px-2.5 py-1.5 sm:px-4 sm:py-2.5 text-xs sm:text-base bg-[var(--input-bg)] border border-[var(--input-border)] rounded-lg sm:rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] appearance-none';
 
 function getMissingFields(profile: ProfileData): string[] {
   const checks: [keyof ProfileData, unknown][] = [
@@ -90,16 +90,26 @@ function ProfileField({
   label,
   value,
   hint,
+  className = '',
 }: {
   label: string;
   value: string;
   hint?: string;
+  className?: string;
 }) {
   return (
-    <div className="rounded-xl bg-[var(--input-bg)]/50 border border-[var(--card-border)] px-4 py-3">
-      <p className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-1">{label}</p>
-      <p className="text-base font-medium text-[var(--foreground)] break-words">{value || '—'}</p>
-      {hint && <p className="text-xs text-[var(--text-muted)] mt-1">{hint}</p>}
+    <div
+      className={`rounded-xl bg-[var(--input-bg)]/50 border border-[var(--card-border)] px-2.5 py-2 sm:px-4 sm:py-3 min-w-0 ${className}`}
+    >
+      <p className="text-[9px] sm:text-xs uppercase tracking-wider text-[var(--text-muted)] mb-0.5 sm:mb-1">
+        {label}
+      </p>
+      <p className="text-xs sm:text-base font-medium text-[var(--foreground)] break-words leading-snug">
+        {value || '—'}
+      </p>
+      {hint && (
+        <p className="text-[9px] sm:text-xs text-[var(--text-muted)] mt-0.5 sm:mt-1">{hint}</p>
+      )}
     </div>
   );
 }
@@ -119,7 +129,7 @@ function ChoiceChips({
     accent === 'accent' ? 'border-[var(--accent)] bg-[var(--accent)]/10' : 'border-[var(--primary)] bg-[var(--primary)]/10';
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-1.5 sm:gap-2">
       {options.map((option) => {
         const selected = value === option;
         return (
@@ -127,7 +137,7 @@ function ChoiceChips({
             key={option}
             type="button"
             onClick={() => onChange(option)}
-            className={`px-3 py-2 rounded-xl border-2 text-sm transition-all ${
+            className={`px-2 py-1 sm:px-3 sm:py-2 rounded-lg sm:rounded-xl border sm:border-2 text-[11px] sm:text-sm transition-all ${
               selected
                 ? `${activeBorder} text-white`
                 : 'border-[var(--card-border)] text-[var(--text-muted)] hover:border-white/30 hover:text-white'
@@ -400,14 +410,14 @@ export default function UserProfile() {
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
               className="overflow-hidden"
             >
-              <div className="flex items-center justify-between gap-3 p-4 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/25">
-                <div className="flex items-center gap-2 text-sm text-white">
-                  <PencilSquareIcon className="w-5 h-5 text-[var(--primary)] shrink-0" />
-                  <span>Editing — tap Save when you&apos;re done. Cancel discards changes.</span>
+              <div className="flex items-center justify-between gap-3 p-3 sm:p-4 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/25">
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-white min-w-0">
+                  <PencilSquareIcon className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--primary)] shrink-0" />
+                  <span className="truncate">Editing — tap Save when done</span>
                 </div>
                 <button
                   onClick={cancelEditing}
-                  className="text-sm text-[var(--text-muted)] hover:text-white transition-colors shrink-0"
+                  className="text-xs sm:text-sm text-[var(--text-muted)] hover:text-white transition-colors shrink-0"
                 >
                   Cancel
                 </button>
@@ -492,96 +502,137 @@ export default function UserProfile() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+        <div className="flex gap-1.5 sm:gap-3 mb-6 sm:mb-8">
           {[
-            { label: 'Age', value: profile.age, unit: 'yrs' },
-            { label: 'Height', value: profile.height, unit: 'cm' },
-            { label: 'Weight', value: profile.weight, unit: 'kg' },
-            { label: 'Goal', value: profile.goal, unit: '' },
-          ].map(({ label, value, unit }) => (
-            <button
-              key={label}
-              type="button"
-              onClick={() => !isEditing && startEditing()}
-              className="text-left"
-              title={!isEditing ? 'Tap to edit' : undefined}
-            >
-              <Card className="p-4 bg-[var(--card-bg)] border border-[var(--card-border)] text-center shadow-lg h-full hover:border-[var(--primary)]/40 transition-colors">
-                <p className="text-[var(--text-muted)] text-xs uppercase tracking-wider mb-1">
-                  {label}
-                </p>
-                <p className="text-xl font-bold text-[var(--foreground)] truncate">
-                  {value || '—'}
-                  {value && unit && (
-                    <span className="text-sm text-[var(--text-muted)] font-normal ml-1">{unit}</span>
-                  )}
-                </p>
-              </Card>
-            </button>
-          ))}
+            { label: 'Age', value: profile.age, unit: 'yrs', wide: false },
+            { label: 'Height', value: profile.height, unit: 'cm', wide: false },
+            { label: 'Weight', value: profile.weight, unit: 'kg', wide: false },
+            { label: 'Goal', value: profile.goal, unit: '', wide: true },
+          ].map(({ label, value, unit, wide }) => {
+            const shortGoal =
+              value === 'Lose Weight'
+                ? 'Lose'
+                : value === 'Maintain Weight'
+                  ? 'Maintain'
+                  : value === 'Gain Muscle'
+                    ? 'Gain'
+                    : value;
+
+            return (
+              <button
+                key={label}
+                type="button"
+                onClick={() => !isEditing && startEditing()}
+                className={`text-left min-w-0 ${wide ? 'flex-[1.4]' : 'flex-1'}`}
+                title={String(value || 'Tap to edit')}
+              >
+                <Card className="px-1.5 py-2 sm:p-4 bg-[var(--card-bg)] border border-[var(--card-border)] text-center shadow-lg h-full hover:border-[var(--primary)]/40 transition-colors">
+                  <p className="text-[var(--text-muted)] text-[9px] sm:text-xs uppercase tracking-wider mb-0.5 sm:mb-1">
+                    {label}
+                  </p>
+                  <p
+                    className={`font-bold text-[var(--foreground)] leading-tight ${
+                      wide
+                        ? 'text-[11px] sm:text-lg'
+                        : 'text-xs sm:text-xl truncate'
+                    }`}
+                  >
+                    {wide ? (
+                      <>
+                        <span className="sm:hidden">{shortGoal || '—'}</span>
+                        <span className="hidden sm:inline">{value || '—'}</span>
+                      </>
+                    ) : (
+                      <>
+                        {value || '—'}
+                        {value && unit && (
+                          <span className="text-[9px] sm:text-sm text-[var(--text-muted)] font-normal ml-0.5 sm:ml-1">
+                            {unit}
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </p>
+                </Card>
+              </button>
+            );
+          })}
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
-            <Card className="p-6 md:p-8 bg-[var(--card-bg)] border border-[var(--card-border)] shadow-xl">
-              <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-                <span className="w-1 h-6 bg-[var(--primary)] rounded-full" />
+            <Card className="p-4 sm:p-6 md:p-8 bg-[var(--card-bg)] border border-[var(--card-border)] shadow-xl">
+              <h3 className="text-base sm:text-xl font-bold mb-4 sm:mb-6 flex items-center gap-2">
+                <span className="w-1 h-5 sm:h-6 bg-[var(--primary)] rounded-full" />
                 Account Details
               </h3>
 
               {isEditing ? (
-                <div className="space-y-5">
-                  <Input
-                    label="Full Name"
-                    value={profile.full_name}
-                    onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
-                    placeholder="Enter your full name"
-                    autoFocus
-                  />
-
-                  <div>
-                    <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
-                      Gender
-                    </label>
-                    <ChoiceChips
-                      options={GENDERS}
-                      value={profile.gender}
-                      onChange={(gender) => setProfile({ ...profile, gender })}
-                    />
+                <div className="space-y-3 sm:space-y-5">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-5">
+                    <div className="col-span-2 sm:col-span-1">
+                      <Input
+                        label="Full Name"
+                        value={profile.full_name}
+                        onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
+                        placeholder="Enter your full name"
+                        autoFocus
+                      />
+                    </div>
+                    <div className="col-span-2 sm:col-span-1">
+                      <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)] mb-1 sm:mb-2">
+                        Gender
+                      </label>
+                      <ChoiceChips
+                        options={GENDERS}
+                        value={profile.gender}
+                        onChange={(gender) => setProfile({ ...profile, gender })}
+                      />
+                    </div>
+                    <div className="col-span-2 sm:col-span-1">
+                      <Input
+                        label="Username"
+                        value={profile.username}
+                        disabled
+                        className="opacity-60"
+                      />
+                    </div>
+                    <div className="col-span-2 sm:col-span-1">
+                      <Input label="Email" value={profile.email} disabled className="opacity-60" />
+                    </div>
                   </div>
-
-                  <div className="grid md:grid-cols-2 gap-5">
-                    <Input
-                      label="Username"
-                      value={profile.username}
-                      disabled
-                      className="opacity-60"
-                    />
-                    <Input label="Email" value={profile.email} disabled className="opacity-60" />
-                  </div>
-                  <p className="text-xs text-[var(--text-muted)]">
+                  <p className="text-[10px] sm:text-xs text-[var(--text-muted)]">
                     Username and email can&apos;t be changed here.
                   </p>
                 </div>
               ) : (
-                <div className="grid md:grid-cols-2 gap-4">
-                  <ProfileField label="Full Name" value={profile.full_name} />
+                <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                  <ProfileField
+                    label="Full Name"
+                    value={profile.full_name}
+                    className="col-span-2 sm:col-span-1"
+                  />
                   <ProfileField label="Gender" value={profile.gender} />
                   <ProfileField
                     label="Username"
                     value={profile.username ? `@${profile.username}` : ''}
                     hint="Cannot be changed"
                   />
-                  <ProfileField label="Email" value={profile.email} hint="Cannot be changed" />
+                  <ProfileField
+                    label="Email"
+                    value={profile.email}
+                    hint="Cannot be changed"
+                    className="col-span-2 sm:col-span-1"
+                  />
                 </div>
               )}
             </Card>
 
-            <Card className="p-6 md:p-8 bg-[var(--card-bg)] border border-[var(--card-border)] shadow-xl">
-              <div className="flex items-start justify-between gap-3 mb-6">
-                <h3 className="text-xl font-bold flex items-center gap-2">
-                  <span className="w-1 h-6 bg-[var(--primary)] rounded-full" />
-                  <ScaleIcon className="w-5 h-5 text-[var(--primary)]" />
+            <Card className="p-4 sm:p-6 md:p-8 bg-[var(--card-bg)] border border-[var(--card-border)] shadow-xl">
+              <div className="flex items-start justify-between gap-3 mb-4 sm:mb-6">
+                <h3 className="text-base sm:text-xl font-bold flex items-center gap-2">
+                  <span className="w-1 h-5 sm:h-6 bg-[var(--primary)] rounded-full" />
+                  <ScaleIcon className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--primary)]" />
                   Body Metrics
                 </h3>
                 {!isEditing && (
@@ -596,8 +647,8 @@ export default function UserProfile() {
               </div>
 
               {isEditing ? (
-                <div className="space-y-5">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-3 sm:space-y-5">
+                  <div className="grid grid-cols-3 gap-2 sm:gap-4">
                     <Input
                       label="Age"
                       type="number"
@@ -637,10 +688,10 @@ export default function UserProfile() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
+                    <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)] mb-1.5 sm:mb-2">
                       Activity Level
                     </label>
-                    <div className="grid sm:grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
                       {ACTIVITY_LEVELS.map((level) => {
                         const selected = profile.activity_level === level;
                         return (
@@ -648,18 +699,18 @@ export default function UserProfile() {
                             key={level}
                             type="button"
                             onClick={() => setProfile({ ...profile, activity_level: level })}
-                            className={`text-left px-4 py-3 rounded-xl border-2 transition-all ${
+                            className={`text-left px-2.5 py-2 sm:px-4 sm:py-3 rounded-lg sm:rounded-xl border sm:border-2 transition-all ${
                               selected
                                 ? 'border-[var(--primary)] bg-[var(--primary)]/10'
                                 : 'border-[var(--card-border)] hover:border-white/30'
                             }`}
                           >
                             <p
-                              className={`text-sm font-semibold ${selected ? 'text-white' : 'text-[var(--foreground)]'}`}
+                              className={`text-[11px] sm:text-sm font-semibold leading-tight ${selected ? 'text-white' : 'text-[var(--foreground)]'}`}
                             >
                               {level}
                             </p>
-                            <p className="text-xs text-[var(--text-muted)] mt-0.5">
+                            <p className="text-[9px] sm:text-xs text-[var(--text-muted)] mt-0.5 leading-tight">
                               {ACTIVITY_HINTS[level]}
                             </p>
                           </button>
@@ -669,7 +720,7 @@ export default function UserProfile() {
                   </div>
                 </div>
               ) : (
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-2 sm:gap-4">
                   <ProfileField
                     label="Age"
                     value={profile.age !== '' ? `${profile.age} years` : ''}
@@ -695,11 +746,11 @@ export default function UserProfile() {
               )}
             </Card>
 
-            <Card className="p-6 md:p-8 bg-[var(--card-bg)] border border-[var(--card-border)] shadow-xl">
-              <div className="flex items-center justify-between gap-3 mb-6">
-                <h3 className="text-xl font-bold flex items-center gap-2 whitespace-nowrap">
-                  <span className="w-1 h-6 bg-[var(--primary)] rounded-full shrink-0" />
-                  <FireIcon className="w-5 h-5 text-[var(--primary)] shrink-0" />
+            <Card className="p-4 sm:p-6 md:p-8 bg-[var(--card-bg)] border border-[var(--card-border)] shadow-xl">
+              <div className="flex items-center justify-between gap-3 mb-4 sm:mb-6">
+                <h3 className="text-base sm:text-xl font-bold flex items-center gap-2 whitespace-nowrap">
+                  <span className="w-1 h-5 sm:h-6 bg-[var(--primary)] rounded-full shrink-0" />
+                  <FireIcon className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--primary)] shrink-0" />
                   Fitness Goals
                 </h3>
                 {!isEditing && (
@@ -726,14 +777,14 @@ export default function UserProfile() {
               </div>
 
               {isEditing ? (
-                <div className="space-y-5">
+                <div className="space-y-3 sm:space-y-5">
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="block text-sm font-medium text-[var(--foreground)]">
+                    <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)]">
                         Objective
                       </label>
                       {deriveGoal(profile.weight, profile.target_weight ?? null) && (
-                        <span className="text-[10px] text-[var(--primary)] font-semibold">
+                        <span className="text-[9px] sm:text-[10px] text-[var(--primary)] font-semibold">
                           Auto-set from weight vs target
                         </span>
                       )}
@@ -745,7 +796,7 @@ export default function UserProfile() {
                       accent="accent"
                     />
                     {deriveGoal(profile.weight, profile.target_weight ?? null) && (
-                      <p className="text-xs text-[var(--text-muted)] mt-1.5">
+                      <p className="text-[10px] sm:text-xs text-[var(--text-muted)] mt-1 sm:mt-1.5">
                         Current <span className="text-white font-medium">{profile.weight} kg</span> → Target{' '}
                         <span className="text-white font-medium">{profile.target_weight} kg</span> — goal auto-corrected to{' '}
                         <span className="text-[var(--primary)] font-semibold">{profile.goal}</span>
@@ -753,7 +804,7 @@ export default function UserProfile() {
                     )}
                   </div>
 
-                  <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-4">
                     <Input
                       label="Target Weight (kg)"
                       type="number"
@@ -774,7 +825,7 @@ export default function UserProfile() {
                       placeholder="e.g. 65"
                     />
                     <div>
-                      <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                      <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)] mb-0.5 sm:mb-1">
                         Target Date
                       </label>
                       <input
@@ -790,8 +841,12 @@ export default function UserProfile() {
                   </div>
                 </div>
               ) : (
-                <div className="grid md:grid-cols-2 gap-4">
-                  <ProfileField label="Objective" value={profile.goal} />
+                <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                  <ProfileField
+                    label="Objective"
+                    value={profile.goal}
+                    className="col-span-2 sm:col-span-1"
+                  />
                   <ProfileField
                     label="Target Weight"
                     value={
@@ -826,7 +881,7 @@ export default function UserProfile() {
                   </div>
                   <Button
                     onClick={() => setShowConsult(true)}
-                    className="w-full sm:w-auto shrink-0 shadow-[0_0_16px_rgba(0,255,136,0.3)]"
+                    className="w-full sm:w-auto shrink-0 shadow-[0_0_16px_rgba(118,185,0,0.3)]"
                   >
                     <span className="inline-flex items-center gap-2">
                       <SparklesIcon className="w-4 h-4" />
@@ -852,7 +907,7 @@ export default function UserProfile() {
                   <Button
                     onClick={() => user && setShowConsult(true)}
                     disabled={!user}
-                    className="flex-1 sm:flex-none shadow-[0_0_14px_rgba(0,255,136,0.28)]"
+                    className="flex-1 sm:flex-none shadow-[0_0_14px_rgba(118,185,0,0.28)]"
                   >
                     <span className="inline-flex items-center gap-2">
                       Consult

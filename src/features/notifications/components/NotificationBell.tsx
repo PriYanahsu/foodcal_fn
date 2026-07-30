@@ -17,10 +17,10 @@ export const NotificationBell: React.FC = () => {
         onClick={() => setIsOpen(!isOpen)}
         className={`relative isolate overflow-hidden p-2 rounded-xl transition-all duration-300 border ${
           isOpen
-            ? 'bg-[var(--primary)] border-[var(--primary)] text-black shadow-[0_0_20px_#00ff8866]'
+            ? 'bg-[var(--primary)] border-[var(--primary)] text-black shadow-[0_0_20px_#76b90066]'
             : unreadCount > 0
               ? 'bg-[var(--primary)]/10 border-[var(--primary)]/30 text-[var(--primary)]'
-              : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+              : 'bg-[var(--surface)] border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-strong)]'
         }`}
       >
         <BellIcon className={`w-5 h-5 ${unreadCount > 0 && !isOpen ? 'animate-bounce' : ''}`} />

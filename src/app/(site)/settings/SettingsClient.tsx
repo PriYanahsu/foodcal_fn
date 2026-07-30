@@ -7,7 +7,9 @@ import {
   BellIcon,
   ChevronRightIcon,
   DocumentTextIcon,
+  MoonIcon,
   ShieldCheckIcon,
+  SunIcon,
   TrashIcon,
   UserCircleIcon,
 } from '@heroicons/react/24/outline';
@@ -15,6 +17,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { isFeatureEnabled } from '@/config/features';
+import { useTheme } from '@/features/theme/context/ThemeContext';
 
 type SettingLink = {
   label: string;
@@ -28,6 +31,7 @@ export default function SettingsClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { logout } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [confirmText, setConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
@@ -105,11 +109,60 @@ export default function SettingsClient() {
   return (
     <div className="min-h-screen pt-20 pb-16 px-4 md:px-6 max-w-2xl mx-auto">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-white tracking-tight">Settings</h1>
+        <h1 className="text-3xl font-bold text-[var(--foreground)] tracking-tight">Settings</h1>
         <p className="text-[var(--text-muted)] text-sm mt-1">
           Manage your account and preferences
         </p>
       </header>
+
+      <section className="mb-8">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)] mb-3 px-1">
+          Appearance
+        </h2>
+        <Card className="p-4 bg-[var(--card-bg)] border border-[var(--card-border)]">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-[var(--surface)] flex items-center justify-center text-[var(--primary)] shrink-0">
+                {theme === 'dark' ? (
+                  <MoonIcon className="w-5 h-5" />
+                ) : (
+                  <SunIcon className="w-5 h-5" />
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="font-semibold text-[var(--foreground)]">Theme</p>
+                <p className="text-xs text-[var(--text-muted)]">
+                  Switch between dark and light mode
+                </p>
+              </div>
+            </div>
+            <div className="flex rounded-xl border border-[var(--card-border)] p-1 bg-[var(--surface)] shrink-0">
+              <button
+                type="button"
+                onClick={() => setTheme('dark')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                  theme === 'dark'
+                    ? 'bg-[var(--btn-primary)] text-black'
+                    : 'text-[var(--text-muted)] hover:text-[var(--foreground)]'
+                }`}
+              >
+                Dark
+              </button>
+              <button
+                type="button"
+                onClick={() => setTheme('light')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                  theme === 'light'
+                    ? 'bg-[var(--btn-primary)] text-black'
+                    : 'text-[var(--text-muted)] hover:text-[var(--foreground)]'
+                }`}
+              >
+                Light
+              </button>
+            </div>
+          </div>
+        </Card>
+      </section>
 
       <section className="space-y-2 mb-10">
         {links
@@ -118,14 +171,14 @@ export default function SettingsClient() {
             <Link key={href} href={href} className="block group">
               <Card className="p-4 bg-[var(--card-bg)] border border-[var(--card-border)] hover:border-[var(--primary)]/40 transition-colors">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-[var(--text-muted)] group-hover:text-[var(--primary)] transition-colors">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--surface)] flex items-center justify-center text-[var(--text-muted)] group-hover:text-[var(--primary)] transition-colors">
                     <Icon className="w-5 h-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-white">{label}</p>
+                    <p className="font-semibold text-[var(--foreground)]">{label}</p>
                     <p className="text-xs text-[var(--text-muted)] truncate">{description}</p>
                   </div>
-                  <ChevronRightIcon className="w-5 h-5 text-[var(--text-muted)] group-hover:text-white transition-colors" />
+                  <ChevronRightIcon className="w-5 h-5 text-[var(--text-muted)] group-hover:text-[var(--foreground)] transition-colors" />
                 </div>
               </Card>
             </Link>
@@ -143,7 +196,7 @@ export default function SettingsClient() {
             </div>
             <div className="flex-1 space-y-3">
               <div>
-                <p className="font-semibold text-white">Delete account</p>
+                <p className="font-semibold text-[var(--foreground)]">Delete account</p>
                 <p className="text-xs text-[var(--text-muted)] mt-0.5">
                   Permanently erase your profile, food logs, steps, weight history,
                   notifications, and photos. This cannot be undone.
@@ -157,7 +210,7 @@ export default function SettingsClient() {
                   setConfirmText('');
                   setError(null);
                 }}
-                className="text-red-400 border-red-500/30 hover:bg-red-500/10 hover:border-red-400"
+                className="!bg-red-500 !text-white !border-red-500 hover:!bg-red-600 hover:!border-red-600 !shadow-none hover:!shadow-none hover:!scale-[1.02]"
               >
                 Delete account
               </Button>
@@ -175,7 +228,7 @@ export default function SettingsClient() {
             onClick={closeDeleteConfirm}
           />
           <div className="relative w-full max-w-md rounded-2xl bg-[var(--card-bg)] border border-[var(--card-border)] p-6 shadow-2xl space-y-4">
-            <h3 className="text-xl font-bold text-white">Delete your account?</h3>
+            <h3 className="text-xl font-bold text-[var(--foreground)]">Delete your account?</h3>
             <p className="text-sm text-[var(--text-muted)]">
               All of your FoodCal data will be permanently removed. Type{' '}
               <span className="font-mono text-red-400">DELETE</span> to confirm.
@@ -186,7 +239,7 @@ export default function SettingsClient() {
               onChange={(e) => setConfirmText(e.target.value)}
               placeholder="Type DELETE"
               disabled={isDeleting}
-              className="w-full px-4 py-3 rounded-xl bg-black/30 border border-[var(--card-border)] text-white placeholder:text-[var(--text-muted)] focus:outline-none focus:border-red-400"
+              className="w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--foreground)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-red-400"
               autoFocus
             />
             {error && <p className="text-sm text-red-400">{error}</p>}
@@ -215,7 +268,7 @@ export default function SettingsClient() {
       <button
         type="button"
         onClick={() => router.back()}
-        className="mt-10 text-sm text-[var(--text-muted)] hover:text-white transition-colors"
+        className="mt-10 text-sm text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors"
       >
         ← Back
       </button>

@@ -69,7 +69,7 @@ export const NotificationPrompt: React.FC = () => {
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             className="fixed z-[101] left-3 right-3 bottom-[max(1rem,env(safe-area-inset-bottom))] md:left-auto md:right-4 md:w-96 isolate"
           >
-            <div className="overflow-hidden rounded-2xl border border-[var(--primary)]/30 p-5 shadow-2xl bg-black/90 backdrop-blur-xl">
+            <div className="overflow-hidden rounded-2xl border border-[var(--primary)]/30 p-5 shadow-2xl bg-[var(--card-bg)] backdrop-blur-xl">
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 rounded-full bg-[var(--primary)]/20 flex items-center justify-center">
@@ -77,10 +77,10 @@ export const NotificationPrompt: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-base mb-2 text-white">
+                  <h4 className="font-bold text-base mb-2 text-[var(--foreground)]">
                     Enable Push Notifications? 🔔
                   </h4>
-                  <p className="text-sm text-gray-300 mb-4 leading-relaxed">
+                  <p className="text-sm text-[var(--text-muted)] mb-4 leading-relaxed">
                     Get notified about your nutrition goals, meal reminders, and achievements even
                     when you're away from the app!
                   </p>
@@ -88,13 +88,13 @@ export const NotificationPrompt: React.FC = () => {
                     <button
                       onClick={handleEnable}
                       disabled={isSubscribing}
-                      className="flex-1 bg-[var(--primary)] text-black text-sm font-bold px-5 py-2.5 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 bg-[var(--btn-primary)] text-black text-sm font-bold px-5 py-2.5 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isSubscribing ? 'Enabling...' : 'Yes, Enable'}
                     </button>
                     <button
                       onClick={handleDismiss}
-                      className="px-4 py-2.5 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-white/5"
+                      className="px-4 py-2.5 text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors rounded-lg hover:bg-[var(--surface)]"
                     >
                       <XMarkIcon className="w-5 h-5" />
                     </button>

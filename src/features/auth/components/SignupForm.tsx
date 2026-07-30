@@ -79,7 +79,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h3 className="text-xl font-bold text-white mb-2">Account Created!</h3>
+        <h3 className="text-xl font-bold text-[var(--foreground)] mb-2">Account Created!</h3>
         <p className="text-[var(--text-muted)] mb-6">
           {successMessage || 'Your account has been successfully created.'}
           <br />

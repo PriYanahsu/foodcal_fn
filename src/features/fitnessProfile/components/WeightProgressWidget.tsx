@@ -86,7 +86,7 @@ export default function WeightProgressWidget({
 
   return (
     <div
-      className={`bg-gradient-to-br from-[var(--card-bg)]/40 to-black/10 backdrop-blur-md border border-white/5 rounded-2xl transition-all ${compact ? 'p-4 mt-0' : 'p-6 mt-4'}`}
+      className={`bg-gradient-to-br from-[var(--card-bg)]/40 to-black/10 backdrop-blur-md border border-[var(--card-border)] rounded-2xl transition-all ${compact ? 'p-4 mt-0' : 'p-6 mt-4'}`}
     >
       <div className={`flex justify-between items-center ${compact ? 'mb-4' : 'mb-6'}`}>
         <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--primary)]/70 flex items-center gap-2">
@@ -116,12 +116,12 @@ export default function WeightProgressWidget({
             placeholder="Weight in kg"
             value={newWeight}
             onChange={(e) => setNewWeight(e.target.value)}
-            className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-2 outline-none focus:border-[var(--primary)]/50 transition-colors text-white placeholder:text-white/20 font-medium"
+            className="flex-1 bg-black/40 border border-[var(--card-border)] rounded-xl px-4 py-2 outline-none focus:border-[var(--primary)]/50 transition-colors text-[var(--foreground)] placeholder:text-[var(--text-muted)] font-medium"
           />
           <button
             onClick={handleLogWeight}
             disabled={loading}
-            className="bg-[var(--primary)] text-black px-6 py-2 rounded-xl font-black text-sm hover:scale-105 transition-transform disabled:opacity-50"
+            className="bg-[var(--btn-primary)] text-black px-6 py-2 rounded-xl font-black text-sm hover:scale-105 transition-transform disabled:opacity-50"
           >
             Save
           </button>
@@ -134,10 +134,10 @@ export default function WeightProgressWidget({
                 Live Status
               </span>
               <div
-                className={`${compact ? 'text-3xl' : 'text-4xl'} font-black tabular-nums tracking-tighter text-white`}
+                className={`${compact ? 'text-3xl' : 'text-4xl'} font-black tabular-nums tracking-tighter text-[var(--foreground)]`}
               >
                 {loading ? (
-                  <div className="h-10 w-24 bg-white/5 animate-pulse rounded-lg" />
+                  <div className="h-10 w-24 bg-[var(--surface)] animate-pulse rounded-lg" />
                 ) : currentWeight ? (
                   <span className="flex items-baseline gap-1">
                     {currentWeight}
@@ -175,8 +175,8 @@ export default function WeightProgressWidget({
                   {Math.abs(currentWeight - targetWeight).toFixed(1)} kg
                 </span>
               </div>
-              <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] rounded-full w-1/2 shadow-[0_0_10px_rgba(0,255,136,0.3)] anim-progress" />
+              <div className="h-2.5 w-full bg-[var(--surface-strong)] rounded-full overflow-hidden border border-[var(--card-border)]">
+                <div className="h-full bg-[var(--primary)] rounded-full w-1/2 shadow-[0_0_10px_rgba(118,185,0,0.3)] anim-progress" />
               </div>
             </div>
           )}

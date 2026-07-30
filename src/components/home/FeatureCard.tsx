@@ -18,7 +18,7 @@ export default function FeatureCard({
 }: FeatureCardProps) {
   return (
     <div
-      className="glass-card p-6 relative group overflow-hidden hover:border-[var(--primary)] transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,255,136,0.15)] animate-slide-up bg-gradient-to-br from-[var(--card-bg)] to-[var(--card-bg)]/50"
+      className="glass-card p-6 relative group overflow-hidden hover:border-[var(--primary)] transition-all duration-300 hover:shadow-[0_0_30px_rgba(118,185,0,0.15)] animate-slide-up bg-gradient-to-br from-[var(--card-bg)] to-[var(--card-bg)]/50"
       style={{ animationDelay: `${delay}ms` }}
     >
       {/* Background Glow Effect */}

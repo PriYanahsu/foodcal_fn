@@ -21,7 +21,7 @@ export default function PrivacyPolicy() {
 
         <section className="glass-card p-8 md:p-12 space-y-8 leading-relaxed text-[var(--text-muted)]">
           <div className="space-y-4">
-            <h2 className="text-xl font-bold text-white">1. Introduction</h2>
+            <h2 className="text-xl font-bold text-[var(--foreground)]">1. Introduction</h2>
             <p>
               Welcome to FoodCal. We are committed to protecting your personal information and your
               right to privacy. This Privacy Policy explains how we collect, use, and safeguard your
@@ -30,7 +30,7 @@ export default function PrivacyPolicy() {
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-xl font-bold text-white">2. Data Collection</h2>
+            <h2 className="text-xl font-bold text-[var(--foreground)]">2. Data Collection</h2>
             <p>
               We collect information that you provide directly to us, such as when you create an
               account, log meals, or interact with our AI Coach. This includes:
@@ -44,7 +44,7 @@ export default function PrivacyPolicy() {
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-xl font-bold text-white">3. How We Use Your Data</h2>
+            <h2 className="text-xl font-bold text-[var(--foreground)]">3. How We Use Your Data</h2>
             <p>Your data is primarily used to provide and improve our services, including:</p>
             <ul className="list-disc pl-6 space-y-2">
               <li>Analyzing meal images using Gemini AI</li>
@@ -55,7 +55,7 @@ export default function PrivacyPolicy() {
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-xl font-bold text-white">4. AI Analysis & Processing</h2>
+            <h2 className="text-xl font-bold text-[var(--foreground)]">4. AI Analysis & Processing</h2>
             <p>
               Our platform uses advanced AI models to process meal images. While these images are
               stored securely, anonymous data may be used to improve the accuracy of our nutritional
@@ -64,7 +64,7 @@ export default function PrivacyPolicy() {
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-xl font-bold text-white">5. Security</h2>
+            <h2 className="text-xl font-bold text-[var(--foreground)]">5. Security</h2>
             <p>
               We implement industry-standard security measures to protect your data. However, no
               method of transmission over the internet is 100% secure. We strive to use commercially
@@ -73,7 +73,7 @@ export default function PrivacyPolicy() {
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-xl font-bold text-white">6. Contact Us</h2>
+            <h2 className="text-xl font-bold text-[var(--foreground)]">6. Contact Us</h2>
             <p>
               If you have any questions about this Privacy Policy, please contact us at{' '}
               <span className="text-[var(--primary)]">privacy@krixen-org.com</span>.

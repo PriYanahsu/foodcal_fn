@@ -45,7 +45,7 @@ export function SuccessToast({
                 <CheckCircleIcon className="w-6 h-6" />
               </div>
               <div className="flex-1 min-w-0 pt-0.5">
-                <p className="text-sm font-bold text-white leading-snug">{message}</p>
+                <p className="text-sm font-bold text-[var(--foreground)] leading-snug">{message}</p>
                 {detail && (
                   <p className="text-xs text-[var(--text-muted)] mt-1 leading-relaxed">{detail}</p>
                 )}
@@ -53,7 +53,7 @@ export function SuccessToast({
               <button
                 type="button"
                 onClick={onClose}
-                className="shrink-0 p-1 rounded-lg text-gray-500 hover:text-white hover:bg-white/10 transition-colors"
+                className="shrink-0 p-1 rounded-lg text-[var(--text-muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-strong)] transition-colors"
                 aria-label="Dismiss"
               >
                 <XMarkIcon className="w-4 h-4" />

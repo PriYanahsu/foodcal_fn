@@ -34,19 +34,19 @@ export const CameraOverlay = ({
           type="button"
           onClick={onClose}
           aria-label="Close camera"
-          className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-black/60 text-white backdrop-blur-xl hover:bg-black/80 transition-all border border-white/15 shadow-lg"
+          className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-black/60 text-[var(--foreground)] backdrop-blur-xl hover:bg-black/80 transition-all border border-[var(--card-border)] shadow-lg"
         >
           <XMarkIcon className="w-5 h-5 shrink-0" />
           <span className="text-xs font-black uppercase tracking-widest">Close</span>
         </button>
-        <div className="hidden sm:block text-white text-[10px] font-black uppercase tracking-[0.2em] opacity-40 bg-black/40 px-4 py-2 rounded-full backdrop-blur-xl border border-white/5">
+        <div className="hidden sm:block text-[var(--foreground)] text-[10px] font-black uppercase tracking-[0.2em] opacity-40 bg-black/40 px-4 py-2 rounded-full backdrop-blur-xl border border-[var(--card-border)]">
           AI Camera Active
         </div>
         <button
           type="button"
           onClick={onSwitchCamera}
           aria-label="Switch camera"
-          className="p-3 rounded-2xl bg-black/60 text-white backdrop-blur-xl hover:bg-black/80 transition-all border border-white/15 shadow-lg"
+          className="p-3 rounded-2xl bg-black/60 text-[var(--foreground)] backdrop-blur-xl hover:bg-black/80 transition-all border border-[var(--card-border)] shadow-lg"
           title="Switch Camera"
         >
           <ArrowsRightLeftIcon className="w-6 h-6" />
@@ -55,12 +55,12 @@ export const CameraOverlay = ({
 
       {/* Viewport Area - Fullscreen on Mobile, Very Large on Desktop */}
       <div className="relative w-full h-full flex items-center justify-center bg-neutral-950">
-        <div className="relative w-full h-full md:w-[90vw] md:h-[85vh] md:max-w-6xl md:rounded-[3rem] overflow-hidden bg-neutral-900 shadow-[0_0_100px_rgba(0,0,0,0.8)] md:border md:border-white/10 transition-all duration-500 ease-out">
+        <div className="relative w-full h-full md:w-[90vw] md:h-[85vh] md:max-w-6xl md:rounded-[3rem] overflow-hidden bg-neutral-900 shadow-[0_0_100px_rgba(0,0,0,0.8)] md:border md:border-[var(--card-border)] transition-all duration-500 ease-out">
           <video ref={videoRef} className="w-full h-full object-cover" autoPlay playsInline muted />
 
           {/* Minimal Guidelines */}
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-            <div className="w-64 h-64 md:w-80 md:h-80 border-[0.5px] border-white/20 rounded-[3rem] shadow-[0_0_0_100vmax_rgba(0,0,0,0.3)]" />
+            <div className="w-64 h-64 md:w-80 md:h-80 border-[0.5px] border-[var(--card-border)] rounded-[3rem] shadow-[0_0_0_100vmax_rgba(0,0,0,0.3)]" />
 
             {/* Corner Accents */}
             <div className="absolute w-64 h-64 md:w-80 md:h-80 pointer-events-none">
@@ -78,7 +78,7 @@ export const CameraOverlay = ({
                 <p className="text-red-400 text-sm font-black uppercase tracking-widest">{error}</p>
                 <button
                   onClick={onClose}
-                  className="px-6 py-2 bg-white text-black text-[10px] font-black uppercase rounded-full tracking-widest"
+                  className="px-6 py-2 bg-[var(--btn-primary)] text-black text-[10px] font-black uppercase rounded-full tracking-widest"
                 >
                   Close
                 </button>
@@ -94,7 +94,7 @@ export const CameraOverlay = ({
           <button
             type="button"
             onClick={onClose}
-            className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-white/10 text-white border border-white/15 backdrop-blur-xl hover:bg-white/15 transition-all min-w-[100px] justify-center"
+            className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-[var(--surface-strong)] text-[var(--foreground)] border border-[var(--card-border)] backdrop-blur-xl hover:bg-[var(--surface-strong)] transition-all min-w-[100px] justify-center"
           >
             <XMarkIcon className="w-5 h-5" />
             <span className="text-xs font-bold uppercase tracking-wider">Cancel</span>
@@ -116,7 +116,7 @@ export const CameraOverlay = ({
             type="button"
             onClick={onSwitchCamera}
             aria-label="Switch camera"
-            className="flex items-center justify-center p-3 rounded-2xl bg-white/10 text-white border border-white/15 backdrop-blur-xl hover:bg-white/15 transition-all min-w-[100px]"
+            className="flex items-center justify-center p-3 rounded-2xl bg-[var(--surface-strong)] text-[var(--foreground)] border border-[var(--card-border)] backdrop-blur-xl hover:bg-[var(--surface-strong)] transition-all min-w-[100px]"
             title="Switch Camera"
           >
             <ArrowsRightLeftIcon className="w-6 h-6" />

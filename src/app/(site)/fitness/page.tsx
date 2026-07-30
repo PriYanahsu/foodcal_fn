@@ -65,7 +65,7 @@ function CollapsibleSection({
             <Icon className="w-5 h-5 text-[var(--primary)]" />
           </div>
           <div className="min-w-0">
-            <h3 className="font-bold text-white text-sm truncate">{title}</h3>
+            <h3 className="font-bold text-[var(--foreground)] text-sm truncate">{title}</h3>
             {subtitle && (
               <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider truncate">
                 {subtitle}
@@ -83,7 +83,7 @@ function CollapsibleSection({
           <Icon className="w-5 h-5 text-[var(--primary)]" />
         </div>
         <div>
-          <h3 className="font-bold text-white">{title}</h3>
+          <h3 className="font-bold text-[var(--foreground)]">{title}</h3>
           {subtitle && (
             <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider">
               {subtitle}
@@ -172,7 +172,7 @@ export default function FitnessHub() {
                 <FireIcon className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <p className="font-bold text-white text-xs">
+                <p className="font-bold text-[var(--foreground)] text-xs">
                   Profile Incomplete ({completionPercentage}%)
                 </p>
                 <p className="text-[var(--text-muted)] text-[10px] truncate">
@@ -182,7 +182,7 @@ export default function FitnessHub() {
             </div>
             <button
               onClick={() => setShowReminder(false)}
-              className="text-white/40 hover:text-white transition-colors shrink-0"
+              className="text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors shrink-0"
             >
               <XMarkIcon className="w-4 h-4" />
             </button>
@@ -207,7 +207,7 @@ export default function FitnessHub() {
                 </div>
                 <h1 className="text-2xl lg:text-3xl font-black tracking-tight leading-tight">
                   Fitness{' '}
-                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
+                  <span className="text-[var(--primary)]">
                     Hub
                   </span>
                 </h1>
@@ -234,7 +234,7 @@ export default function FitnessHub() {
                       strokeLinecap="round"
                     />
                   </svg>
-                  <span className="absolute inset-0 flex items-center justify-center text-[10px] lg:text-xs font-black text-white">
+                  <span className="absolute inset-0 flex items-center justify-center text-[10px] lg:text-xs font-black text-[var(--foreground)]">
                     {completionPercentage}%
                   </span>
                 </div>
@@ -259,12 +259,12 @@ export default function FitnessHub() {
               ].map((item) => (
                 <div
                   key={item.label}
-                  className="bg-black/20 rounded-lg px-2 py-1.5 border border-white/5"
+                  className="bg-black/20 rounded-lg px-2 py-1.5 border border-[var(--card-border)]"
                 >
                   <p className="text-[8px] lg:text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-wider truncate">
                     {item.label}
                   </p>
-                  <p className="text-[11px] lg:text-xs font-bold text-white truncate capitalize">
+                  <p className="text-[11px] lg:text-xs font-bold text-[var(--foreground)] truncate capitalize">
                     {item.value}
                   </p>
                 </div>
@@ -280,10 +280,10 @@ export default function FitnessHub() {
               ].map((m) => (
                 <div
                   key={m.label}
-                  className="rounded-lg px-2 py-1.5 border border-white/5 bg-white/[0.03] text-center"
+                  className="rounded-lg px-2 py-1.5 border border-[var(--card-border)] bg-[var(--surface)] text-center"
                 >
                   <p className="text-[8px] text-[var(--text-muted)] font-bold uppercase">{m.label}</p>
-                  <p className="text-xs lg:text-sm font-black text-white tabular-nums">
+                  <p className="text-xs lg:text-sm font-black text-[var(--foreground)] tabular-nums">
                     {m.value ?? '--'}
                     <span className="text-[8px] font-medium text-[var(--text-muted)] ml-0.5">{m.unit}</span>
                   </p>
@@ -292,10 +292,10 @@ export default function FitnessHub() {
             </div>
 
             {profile?.goal ? (
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 border-t border-white/5">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 border-t border-[var(--card-border)]">
                 {weightDelta && (
                   <span className="text-[10px] text-[var(--text-muted)]">
-                    <span className="font-bold text-white">{weightDelta} kg</span> to goal
+                    <span className="font-bold text-[var(--foreground)]">{weightDelta} kg</span> to goal
                   </span>
                 )}
                 {daysLeft !== null && (
@@ -307,7 +307,7 @@ export default function FitnessHub() {
                 {profile?.target_date && (
                   <span className="text-[10px] text-[var(--text-muted)]">
                     Target:{' '}
-                    <span className="font-bold text-white">
+                    <span className="font-bold text-[var(--foreground)]">
                       {new Date(profile.target_date).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
@@ -320,7 +320,7 @@ export default function FitnessHub() {
             ) : !showWizard ? (
               <button
                 onClick={() => setShowWizard(true)}
-                className="w-full btn-primary py-2.5 text-sm font-bold rounded-xl shadow-[0_0_20px_#00ff8833] hover:scale-[1.01] active:scale-[0.99] transition-transform flex items-center justify-center gap-2"
+                className="w-full btn-primary py-2.5 text-sm font-bold rounded-xl shadow-[0_0_20px_#76b90033] hover:scale-[1.01] active:scale-[0.99] transition-transform flex items-center justify-center gap-2"
               >
                 <SparklesIcon className="w-4 h-4" />
                 Start AI Consultation
@@ -343,7 +343,7 @@ export default function FitnessHub() {
               </div>
               <button
                 onClick={() => setShowWizard(false)}
-                className="shrink-0 px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[11px] font-semibold text-[var(--text-muted)] hover:text-white hover:bg-white/10 flex items-center gap-1.5 transition-all"
+                className="shrink-0 px-2.5 py-1.5 rounded-lg bg-[var(--surface)] border border-[var(--card-border)] text-[11px] font-semibold text-[var(--text-muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-strong)] flex items-center gap-1.5 transition-all"
               >
                 <XMarkIcon className="w-4 h-4" />
                 Cancel
@@ -384,7 +384,7 @@ export default function FitnessHub() {
                 {profile?.goal && (
                   <button
                     onClick={() => setShowWizard(true)}
-                    className="hidden lg:inline-flex items-center gap-1.5 btn-primary px-4 py-2 text-xs shadow-[0_0_18px_rgba(0,255,136,0.35)] hover:scale-[1.02] active:scale-[0.98] transition-transform"
+                    className="hidden lg:inline-flex items-center gap-1.5 btn-primary px-4 py-2 text-xs shadow-[0_0_18px_rgba(118,185,0,0.35)] hover:scale-[1.02] active:scale-[0.98] transition-transform"
                   >
                     Modify Plan
                     <ChevronRightIcon className="w-3.5 h-3.5" />
@@ -392,20 +392,20 @@ export default function FitnessHub() {
                 )}
               </div>
 
-              <div className="flex-1 bg-black/20 rounded-xl p-4 lg:p-5 border border-white/5 flex flex-col justify-center min-h-[100px] lg:min-h-0">
-                <p className="text-white text-sm lg:text-base leading-relaxed font-medium italic opacity-90 line-clamp-4 lg:line-clamp-6">
+              <div className="flex-1 bg-black/20 rounded-xl p-4 lg:p-5 border border-[var(--card-border)] flex flex-col justify-center min-h-[100px] lg:min-h-0">
+                <p className="text-[var(--foreground)] text-sm lg:text-base leading-relaxed font-medium italic opacity-90 line-clamp-4 lg:line-clamp-6">
                   &ldquo;{profile?.ai_coach_advice || 'Log more data to unlock expert coaching strategies.'}&rdquo;
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-lg px-3 py-2 bg-white/[0.03] border border-white/5">
+                <div className="rounded-lg px-3 py-2 bg-[var(--surface)] border border-[var(--card-border)]">
                   <p className="text-[8px] text-[var(--text-muted)] font-bold uppercase">Focus</p>
-                  <p className="text-xs font-bold text-white capitalize truncate">
+                  <p className="text-xs font-bold text-[var(--foreground)] capitalize truncate">
                     {profile?.goal?.toLowerCase() || 'Not set'}
                   </p>
                 </div>
-                <div className="rounded-lg px-3 py-2 bg-white/[0.03] border border-white/5">
+                <div className="rounded-lg px-3 py-2 bg-[var(--surface)] border border-[var(--card-border)]">
                   <p className="text-[8px] text-[var(--text-muted)] font-bold uppercase">Coach Status</p>
                   <p className="text-xs font-bold text-[var(--primary)]">
                     {profile?.ai_coach_advice ? 'Active' : 'Awaiting data'}
@@ -416,7 +416,7 @@ export default function FitnessHub() {
               {profile?.goal && (
                 <button
                   onClick={() => setShowWizard(true)}
-                  className="lg:hidden w-full flex items-center justify-center gap-2 btn-primary py-3 text-sm shadow-[0_0_18px_rgba(0,255,136,0.35)] active:scale-[0.98] transition-transform"
+                  className="lg:hidden w-full flex items-center justify-center gap-2 btn-primary py-3 text-sm shadow-[0_0_18px_rgba(118,185,0,0.35)] active:scale-[0.98] transition-transform"
                 >
                   Modify Plan
                   <ChevronRightIcon className="w-4 h-4" />
@@ -490,15 +490,15 @@ export default function FitnessHub() {
                   ].map((item, i) => (
                     <li
                       key={i}
-                      className="flex justify-between items-center py-2 border-b border-white/5 last:border-0 group/stat"
+                      className="flex justify-between items-center py-2 border-b border-[var(--card-border)] last:border-0 group/stat"
                     >
                       <div className="flex items-center gap-2.5">
-                        <div className="p-1 rounded-lg bg-white/5 text-[var(--text-muted)] group-hover/stat:text-[var(--primary)] transition-colors">
+                        <div className="p-1 rounded-lg bg-[var(--surface)] text-[var(--text-muted)] group-hover/stat:text-[var(--primary)] transition-colors">
                           <item.icon className="w-3.5 h-3.5" />
                         </div>
                         <span className="text-[var(--text-muted)] text-xs font-medium">{item.label}</span>
                       </div>
-                      <span className="font-bold text-white text-xs capitalize group-hover/stat:text-[var(--primary)] transition-colors">
+                      <span className="font-bold text-[var(--foreground)] text-xs capitalize group-hover/stat:text-[var(--primary)] transition-colors">
                         {item.value}
                       </span>
                     </li>
@@ -518,7 +518,7 @@ export default function FitnessHub() {
                     <p className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-wider">
                       Goal Completion
                     </p>
-                    <p className="text-xl font-black text-white tabular-nums">
+                    <p className="text-xl font-black text-[var(--foreground)] tabular-nums">
                       {profile?.target_date
                         ? new Date(profile.target_date).toLocaleDateString('en-US', {
                             month: 'short',

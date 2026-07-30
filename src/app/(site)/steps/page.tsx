@@ -72,13 +72,13 @@ export default function StepHistoryPage() {
             <span className="block text-[var(--text-muted)] text-xs uppercase font-black mb-1">
               Daily Average
             </span>
-            <span className="text-2xl font-black text-white">{avgSteps.toLocaleString()}</span>
+            <span className="text-2xl font-black text-[var(--foreground)]">{avgSteps.toLocaleString()}</span>
           </div>
         </div>
       </header>
 
       <section className="glass-card overflow-hidden">
-        <div className="p-4 border-b border-white/10 bg-white/5">
+        <div className="p-4 border-b border-[var(--card-border)] bg-[var(--surface)]">
           <span className="text-sm font-semibold">Recent Activity</span>
         </div>
 
@@ -86,12 +86,12 @@ export default function StepHistoryPage() {
           {loading ? (
             <div className="space-y-3 animate-pulse">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-20 bg-white/5 rounded-2xl" />
+                <div key={i} className="h-20 bg-[var(--surface)] rounded-2xl" />
               ))}
             </div>
           ) : logs.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center text-3xl mb-4">
+              <div className="w-16 h-16 bg-[var(--surface)] rounded-full flex items-center justify-center text-3xl mb-4">
                 👟
               </div>
               <h3 className="text-xl font-bold mb-2">No Step Data Yet</h3>
@@ -110,13 +110,13 @@ export default function StepHistoryPage() {
                   key={log.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white/5 border border-white/10 rounded-2xl p-4 hover:bg-white/10 transition-all"
+                  className="bg-[var(--surface)] border border-[var(--card-border)] rounded-2xl p-4 hover:bg-[var(--surface-strong)] transition-all"
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <CalendarDaysIcon className="w-5 h-5 text-[var(--primary)]" />
                       <div>
-                        <h3 className="font-bold text-white">
+                        <h3 className="font-bold text-[var(--foreground)]">
                           {date.toLocaleDateString('en-US', {
                             weekday: 'long',
                             month: 'short',
@@ -137,9 +137,9 @@ export default function StepHistoryPage() {
                     </span>
                   </div>
 
-                  <div className="w-full bg-white/5 h-2 rounded-full overflow-hidden">
+                  <div className="w-full bg-[var(--surface)] h-2 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] rounded-full transition-all"
+                      className="h-full bg-[var(--primary)] rounded-full transition-all"
                       style={{ width: `${progress}%` }}
                     />
                   </div>

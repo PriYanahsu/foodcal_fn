@@ -97,7 +97,7 @@ export function InstallAppPrompt() {
             initial={{ y: 100, opacity: 0, scale: 0.95 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 100, opacity: 0, scale: 0.95 }}
-            className="bg-[#1a1a1a] border border-white/10 w-full max-w-sm rounded-3xl p-6 pointer-events-auto shadow-2xl relative overflow-hidden"
+            className="bg-[var(--card-bg)] border border-[var(--card-border)] w-full max-w-sm rounded-3xl p-6 pointer-events-auto shadow-2xl relative overflow-hidden"
           >
             {/* Background Splashes */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--primary)]/10 blur-[50px] rounded-full pointer-events-none" />
@@ -105,14 +105,14 @@ export function InstallAppPrompt() {
 
             <button
               onClick={handleDismiss}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+              className="absolute top-4 right-4 text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors"
             >
               <XMarkIcon className="w-6 h-6" />
             </button>
 
             <div className="flex flex-col items-center text-center space-y-4 pt-2">
               {/* Logo */}
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--primary)]/20 to-blue-500/20 flex items-center justify-center mb-1 shadow-lg border border-white/5">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--primary)]/20 to-blue-500/20 flex items-center justify-center mb-1 shadow-lg border border-[var(--card-border)]">
                 {BRAND_ASSETS.logo ? (
                   <img src={BRAND_ASSETS.logo} alt="Logo" className="w-12 h-12 object-contain" />
                 ) : (
@@ -121,7 +121,7 @@ export function InstallAppPrompt() {
               </div>
 
               <div>
-                <h3 className="text-xl font-bold text-white">Install {BRAND_ASSETS.name}</h3>
+                <h3 className="text-xl font-bold text-[var(--foreground)]">Install {BRAND_ASSETS.name}</h3>
                 <p className="text-[var(--text-muted)] text-sm mt-1 leading-relaxed">
                   {isIOS
                     ? "Install our app for the best experience. Tap the share button below and select 'Add to Home Screen'."
@@ -130,13 +130,13 @@ export function InstallAppPrompt() {
               </div>
 
               {isIOS ? (
-                <div className="bg-white/5 rounded-xl p-4 w-full flex items-center justify-between gap-3 border border-white/5 mt-2">
-                  <div className="flex items-center gap-2 text-sm font-medium text-gray-300">
+                <div className="bg-[var(--surface)] rounded-xl p-4 w-full flex items-center justify-between gap-3 border border-[var(--card-border)] mt-2">
+                  <div className="flex items-center gap-2 text-sm font-medium text-[var(--text-muted)]">
                     <ShareIcon className="w-5 h-5 text-blue-400" />
                     <span>Tap Share</span>
                   </div>
                   <span className="opacity-30">→</span>
-                  <div className="flex items-center gap-2 text-sm font-medium text-white">
+                  <div className="flex items-center gap-2 text-sm font-medium text-[var(--foreground)]">
                     <div className="w-6 h-6 bg-gray-200 text-black rounded flex items-center justify-center text-lg font-bold leading-none pb-1">
                       +
                     </div>
@@ -146,7 +146,7 @@ export function InstallAppPrompt() {
               ) : (
                 <button
                   onClick={handleInstallClick}
-                  className="w-full py-3.5 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-black font-bold rounded-xl flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-lg shadow-[var(--primary)]/20"
+                  className="w-full py-3.5 bg-[var(--btn-primary)] hover:bg-[var(--btn-primary-hover)] text-black font-bold rounded-xl flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-lg shadow-[var(--btn-primary)]/20"
                 >
                   <ArrowDownTrayIcon className="w-5 h-5" />
                   <span>{APK_DOWNLOAD_URL ? 'Download APK' : 'Install App'}</span>
