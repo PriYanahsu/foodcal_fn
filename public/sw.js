@@ -1,4 +1,4 @@
-const CACHE_NAME = 'foodcal-v1';
+const CACHE_NAME = 'foodcal-v2';
 const ASSETS_TO_CACHE = ['/', '/manifest.json', '/foodCalLogo.jpeg'];
 
 self.addEventListener('install', (event) => {
@@ -108,18 +108,25 @@ self.addEventListener('push', function (event) {
     return origin + (value.startsWith('/') ? value : '/' + value);
   };
 
+  // Stable tag = dedupe with Realtime local OS banner (same notificationId)
+  const notificationId = notificationData.data?.notificationId;
+  const tag = notificationId
+    ? 'foodcal-' + notificationId
+    : notificationData.title || 'foodcal-push';
+
   // Mobile-optimized notification options
   const options = {
     body: notificationData.body,
     icon: resolveUrl(notificationData.icon),
     badge: resolveUrl(notificationData.badge),
     vibrate: [200, 100, 200, 100, 200],
-    tag: notificationData.title + '-' + Date.now(),
+    tag: tag,
     requireInteraction: false,
     silent: false,
     renotify: true,
     data: {
       url: notificationData.data?.url || origin + '/',
+      notificationId: notificationId || null,
       timestamp: Date.now(),
     },
     actions: [

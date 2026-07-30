@@ -48,9 +48,20 @@ async function deliverPushNotification(
     apiBaseUrl: string | null;
     siteOrigin: string;
     canSendDirect: boolean;
+    notificationId?: string | null;
   }
 ): Promise<{ sent: number; via: string }> {
-  const { userId, title, body, type, suggestion, apiBaseUrl, siteOrigin, canSendDirect } = opts;
+  const {
+    userId,
+    title,
+    body,
+    type,
+    suggestion,
+    apiBaseUrl,
+    siteOrigin,
+    canSendDirect,
+    notificationId,
+  } = opts;
   const icon = `${siteOrigin}/foodCalLogo.jpeg`;
   const badge = icon;
   const payload = JSON.stringify({
@@ -62,6 +73,7 @@ async function deliverPushNotification(
       type,
       suggestion,
       url: `${siteOrigin}/`,
+      notificationId: notificationId || null,
     },
   });
 
@@ -131,7 +143,7 @@ async function deliverPushNotification(
       body,
       icon,
       badge,
-      data: { type, suggestion, url: '/' },
+      data: { type, suggestion, url: '/', notificationId: notificationId || null },
     }),
   });
 
@@ -659,13 +671,17 @@ Deno.serve(async (req) => {
         }
 
         console.log(`User ${profile.id}: Inserting notification record...`);
-        const { error: insertError } = await supabase.from('notifications').insert({
-          user_id: profile.id,
-          title: notification.title,
-          message: notification.message,
-          type: notification.type,
-          suggestion: suggestion || undefined,
-        });
+        const { data: insertedRows, error: insertError } = await supabase
+          .from('notifications')
+          .insert({
+            user_id: profile.id,
+            title: notification.title,
+            message: notification.message,
+            type: notification.type,
+            suggestion: suggestion || undefined,
+          })
+          .select('id')
+          .maybeSingle();
 
         if (insertError) {
           console.error(`CRITICAL: Database insert failed for user ${profile.id}:`, insertError);
@@ -685,6 +701,7 @@ Deno.serve(async (req) => {
               apiBaseUrl,
               siteOrigin,
               canSendDirect,
+              notificationId: insertedRows?.id ?? null,
             });
             console.log(
               `Push for ${profile.id}: sent=${pushResult.sent} via=${pushResult.via}`

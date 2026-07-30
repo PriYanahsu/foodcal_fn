@@ -51,16 +51,19 @@ export default function Dashboard() {
 
   const { stats, recentLogs, loading } = useDailyStats(selectedDate + 'T00:00:00');
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   useEffect(() => {
     async function fetchProfile() {
       if (!user) return;
 
+      setProfileLoading(true);
       const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
 
       if (data) {
         setProfile(data);
       }
+      setProfileLoading(false);
     }
 
     fetchProfile();
@@ -76,6 +79,21 @@ export default function Dashboard() {
     carbs: profile?.daily_carbs_target ?? null,
     fats: profile?.daily_fats_target ?? null,
   };
+
+  // Gate first paint until profile + stats resolve — avoids lock→unlock flash.
+  // Once ready, stay ready so date changes don't remount a full-page spinner.
+  const [initialReady, setInitialReady] = useState(false);
+  useEffect(() => {
+    if (!profileLoading && !loading) setInitialReady(true);
+  }, [profileLoading, loading]);
+
+  if (!initialReady) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)]" />
+      </div>
+    );
+  }
 
   // Date Navigation Handlers
   const handleDateChange = (days: number) => {
