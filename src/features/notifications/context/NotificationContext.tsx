@@ -5,7 +5,6 @@ import { AppNotification, NotificationContextType, NotificationType } from '../t
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
 import { getVapidPublicKey } from '@/lib/vapid-key';
-import { BRAND_ASSETS } from '@/lib/brand-config';
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
@@ -88,30 +87,46 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
           setNotifications((prev) => [newNotif, ...prev]);
 
-          // Tab visible → show local OS banner immediately (Realtime).
-          // Tab hidden/closed → Web Push from edge/cron handles the device popup.
-          // Use a stable tag so a late push for the same notif replaces instead of duplicating.
-          const shouldShowLocalOsNotif =
+          // Device/OS popup via Notification API (works even when tab is backgrounded).
+          // Skip only when tab is hidden AND push subscription exists — Web Push + SW
+          // will show the same notif for closed/background cases (same tag = no dupe).
+          const canShowOs =
             typeof window !== 'undefined' &&
             'Notification' in window &&
-            Notification.permission === 'granted' &&
-            !document.hidden;
+            Notification.permission === 'granted';
 
-          if (shouldShowLocalOsNotif) {
+          const pushWillHandle = document.hidden && hasPushSubscriptionRef.current;
+
+          if (canShowOs && !pushWillHandle) {
+            const origin = window.location.origin;
             const showOptions: NotificationOptions & { renotify?: boolean } = {
               body: newNotif.message,
-              icon: '/foodCalLogo.jpeg',
-              badge: '/foodCalLogo.jpeg',
+              icon: `${origin}/foodCalLogo.jpeg`,
+              badge: `${origin}/foodCalLogo.jpeg`,
               tag: `foodcal-${newNotif.id}`,
               renotify: true,
+              data: { url: `${origin}/`, notificationId: newNotif.id },
             };
 
+            // Prefer SW showNotification — works with backgrounded tabs; page-context
+            // `new Notification()` is unreliable when document.hidden.
             if ('serviceWorker' in navigator) {
-              navigator.serviceWorker.ready.then((registration) => {
-                registration.showNotification(newNotif.title, showOptions);
-              });
+              navigator.serviceWorker.ready
+                .then((registration) => registration.showNotification(newNotif.title, showOptions))
+                .catch((err) => {
+                  console.warn('SW showNotification failed, falling back:', err);
+                  try {
+                    new Notification(newNotif.title, showOptions);
+                  } catch (e) {
+                    console.warn('Fallback Notification failed:', e);
+                  }
+                });
             } else {
-              new Notification(newNotif.title, showOptions);
+              try {
+                new Notification(newNotif.title, showOptions);
+              } catch (e) {
+                console.warn('Notification failed:', e);
+              }
             }
           }
         }
@@ -407,14 +422,20 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           if (response.ok) {
             setHasPushSubscription(true);
             console.log('Push subscription saved successfully');
-            // Show success notification
+            // Confirm with a real device/OS popup (not the in-app toast)
             if (Notification.permission === 'granted') {
-              new Notification('Push Notifications Enabled! 🎉', {
+              const origin = window.location.origin;
+              const opts: NotificationOptions = {
                 body: 'You will now receive notifications even when the app is closed!',
-                icon: BRAND_ASSETS.logo,
-                badge: BRAND_ASSETS.logo,
+                icon: `${origin}/foodCalLogo.jpeg`,
+                badge: `${origin}/foodCalLogo.jpeg`,
                 tag: 'push-enabled',
-              });
+              };
+              try {
+                await registration.showNotification('Push Notifications Enabled! 🎉', opts);
+              } catch {
+                new Notification('Push Notifications Enabled! 🎉', opts);
+              }
             }
           } else {
             const errorData = await response.json().catch(() => ({}));
