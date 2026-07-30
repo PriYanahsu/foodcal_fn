@@ -53,12 +53,12 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 0.4, scale: 1 }}
-          className="w-20 h-20 md:w-28 md:h-28 mb-8 rounded-3xl border-2 border-dashed border-white/20 flex items-center justify-center text-4xl md:text-5xl"
+          className="w-20 h-20 md:w-28 md:h-28 mb-8 rounded-3xl border-2 border-dashed border-[var(--card-border)] flex items-center justify-center text-4xl md:text-5xl"
         >
-          <SparklesIcon className="w-10 h-10 text-white" />
+          <SparklesIcon className="w-10 h-10 text-[var(--foreground)]" />
         </motion.div>
 
-        <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tighter mb-4 text-white">
+        <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tighter mb-4 text-[var(--foreground)]">
           Find Your <span className="text-[var(--primary)]">Exercise</span>
         </h3>
         <p className="max-w-xs text-xs md:text-sm text-[var(--text-muted)] font-medium leading-relaxed">
@@ -80,9 +80,9 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
             exit={{ opacity: 0, scale: 0.95 }}
             className="space-y-8"
           >
-            <div className="flex items-center justify-between border-b border-white/5 pb-6">
+            <div className="flex items-center justify-between border-b border-[var(--card-border)] pb-6">
               <div className="space-y-1">
-                <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight text-white flex items-center gap-3">
+                <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight text-[var(--foreground)] flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-[var(--primary)] shadow-[0_0_8px_var(--primary)]" />
                   {difficulty ? `${difficulty.toUpperCase()} ` : ''}
                   {query.length > 2
@@ -91,7 +91,7 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
                       ? `${selectedMuscle} Exercises`
                       : 'All Exercises'}
                 </h3>
-                <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">
+                <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">
                   {filteredExercises.length} Exercises Found
                 </p>
               </div>
@@ -106,13 +106,13 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
                     onClick={() => setSelectedExercise(ex)}
-                    className="group relative bg-white/[0.03] backdrop-blur-md border border-white/5 hover:border-[var(--primary)]/40 p-5 md:p-6 rounded-[2rem] transition-all flex flex-col gap-4 shadow-2xl overflow-hidden"
+                    className="group relative bg-[var(--surface)] backdrop-blur-md border border-[var(--card-border)] hover:border-[var(--primary)]/40 p-5 md:p-6 rounded-[2rem] transition-all flex flex-col gap-4 shadow-2xl overflow-hidden"
                   >
                     {/* Hover Glow */}
                     <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                     <div className="flex items-start justify-between relative z-10">
-                      <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-[var(--primary)] group-hover:bg-[var(--primary)] group-hover:text-black transition-all duration-300">
+                      <div className="w-12 h-12 rounded-2xl bg-[var(--surface)] border border-[var(--card-border)] flex items-center justify-center text-[var(--primary)] group-hover:bg-[var(--primary)] group-hover:text-black transition-all duration-300">
                         <BoltIcon className="w-6 h-6" />
                       </div>
                       <div className="flex items-center gap-2">
@@ -128,26 +128,26 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
                     </div>
 
                     <div className="relative z-10 space-y-2">
-                      <h4 className="text-lg font-black text-white group-hover:text-[var(--primary)] transition-colors leading-tight uppercase tracking-tight">
+                      <h4 className="text-lg font-black text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors leading-tight uppercase tracking-tight">
                         {ex.name}
                       </h4>
-                      <p className="text-xs text-[var(--text-muted)] line-clamp-2 font-medium leading-relaxed group-hover:text-white/60 transition-colors">
+                      <p className="text-xs text-[var(--text-muted)] line-clamp-2 font-medium leading-relaxed group-hover:text-[var(--foreground)]/60 transition-colors">
                         {ex.description}
                       </p>
                     </div>
 
                     <div className="pt-2 flex items-center justify-between relative z-10 mt-auto">
                       <div className="flex items-center gap-1.5 opacity-40 group-hover:opacity-100 transition-all">
-                        <div className="w-1 h-1 rounded-full bg-white/20" />
+                        <div className="w-1 h-1 rounded-full bg-[var(--surface-strong)]" />
                         <span className="text-[9px] font-black uppercase tracking-widest text-[var(--primary)]">View Details</span>
                       </div>
-                      <ChevronLeftIcon className="w-4 h-4 rotate-180 text-white/20 group-hover:text-[var(--primary)] group-hover:translate-x-1 transition-all" />
+                      <ChevronLeftIcon className="w-4 h-4 rotate-180 text-[var(--text-muted)] group-hover:text-[var(--primary)] group-hover:translate-x-1 transition-all" />
                     </div>
                   </motion.button>
                 ))
               ) : (
-                <div className="col-span-full py-16 text-center bg-white/[0.02] rounded-[3rem] border border-dashed border-white/10">
-                  <p className="text-white/40 italic text-sm md:text-base font-medium">
+                <div className="col-span-full py-16 text-center bg-[var(--surface)] rounded-[3rem] border border-dashed border-[var(--card-border)]">
+                  <p className="text-[var(--text-muted)] italic text-sm md:text-base font-medium">
                     Sector clear. No matching protocols found.
                   </p>
                 </div>
@@ -161,17 +161,17 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, x: -20 }}
-            className="bg-black/40 backdrop-blur-3xl border border-white/10 p-6 md:p-10 rounded-[3rem] shadow-5xl space-y-10 relative overflow-hidden"
+            className="bg-black/40 backdrop-blur-3xl border border-[var(--card-border)] p-6 md:p-10 rounded-[3rem] shadow-5xl space-y-10 relative overflow-hidden"
           >
             {/* Visual HUD Accents */}
             <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-[var(--primary)]/5 blur-[120px] pointer-events-none" />
 
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8 pb-10 border-b border-white/5 relative z-10">
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8 pb-10 border-b border-[var(--card-border)] relative z-10">
               <div className="flex items-center gap-6">
                 <button
                   onClick={() => setSelectedExercise(null)}
-                  className="w-14 h-14 bg-white/5 hover:bg-[var(--primary)] hover:text-black rounded-2xl transition-all text-white border border-white/10 flex items-center justify-center group shrink-0"
+                  className="w-14 h-14 bg-[var(--surface)] hover:bg-[var(--primary)] hover:text-black rounded-2xl transition-all text-[var(--foreground)] border border-[var(--card-border)] flex items-center justify-center group shrink-0"
                 >
                   <ChevronLeftIcon className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
                 </button>
@@ -182,12 +182,12 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
                       }`}>
                       {selectedExercise.difficulty}
                     </span>
-                    <div className="w-1 h-1 rounded-full bg-white/20" />
+                    <div className="w-1 h-1 rounded-full bg-[var(--surface-strong)]" />
                     <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--primary)]">
                       {selectedExercise.muscleGroup}
                     </span>
                   </div>
-                  <h3 className="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter leading-none">
+                  <h3 className="text-3xl md:text-5xl font-black text-[var(--foreground)] uppercase tracking-tighter leading-none">
                     {selectedExercise.name}
                   </h3>
                 </div>
@@ -195,7 +195,7 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
 
               <div className="flex items-center gap-3 px-6 py-3 bg-[var(--primary)]/5 rounded-2xl border border-[var(--primary)]/20 shadow-lg">
                 <SparklesIcon className="w-5 h-5 text-[var(--primary)] animate-pulse" />
-                <span className="text-[10px] font-black text-white tracking-[0.2em] uppercase">
+                <span className="text-[10px] font-black text-[var(--foreground)] tracking-[0.2em] uppercase">
                   Proper Form & Guide
                 </span>
               </div>
@@ -206,18 +206,18 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
               {/* Main Body */}
               <div className="lg:col-span-8 space-y-10">
                 <div className="space-y-4">
-                  <h4 className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-white/30">
-                    <div className="w-6 h-[1px] bg-white/10" /> Description
+                  <h4 className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                    <div className="w-6 h-[1px] bg-[var(--surface-strong)]" /> Description
                   </h4>
-                  <p className="text-lg md:text-xl text-white/80 leading-relaxed font-bold italic font-serif">
+                  <p className="text-lg md:text-xl text-[var(--foreground)] leading-relaxed font-bold italic font-serif">
                     "{selectedExercise.description}"
                   </p>
                 </div>
 
                 {/* Execution Protocol */}
                 <div className="space-y-6">
-                  <h4 className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-white/30">
-                    <div className="w-6 h-[1px] bg-white/10" /> How to perform
+                  <h4 className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                    <div className="w-6 h-[1px] bg-[var(--surface-strong)]" /> How to perform
                   </h4>
                   <div className="grid grid-cols-1 gap-4">
                     {selectedExercise.steps.map((step, idx) => (
@@ -226,12 +226,12 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.1 }}
-                        className="flex gap-6 p-6 rounded-3xl bg-white/[0.03] border border-white/5 items-center group hover:bg-[var(--primary)]/5 hover:border-[var(--primary)]/30 transition-all duration-300"
+                        className="flex gap-6 p-6 rounded-3xl bg-[var(--surface)] border border-[var(--card-border)] items-center group hover:bg-[var(--primary)]/5 hover:border-[var(--primary)]/30 transition-all duration-300"
                       >
-                        <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white/20 font-black text-sm group-hover:bg-[var(--primary)] group-hover:text-black group-hover:border-[var(--primary)] transition-all duration-300">
+                        <div className="w-10 h-10 rounded-2xl bg-[var(--surface)] border border-[var(--card-border)] flex items-center justify-center text-[var(--text-muted)] font-black text-sm group-hover:bg-[var(--primary)] group-hover:text-black group-hover:border-[var(--primary)] transition-all duration-300">
                           0{idx + 1}
                         </div>
-                        <p className="flex-1 text-sm md:text-base text-white/60 font-bold group-hover:text-white transition-colors leading-relaxed">
+                        <p className="flex-1 text-sm md:text-base text-[var(--text-muted)] font-bold group-hover:text-[var(--foreground)] transition-colors leading-relaxed">
                           {step}
                         </p>
                       </motion.div>
@@ -243,7 +243,7 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
               {/* Sidebar Info */}
               <div className="lg:col-span-4 space-y-8">
                 {/* Equipment Hud */}
-                <div className="glass-panel p-8 bg-white/[0.02] border-white/5 space-y-6">
+                <div className="glass-panel p-8 bg-[var(--surface)] border-[var(--card-border)] space-y-6">
                   <h4 className="text-[10px] font-black uppercase tracking-widest text-[var(--primary)] flex items-center gap-2">
                     <BeakerIcon className="w-4 h-4" /> Equipment needed
                   </h4>
@@ -251,7 +251,7 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
                     {selectedExercise.equipment.map((item, i) => (
                       <span
                         key={i}
-                        className="px-4 py-2 bg-white/5 rounded-xl border border-white/10 text-[10px] font-black text-white uppercase tracking-tight hover:bg-[var(--primary)]/10 hover:border-[var(--primary)]/30 transition-all cursor-default"
+                        className="px-4 py-2 bg-[var(--surface)] rounded-xl border border-[var(--card-border)] text-[10px] font-black text-[var(--foreground)] uppercase tracking-tight hover:bg-[var(--primary)]/10 hover:border-[var(--primary)]/30 transition-all cursor-default"
                       >
                         {item}
                       </span>
@@ -263,7 +263,7 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
                 {selectedExercise.tips && selectedExercise.tips.length > 0 && (
                   <div className="p-8 rounded-[2rem] bg-gradient-to-br from-[var(--primary)]/20 to-transparent border border-[var(--primary)]/30 space-y-4 shadow-xl">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-[var(--primary)] rounded-2xl flex items-center justify-center text-black shadow-[0_0_15px_rgba(0,255,136,0.3)]">
+                      <div className="w-10 h-10 bg-[var(--primary)] rounded-2xl flex items-center justify-center text-black shadow-[0_0_15px_rgba(118,185,0,0.3)]">
                         <SparklesIcon className="w-5 h-5" />
                       </div>
                       <p className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest">
@@ -272,7 +272,7 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
                     </div>
                     <ul className="space-y-3">
                       {selectedExercise.tips.map((tip, i) => (
-                        <li key={i} className="text-sm text-white font-bold leading-relaxed flex gap-3">
+                        <li key={i} className="text-sm text-[var(--foreground)] font-bold leading-relaxed flex gap-3">
                           <div className="w-1 h-1 rounded-full bg-[var(--primary)] mt-2 shrink-0" />
                           {tip}
                         </li>
@@ -283,9 +283,9 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
 
                 <button
                   onClick={() => setSelectedExercise(null)}
-                  className="w-full py-5 rounded-3xl bg-white/5 border border-white/10 text-white/40 font-black uppercase text-xs tracking-[0.2em] hover:bg-white/10 hover:border-white/20 hover:text-white transition-all shadow-xl group"
+                  className="w-full py-5 rounded-3xl bg-[var(--surface)] border border-[var(--card-border)] text-[var(--text-muted)] font-black uppercase text-xs tracking-[0.2em] hover:bg-[var(--surface-strong)] hover:border-[var(--card-border)] hover:text-[var(--foreground)] transition-all shadow-xl group"
                 >
-                  Back to <span className="text-white/20 group-hover:text-white/40 transition-colors">Exercises</span>
+                  Back to <span className="text-[var(--text-muted)] group-hover:text-[var(--foreground)]/40 transition-colors">Exercises</span>
                 </button>
               </div>
             </div>

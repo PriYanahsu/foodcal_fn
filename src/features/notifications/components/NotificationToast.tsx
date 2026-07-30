@@ -107,7 +107,7 @@ export const NotificationToast = () => {
                         border backdrop-blur-xl
                         shadow-2xl
                         transition-shadow duration-300
-                        hover:shadow-[0_0_30px_rgba(0,255,136,0.25)]
+                        hover:shadow-[0_0_30px_rgba(118,185,0,0.25)]
                     `}
           >
             {/* Animated background glow */}
@@ -116,24 +116,24 @@ export const NotificationToast = () => {
             {/* Content */}
             <div className="relative p-5 flex gap-4 items-start">
               {/* Icon */}
-              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-black/30 backdrop-blur-sm flex items-center justify-center text-2xl border border-white/10">
+              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-black/30 backdrop-blur-sm flex items-center justify-center text-2xl border border-[var(--card-border)]">
                 {getIcon()}
               </div>
 
               {/* Text Content */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2 mb-1">
-                  <h4 className="font-black text-base text-white leading-tight">
+                  <h4 className="font-black text-base text-[var(--foreground)] leading-tight">
                     {activeNotification.title}
                   </h4>
                   <button
                     onClick={handleDismiss}
-                    className="flex-shrink-0 text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10"
+                    className="flex-shrink-0 text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors p-1 rounded-lg hover:bg-[var(--surface-strong)]"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
                 </div>
-                <p className="text-sm text-gray-200 leading-relaxed mb-2">
+                <p className="text-sm text-[var(--foreground)] leading-relaxed mb-2">
                   {activeNotification.message}
                 </p>
 
@@ -150,7 +150,7 @@ export const NotificationToast = () => {
               initial={{ width: '100%' }}
               animate={{ width: '0%' }}
               transition={{ duration: 6, ease: 'linear' }}
-              className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-[var(--primary)] to-green-400"
+              className="absolute bottom-0 left-0 h-1 bg-[var(--primary)]"
             />
 
             {/* Shine effect */}

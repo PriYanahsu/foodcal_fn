@@ -8,6 +8,7 @@ import { NotificationBell } from '@/features/notifications/components/Notificati
 import { NotificationToast } from '@/features/notifications/components/NotificationToast';
 import { NotificationPrompt } from '@/features/notifications/components/NotificationPrompt';
 import { StepTrackerProvider } from '@/features/activity/context/StepTrackerContext';
+import { ThemeProvider } from '@/features/theme/context/ThemeContext';
 import { BRAND_ASSETS } from '@/lib/brand-config';
 import { isFeatureEnabled } from '@/config/features';
 import { InstallAppPrompt } from './InstallAppPrompt';
@@ -25,11 +26,11 @@ function AppShell({ children }: { children: React.ReactNode }) {
         className={`flex-1 transition-all duration-300 w-full relative ${!isAuthPage ? 'md:ml-64' : ''}`}
       >
         {!isAuthPage && (
-          <div className="md:hidden sticky top-0 z-[80] flex items-center justify-between px-4 py-2.5 bg-[var(--background)] border-b border-white/5">
+          <div className="md:hidden sticky top-0 z-[80] flex items-center justify-between px-4 py-2.5 bg-[var(--background)] border-b border-[var(--card-border)]">
             <div className="flex items-center gap-2.5">
               <button
                 onClick={() => setIsSidebarOpen(true)}
-                className="p-1 rounded-lg hover:bg-white/5 text-[var(--text-muted)]"
+                className="p-1 rounded-lg hover:bg-[var(--surface)] text-[var(--text-muted)]"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -51,7 +52,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
                 alt=""
                 className="w-7 h-7 rounded-lg object-contain"
               />
-              <h1 className="text-lg font-black bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
+              <h1 className="text-lg font-black text-[var(--primary)]">
                 {BRAND_ASSETS.name}
               </h1>
             </div>
@@ -81,14 +82,16 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const shell = <AppShell>{children}</AppShell>;
 
   return (
-    <NotificationProvider>
-      {isFeatureEnabled('steps') ? (
-        <StepTrackerProvider>{shell}</StepTrackerProvider>
-      ) : (
-        shell
-      )}
+    <ThemeProvider>
+      <NotificationProvider>
+        {isFeatureEnabled('steps') ? (
+          <StepTrackerProvider>{shell}</StepTrackerProvider>
+        ) : (
+          shell
+        )}
 
-      <InstallAppPrompt />
-    </NotificationProvider>
+        <InstallAppPrompt />
+      </NotificationProvider>
+    </ThemeProvider>
   );
 }

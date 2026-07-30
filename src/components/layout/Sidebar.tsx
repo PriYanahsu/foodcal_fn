@@ -3,6 +3,10 @@ import { useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTheme } from '@/features/theme/context/ThemeContext';
+import { isFeatureEnabled, type FeatureKey } from '@/config/features';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { BRAND_ASSETS } from '@/lib/brand-config';
 
 // Fallback SVGs if heroicons not available or to reduce deps
 const Icons = {
@@ -166,10 +170,6 @@ const Icons = {
   ),
 };
 
-import { useAuth } from '@/features/auth/hooks/useAuth';
-import { BRAND_ASSETS } from '@/lib/brand-config';
-import { isFeatureEnabled, type FeatureKey } from '@/config/features';
-
 type MenuItem = {
   name: string;
   path: string;
@@ -285,6 +285,7 @@ function SidebarFooter({
 }) {
   const pathname = usePathname();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
   const isSettingsActive = pathname === '/settings' || pathname.startsWith('/settings/');
 
   const settingsLinks = SETTINGS_LINKS.filter(
@@ -292,14 +293,31 @@ function SidebarFooter({
   );
 
   return (
-    <div className="pt-6 border-t border-[var(--card-border)] space-y-1">
+    <div className="pt-6 border-t border-[var(--sidebar-border)] space-y-1">
+      <button
+        type="button"
+        onClick={toggleTheme}
+        className="flex items-center gap-3 px-4 py-3 rounded-xl w-full transition-colors text-[var(--sidebar-muted)] hover:text-[var(--sidebar-fg)] hover:bg-[var(--sidebar-surface)]"
+      >
+        {theme === 'dark' ? (
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+          </svg>
+        ) : (
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
+          </svg>
+        )}
+        <span className="flex-1 text-left">{theme === 'dark' ? 'Light mode' : 'Dark mode'}</span>
+      </button>
+
       <button
         type="button"
         onClick={() => setSettingsOpen((v) => !v)}
         className={`flex items-center gap-3 px-4 py-3 rounded-xl w-full transition-colors ${
           isSettingsActive
-            ? 'text-[var(--primary)] bg-[var(--primary)]/10'
-            : 'text-gray-400 hover:text-white hover:bg-white/5'
+            ? 'text-[var(--btn-primary)] bg-[var(--btn-primary)]/10'
+            : 'text-[var(--sidebar-muted)] hover:text-[var(--sidebar-fg)] hover:bg-[var(--sidebar-surface)]'
         }`}
       >
         <Icons.Settings />
@@ -316,7 +334,7 @@ function SidebarFooter({
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="ml-4 pl-3 border-l border-[var(--card-border)] space-y-0.5 py-1">
+            <div className="ml-4 pl-3 border-l border-[var(--sidebar-border)] space-y-0.5 py-1">
               {settingsLinks.map((item) => (
                 <Link
                   key={item.path + item.name}
@@ -326,8 +344,8 @@ function SidebarFooter({
                     item.danger
                       ? 'text-red-400 hover:bg-red-500/10 hover:text-red-300'
                       : pathname === item.path
-                        ? 'text-white bg-white/5'
-                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        ? 'text-[var(--btn-primary)] bg-[var(--btn-primary)]/10'
+                        : 'text-[var(--sidebar-muted)] hover:text-[var(--sidebar-fg)] hover:bg-[var(--sidebar-surface)]'
                   }`}
                 >
                   {item.name}
@@ -402,7 +420,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm md:hidden"
+              className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm md:hidden"
               onClick={() => setIsOpen(false)}
             />
 
@@ -412,7 +430,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', bounce: 0, duration: 0.3 }}
-              className="fixed inset-y-0 left-0 z-40 w-64 bg-[var(--card-bg)] border-r border-[var(--card-border)] md:hidden"
+              className="fixed inset-y-0 left-0 z-[110] w-64 bg-[var(--sidebar-bg)] border-r border-[var(--sidebar-border)] md:hidden"
             >
               <div className="flex flex-col h-full p-6">
                 <div className="mb-10 flex items-center gap-3">
@@ -421,7 +439,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                     alt={`${BRAND_ASSETS.name} Logo`}
                     className="w-8 h-8 rounded-lg object-contain"
                   />
-                  <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
+                  <h1 className="text-2xl font-bold text-[var(--primary)]">
                     FoodCal
                   </h1>
                 </div>
@@ -440,13 +458,13 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                         {isActive && (
                           <motion.div
                             layoutId="sidebar-active-mobile"
-                            className="absolute inset-0 bg-[var(--primary)] rounded-xl shadow-[0_0_15px_#00ff8833]"
+                            className="absolute inset-0 bg-[var(--btn-primary)] rounded-xl shadow-[0_0_15px_#76b90033]"
                             initial={false}
                             transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                           />
                         )}
                         <span
-                          className={`relative flex items-center gap-3 px-4 py-3 rounded-xl transition-colors duration-200 ${isActive ? 'text-black font-semibold' : 'text-gray-400 hover:text-white'}`}
+                          className={`relative flex items-center gap-3 px-4 py-3 rounded-xl transition-colors duration-200 ${isActive ? 'text-black font-semibold' : 'text-[var(--sidebar-muted)] hover:text-[var(--sidebar-fg)]'}`}
                         >
                           <Icon />
                           <span>{item.name}</span>
@@ -468,7 +486,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
       </AnimatePresence>
 
       {/* Desktop Sidebar (Static) */}
-      <div className="hidden md:block fixed inset-y-0 left-0 z-40 w-64 bg-[var(--card-bg)] border-r border-[var(--card-border)]">
+      <div className="hidden md:block fixed inset-y-0 left-0 z-40 w-64 bg-[var(--sidebar-bg)] border-r border-[var(--sidebar-border)]">
         <div className="flex flex-col h-full p-6">
           <div className="mb-10 flex items-center gap-3">
             <img
@@ -476,7 +494,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
               alt={`${BRAND_ASSETS.name} Logo`}
               className="w-8 h-8 rounded-lg object-contain"
             />
-            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
+            <h1 className="text-2xl font-bold text-[var(--primary)]">
               FoodCal
             </h1>
           </div>
@@ -495,13 +513,13 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                   {isActive && (
                     <motion.div
                       layoutId="sidebar-active"
-                      className="absolute inset-0 bg-[var(--primary)] rounded-xl shadow-[0_0_15px_#00ff8833]"
+                      className="absolute inset-0 bg-[var(--btn-primary)] rounded-xl shadow-[0_0_15px_#76b90033]"
                       initial={false}
                       transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                     />
                   )}
                   <span
-                    className={`relative flex items-center gap-3 px-4 py-3 rounded-xl transition-colors duration-200 ${isActive ? 'text-black font-semibold' : 'text-gray-400 hover:text-white'}`}
+                    className={`relative flex items-center gap-3 px-4 py-3 rounded-xl transition-colors duration-200 ${isActive ? 'text-black font-semibold' : 'text-[var(--sidebar-muted)] hover:text-[var(--sidebar-fg)]'}`}
                   >
                     <Icon />
                     <span>{item.name}</span>

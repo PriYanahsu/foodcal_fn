@@ -13,6 +13,7 @@ import {
 import AvatarUpload from '@/features/userProfile/components/AvatarUpload';
 import { ROUTES } from '@/constants/routes';
 import { StatCard } from '@/components/dashboard/StatCard';
+import { ThemeDatePicker } from '@/components/ui/ThemeDatePicker';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useDailyStats } from '@/features/dashboard/hooks/useDailyStats';
 import { createClient } from '@/lib/supabase/client';
@@ -151,9 +152,9 @@ export default function Dashboard() {
             />
           </motion.div>
           <div className="text-center sm:text-left min-w-0 w-full sm:w-auto sm:flex-1">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white mb-0.5 leading-tight">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-[var(--foreground)] mb-0.5 leading-tight">
               Hello,{' '}
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-blue-400">
+              <span className="inline-block text-[var(--foreground)] px-2.5 py-0.5 rounded-lg bg-[var(--surface)] border border-[var(--card-border)]">
                 {userName}
               </span>
             </h1>
@@ -169,60 +170,26 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-2 gap-2 sm:gap-4 w-full xl:w-auto">
           {/* Custom Date Navigator */}
-          <div className="flex items-center bg-[var(--card-bg)]/50 backdrop-blur-md border border-[var(--card-border)] rounded-xl sm:rounded-2xl p-0.5 sm:p-1 shadow-lg w-full sm:w-auto justify-between sm:justify-start relative z-10 h-10 sm:h-auto">
+          <div className="flex items-center bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl sm:rounded-2xl p-0.5 sm:p-1 shadow-lg w-full sm:w-auto justify-between sm:justify-start relative z-30 h-10 sm:h-auto">
             <button
               onClick={() => handleDateChange(-1)}
-              className="p-1.5 sm:p-3 hover:bg-white/5 rounded-lg sm:rounded-xl transition-colors text-[var(--text-muted)] hover:text-white shrink-0"
+              className="p-1.5 sm:p-3 hover:bg-[var(--surface)] rounded-lg sm:rounded-xl transition-colors text-[var(--text-muted)] hover:text-[var(--foreground)] shrink-0"
             >
               <ChevronLeftIcon className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
-            <div
-              className="px-1.5 sm:px-6 text-center min-w-0 sm:min-w-[140px] relative cursor-pointer group flex-1 sm:flex-none"
-              onClick={() => {
-                // Explicitly show picker for better reliable interaction
-                const input = document.getElementById(
-                  'date-picker-input'
-                ) as HTMLInputElement | null;
-                if (input) {
-                  if ('showPicker' in (input as any)) {
-                    (input as any).showPicker();
-                  } else {
-                    input.click();
-                  }
-                }
-              }}
-            >
-              {/* Hidden Date Trigger */}
-              <input
-                id="date-picker-input"
-                type="date"
+            <div className="flex-1 sm:flex-none">
+              <ThemeDatePicker
                 value={selectedDate}
-                onChange={(e) => {
-                  if (e.target.value) setSelectedDate(e.target.value);
-                }}
-                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-20"
-                style={{ colorScheme: 'dark' }}
+                onChange={setSelectedDate}
+                max={new Date().toLocaleDateString('en-CA')}
               />
-              <span className="text-[9px] sm:text-xs text-[var(--text-muted)] font-bold uppercase tracking-wider block leading-none mb-0.5 group-hover:text-[var(--primary)] transition-colors pointer-events-none">
-                {isToday ? 'Today' : 'Viewing Log'}
-              </span>
-              <span className="text-[11px] sm:text-sm font-bold text-white group-hover:text-[var(--primary)] transition-colors flex items-center justify-center gap-0.5 sm:gap-1 pointer-events-none leading-tight">
-                {mounted
-                  ? new Date(selectedDate + 'T00:00:00').toLocaleDateString(undefined, {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                  })
-                  : '...'}
-                <span className="text-[10px] opacity-50">▼</span>
-              </span>
             </div>
 
             <button
               onClick={() => handleDateChange(1)}
               disabled={isToday}
-              className={`p-1.5 sm:p-3 rounded-lg sm:rounded-xl transition-colors shrink-0 ${isToday ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/5 text-[var(--text-muted)] hover:text-white'}`}
+              className={`p-1.5 sm:p-3 rounded-lg sm:rounded-xl transition-colors shrink-0 ${isToday ? 'opacity-30 cursor-not-allowed' : 'hover:bg-[var(--surface)] text-[var(--text-muted)] hover:text-[var(--foreground)]'}`}
             >
               <ChevronRightIcon className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
@@ -250,7 +217,7 @@ export default function Dashboard() {
           <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-black/40 backdrop-blur-[2px] border border-white/5">
             <div className="flex items-center gap-2 px-4 py-2 bg-[var(--card-bg)] border border-white/10 rounded-xl shadow-lg">
               <LockClosedIcon className="w-4 h-4 text-[var(--primary)]" />
-              <span className="text-sm font-bold text-white">Set up your AI plan to unlock</span>
+              <span className="text-sm font-bold text-[var(--foreground)]">Set up your AI plan to unlock</span>
             </div>
           </div>
         )}
@@ -360,12 +327,11 @@ export default function Dashboard() {
                       >
                         <div className="bg-[var(--card-bg)]/60 hover:bg-[var(--card-bg)] backdrop-blur-md border border-[var(--card-border)] hover:border-[var(--primary)]/30 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between gap-3 sm:gap-5 transition-all group shadow-sm hover:shadow-md">
                           <div className="flex items-center gap-3 sm:gap-5 flex-1 min-w-0">
-                            <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 group-hover:from-[var(--primary)]/10 group-hover:to-[var(--primary)]/5 transition-all flex items-center justify-center text-lg sm:text-2xl border border-white/5 group-hover:border-[var(--primary)]/20 shadow-inner shrink-0">
-                              {/* Dynamic icon could go here if available */}
+                            <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-[var(--surface)] group-hover:bg-[var(--primary)]/10 transition-all flex items-center justify-center text-lg sm:text-2xl border border-[var(--card-border)] group-hover:border-[var(--primary)]/20 shadow-inner shrink-0">
                               🥗
                             </div>
                             <div className="min-w-0 flex-1">
-                              <h3 className="font-bold truncate text-lg group-hover:text-[var(--primary)] transition-colors">
+                              <h3 className="font-bold truncate text-lg text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors">
                                 {log.food_name}
                               </h3>
                               <p className="text-xs font-medium text-[var(--text-muted)] flex items-center gap-2">
@@ -377,13 +343,13 @@ export default function Dashboard() {
                                     })
                                     : ''}
                                 </span>
-                                <span className="w-1 h-1 rounded-full bg-gray-600" />
+                                <span className="w-1 h-1 rounded-full bg-[var(--text-muted)]" />
                                 <span>{Math.round(log.protein)}g Protein</span>
                               </p>
                             </div>
                           </div>
-                          <div className="text-right shrink-0 bg-black/20 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl">
-                            <span className="block font-black text-base sm:text-xl text-white">
+                          <div className="text-right shrink-0 bg-[var(--surface-strong)] border border-[var(--card-border)] px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl">
+                            <span className="block font-black text-base sm:text-xl text-[var(--primary)]">
                               +{Math.round(log.calories)}
                             </span>
                             <span className="text-[9px] sm:text-[10px] uppercase font-bold text-[var(--text-muted)] tracking-wider">
@@ -404,36 +370,36 @@ export default function Dashboard() {
         <motion.div variants={itemVariants} className="space-y-4 sm:space-y-6">
           {/* Fitness Hub Card */}
           <Link href="/fitness" className="block group">
-            <div className="bg-gradient-to-br from-[var(--primary)]/10 to-blue-500/5 backdrop-blur-xl border border-[var(--primary)]/20 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl relative overflow-hidden transition-all hover:scale-[1.02] hover:shadow-[0_0_30px_-10px_rgba(0,255,136,0.3)]">
+            <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl relative overflow-hidden transition-all hover:scale-[1.02] hover:border-[var(--primary)]/40 isolate">
               <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--primary)]/10 blur-[50px] rounded-full pointer-events-none" />
 
-              <div className="flex items-center justify-between mb-6 relative z-10">
+              <div className="flex items-center justify-between mb-6 relative">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-2xl bg-[var(--primary)] text-black flex items-center justify-center shadow-lg shadow-[var(--primary)]/20">
                     <SparklesIcon className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg leading-tight text-white">Fitness Hub</h3>
-                    <p className={`text-[10px] font-bold uppercase tracking-widest ${hasPlan ? 'text-[var(--primary)]' : 'text-gray-500'}`}>
+                    <h3 className="font-bold text-lg leading-tight text-[var(--foreground)]">Fitness Hub</h3>
+                    <p className={`text-[10px] font-bold uppercase tracking-widest ${hasPlan ? 'text-[var(--primary)]' : 'text-[var(--text-muted)]'}`}>
                       {hasPlan ? 'AI Coach Active' : 'No plan yet'}
                     </p>
                   </div>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-                  <ChevronRightIcon className="w-4 h-4 text-white" />
+                <div className="w-8 h-8 rounded-full bg-[var(--surface)] flex items-center justify-center group-hover:bg-[var(--surface-strong)] transition-colors">
+                  <ChevronRightIcon className="w-4 h-4 text-[var(--foreground)]" />
                 </div>
               </div>
 
-              <div className="bg-black/20 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-white/5 mb-3 sm:mb-4 backdrop-blur-sm">
-                <p className="text-xs sm:text-sm text-gray-300 italic leading-relaxed">
+              <div className="bg-[var(--surface)] rounded-lg sm:rounded-xl p-3 sm:p-4 border border-[var(--card-border)] mb-3 sm:mb-4">
+                <p className="text-xs sm:text-sm text-[var(--text-muted)] italic leading-relaxed">
                   "{profile?.ai_coach_advice || 'Log more meals to unlock personalized insights.'}"
                 </p>
               </div>
 
               {profile?.target_weight && (
-                <div className="flex justify-between items-center text-xs font-medium text-gray-400">
+                <div className="flex justify-between items-center text-xs font-medium text-[var(--text-muted)]">
                   <span>Target: {profile.target_weight}kg</span>
-                  <span className="text-white group-hover:underline">View Progress</span>
+                  <span className="text-[var(--foreground)] group-hover:underline group-hover:text-[var(--primary)]">View Progress</span>
                 </div>
               )}
             </div>
@@ -442,36 +408,36 @@ export default function Dashboard() {
           {isFeatureEnabled('steps') && <StepTracker />}
 
           {/* Quick Goals */}
-          <div className="bg-[var(--card-bg)]/40 backdrop-blur-md border border-[var(--card-border)] rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl space-y-4 sm:space-y-6">
-            <h3 className="font-bold text-base sm:text-lg">Daily Habits</h3>
+          <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl space-y-4 sm:space-y-6">
+            <h3 className="font-bold text-base sm:text-lg text-[var(--foreground)]">Daily Habits</h3>
 
             <div className="space-y-4 sm:space-y-5">
               <div className="flex items-center gap-3 sm:gap-4">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-sm sm:text-base text-blue-400 shrink-0 shadow-[0_0_15px_-5px_rgba(59,130,246,0.3)]">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 flex items-center justify-center text-sm sm:text-base shrink-0">
                   🌊
                 </div>
                 <div className="flex-1">
                   <div className="flex justify-between mb-1.5">
-                    <span className="font-bold text-sm">Hydration</span>
-                    <span className="text-xs font-medium text-blue-400">1.5 / 3 L</span>
+                    <span className="font-bold text-sm text-[var(--foreground)]">Hydration</span>
+                    <span className="text-xs font-medium text-[var(--primary)]">1.5 / 3 L</span>
                   </div>
-                  <div className="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
-                    <div className="h-full bg-blue-500 w-1/2 shadow-[0_0_10px_rgba(59,130,246,0.5)] rounded-full"></div>
+                  <div className="w-full bg-[var(--surface-strong)] h-2.5 rounded-full overflow-hidden border border-[var(--card-border)]">
+                    <div className="h-full bg-[var(--primary)] w-1/2 rounded-full" />
                   </div>
                 </div>
               </div>
 
               <div className="flex items-center gap-3 sm:gap-4">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-sm sm:text-base text-purple-400 shrink-0 shadow-[0_0_15px_-5px_rgba(168,85,247,0.3)]">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 flex items-center justify-center text-sm sm:text-base shrink-0">
                   💤
                 </div>
                 <div className="flex-1">
                   <div className="flex justify-between mb-1.5">
-                    <span className="font-bold text-xs sm:text-sm">Sleep</span>
-                    <span className="text-[10px] sm:text-xs font-medium text-purple-400">6 / 8 hrs</span>
+                    <span className="font-bold text-xs sm:text-sm text-[var(--foreground)]">Sleep</span>
+                    <span className="text-[10px] sm:text-xs font-medium text-[var(--primary)]">6 / 8 hrs</span>
                   </div>
-                  <div className="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
-                    <div className="h-full bg-purple-500 w-3/4 shadow-[0_0_10px_rgba(168,85,247,0.5)] rounded-full"></div>
+                  <div className="w-full bg-[var(--surface-strong)] h-2.5 rounded-full overflow-hidden border border-[var(--card-border)]">
+                    <div className="h-full bg-[var(--primary)] w-3/4 rounded-full" />
                   </div>
                 </div>
               </div>

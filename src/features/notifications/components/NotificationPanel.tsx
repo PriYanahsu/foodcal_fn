@@ -40,7 +40,7 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, on
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed z-[55] left-0 right-0 bottom-0 top-14 md:top-0 md:left-64 bg-[#07122a]/75 backdrop-blur-md"
+              className="fixed z-[55] left-0 right-0 bottom-0 top-14 md:top-0 md:left-64 bg-[var(--overlay)] backdrop-blur-md"
               onClick={onClose}
             />
 
@@ -60,12 +60,12 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, on
               "
             >
               {/* Inner shell keeps radius clipped cleanly during scale anim */}
-              <div className="h-full max-h-[min(80vh,560px)] flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-[var(--background)] shadow-2xl">
-                <div className="shrink-0 px-4 py-3.5 border-b border-white/10 bg-[var(--card-bg)]">
+              <div className="h-full max-h-[min(80vh,560px)] flex flex-col overflow-hidden rounded-2xl border border-[var(--card-border)] bg-[var(--background)] shadow-2xl">
+                <div className="shrink-0 px-4 py-3.5 border-b border-[var(--card-border)] bg-[var(--card-bg)]">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <h3 className="font-semibold text-base leading-tight">Notifications</h3>
-                      <p className="text-xs text-gray-400 mt-0.5">
+                      <p className="text-xs text-[var(--text-muted)] mt-0.5">
                         {unreadCount > 0 ? `${unreadCount} unread` : 'You\'re all caught up'}
                       </p>
                     </div>
@@ -77,7 +77,7 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, on
                             type="button"
                             onClick={requestPermission}
                             disabled={isSubscribing || permission === 'denied'}
-                            className="text-[11px] font-semibold bg-[var(--primary)] text-black px-2.5 py-1 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                            className="text-[11px] font-semibold bg-[var(--btn-primary)] text-black px-2.5 py-1 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
                           >
                             {isSubscribing
                               ? 'Enabling...'
@@ -101,7 +101,7 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, on
                           type="button"
                           onClick={requestPermission}
                           disabled={isSubscribing}
-                          className="text-[11px] font-bold bg-[var(--primary)] text-black px-2.5 py-1 rounded-lg disabled:opacity-50"
+                          className="text-[11px] font-bold bg-[var(--btn-primary)] text-black px-2.5 py-1 rounded-lg disabled:opacity-50"
                         >
                           {isSubscribing ? 'Fixing...' : 'Fix Push'}
                         </button>
@@ -147,11 +147,11 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, on
                         exit={{ opacity: 0 }}
                         className="py-12 px-4 text-center"
                       >
-                        <div className="mx-auto w-12 h-12 rounded-xl bg-[var(--card-bg)] ring-1 ring-white/10 flex items-center justify-center mb-3">
-                          <BellIcon className="w-5 h-5 text-gray-500" />
+                        <div className="mx-auto w-12 h-12 rounded-xl bg-[var(--card-bg)] ring-1 ring-[var(--card-border)] flex items-center justify-center mb-3">
+                          <BellIcon className="w-5 h-5 text-[var(--text-muted)]" />
                         </div>
-                        <h4 className="font-medium text-sm text-gray-300">No new notifications</h4>
-                        <p className="text-xs text-gray-500 max-w-[200px] mx-auto mt-1 leading-relaxed">
+                        <h4 className="font-medium text-sm text-[var(--text-muted)]">No new notifications</h4>
+                        <p className="text-xs text-[var(--text-muted)] max-w-[200px] mx-auto mt-1 leading-relaxed">
                           Check the full page for your history.
                         </p>
                       </motion.div>
@@ -159,13 +159,13 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, on
                   </AnimatePresence>
                 </div>
 
-                <div className="shrink-0 p-3 border-t border-white/10 bg-[var(--card-bg)] flex flex-col gap-2">
+                <div className="shrink-0 p-3 border-t border-[var(--card-border)] bg-[var(--card-bg)] flex flex-col gap-2">
                   {permission === 'granted' && hasPushSubscription && (
                     <button
                       type="button"
                       onClick={() => sendTestPush()}
                       disabled={isSubscribing}
-                      className="text-xs bg-[var(--background)] hover:bg-white/10 text-white font-semibold py-2 px-3 rounded-xl border border-white/10 transition-colors flex items-center justify-center gap-2"
+                      className="text-xs bg-[var(--background)] hover:bg-[var(--surface-strong)] text-[var(--foreground)] font-semibold py-2 px-3 rounded-xl border border-[var(--card-border)] transition-colors flex items-center justify-center gap-2"
                     >
                       <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
                       Send Test Push

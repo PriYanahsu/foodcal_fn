@@ -20,11 +20,11 @@ export const Button: React.FC<ButtonProps> = ({
 
   const variantStyles = {
     primary:
-      'bg-[var(--primary)] text-black font-bold hover:bg-[var(--primary-hover)] focus:ring-[var(--primary)] shadow-[0_0_15px_#00ff884d] hover:shadow-[0_0_20px_#00ff8866] hover:scale-[1.02]',
+      'bg-[var(--btn-primary)] text-black font-bold hover:bg-[var(--btn-primary-hover)] focus:ring-[var(--btn-primary)] shadow-[0_0_15px_#76b9004d] hover:shadow-[0_0_20px_#76b90066] hover:scale-[1.02]',
     secondary:
-      'bg-[var(--secondary)] text-white hover:bg-[#a020f0] focus:ring-[var(--secondary)] shadow-[0_0_15px_#bd34fe4d]',
+      'bg-[var(--btn-primary)] text-black font-bold hover:bg-[var(--btn-primary-hover)] focus:ring-[var(--btn-primary)] shadow-[0_0_15px_#76b9004d] hover:shadow-[0_0_20px_#76b90066] hover:scale-[1.02]',
     outline:
-      'border border-[var(--card-border)] text-[var(--foreground)] hover:border-[var(--primary)] hover:text-[var(--primary)] bg-transparent',
+      'bg-[var(--btn-primary)] text-black font-bold border border-[var(--btn-primary)] hover:bg-[var(--btn-primary-hover)] focus:ring-[var(--btn-primary)] shadow-[0_0_15px_#76b9004d] hover:scale-[1.02]',
   };
 
   const sizeStyles = {

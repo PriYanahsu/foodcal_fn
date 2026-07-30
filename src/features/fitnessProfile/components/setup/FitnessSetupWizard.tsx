@@ -238,7 +238,7 @@ export default function FitnessSetupWizard({
   };
 
   const inputClass =
-    'w-full bg-white/5 border border-white/10 px-3 py-2 sm:py-2.5 rounded-xl text-sm focus:border-[var(--primary)] outline-none';
+    'w-full bg-[var(--surface)] border border-[var(--card-border)] px-3 py-2 sm:py-2.5 rounded-xl text-sm focus:border-[var(--primary)] outline-none';
   const labelClass =
     'block text-[10px] font-medium mb-1 text-[var(--text-muted)] uppercase tracking-wider';
 
@@ -252,14 +252,14 @@ export default function FitnessSetupWizard({
         <button
           type="button"
           onClick={onCancel}
-          className="absolute top-3 right-3 z-10 p-1.5 text-[var(--text-muted)] hover:text-white hover:bg-white/10 rounded-full transition-all"
+          className="absolute top-3 right-3 z-10 p-1.5 text-[var(--text-muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-strong)] rounded-full transition-all"
           title="Cancel Consultation"
         >
           <XMarkIcon className="w-5 h-5" />
         </button>
       )}
 
-      <div className="h-1 w-full bg-white/5">
+      <div className="h-1 w-full bg-[var(--surface)]">
         <div
           className="h-full bg-[var(--primary)] transition-all duration-500"
           style={{ width: `${(step / 4) * 100}%` }}
@@ -280,7 +280,7 @@ export default function FitnessSetupWizard({
             </div>
 
             {prefillLoading ? (
-              <div className="h-28 rounded-xl bg-white/5 animate-pulse" />
+              <div className="h-28 rounded-xl bg-[var(--surface)] animate-pulse" />
             ) : (
               <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
                 <div className="col-span-2">
@@ -293,8 +293,8 @@ export default function FitnessSetupWizard({
                         onClick={() => setStats({ ...stats, gender: g })}
                         className={`flex-1 py-2 sm:py-2.5 rounded-xl border-2 text-sm transition-all ${
                           stats.gender === g
-                            ? 'border-[var(--primary)] bg-[var(--primary)]/10 text-white'
-                            : 'border-white/10 text-[var(--text-muted)] hover:border-white/30'
+                            ? 'border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--foreground)]'
+                            : 'border-[var(--card-border)] text-[var(--text-muted)] hover:border-[var(--card-border)]'
                         }`}
                       >
                         {g}
@@ -358,8 +358,8 @@ export default function FitnessSetupWizard({
                         onClick={() => setStats({ ...stats, activity_level: level })}
                         className={`py-2 px-2 text-[11px] sm:text-xs rounded-xl border-2 transition-all text-left ${
                           stats.activity_level === level
-                            ? 'border-[var(--primary)] bg-[var(--primary)]/10 text-white'
-                            : 'border-white/10 text-[var(--text-muted)] hover:border-white/30'
+                            ? 'border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--foreground)]'
+                            : 'border-[var(--card-border)] text-[var(--text-muted)] hover:border-[var(--card-border)]'
                         }`}
                       >
                         {level}
@@ -416,10 +416,10 @@ export default function FitnessSetupWizard({
                         }
                         className={`py-2 sm:py-2.5 px-1 text-[11px] sm:text-xs rounded-xl border-2 transition-all leading-tight ${
                           selected
-                            ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-white'
+                            ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--foreground)]'
                             : allowed
-                              ? 'border-white/10 text-[var(--text-muted)] hover:border-white/30'
-                              : 'border-white/5 text-white/20 cursor-not-allowed opacity-40'
+                              ? 'border-[var(--card-border)] text-[var(--text-muted)] hover:border-[var(--card-border)]'
+                              : 'border-[var(--card-border)] text-[var(--text-muted)] cursor-not-allowed opacity-40'
                         }`}
                       >
                         {o}
@@ -491,25 +491,25 @@ export default function FitnessSetupWizard({
               <p className="text-[var(--text-muted)] text-xs max-w-sm mx-auto">
                 Analyzing your stats & goals to build a plan that fits your body.
               </p>
-              <div className="text-left max-w-sm mx-auto rounded-xl border border-white/10 bg-white/[0.03] p-3 space-y-2">
-                <p className="text-[11px] font-semibold text-white">What you&apos;ll get on your dashboard:</p>
+              <div className="text-left max-w-sm mx-auto rounded-xl border border-[var(--card-border)] bg-[var(--surface)] p-3 space-y-2">
+                <p className="text-[11px] font-semibold text-[var(--foreground)]">What you&apos;ll get on your dashboard:</p>
                 <ul className="space-y-1.5 text-[11px] text-[var(--text-muted)] leading-relaxed">
                   <li className="flex gap-2">
                     <span className="text-[var(--primary)] shrink-0">•</span>
                     <span>
-                      <span className="text-white font-medium">Daily calorie target</span> — how much energy to eat for your goal
+                      <span className="text-[var(--foreground)] font-medium">Daily calorie target</span> — how much energy to eat for your goal
                     </span>
                   </li>
                   <li className="flex gap-2">
                     <span className="text-[var(--primary)] shrink-0">•</span>
                     <span>
-                      <span className="text-white font-medium">Protein, carbs &amp; fats</span> — macro targets to hit each day
+                      <span className="text-[var(--foreground)] font-medium">Protein, carbs &amp; fats</span> — macro targets to hit each day
                     </span>
                   </li>
                   <li className="flex gap-2">
                     <span className="text-[var(--primary)] shrink-0">•</span>
                     <span>
-                      <span className="text-white font-medium">Coach advice</span> — short tips tailored to your plan
+                      <span className="text-[var(--foreground)] font-medium">Coach advice</span> — short tips tailored to your plan
                     </span>
                   </li>
                   <li className="flex gap-2">
@@ -526,7 +526,7 @@ export default function FitnessSetupWizard({
                 type="button"
                 onClick={handleConsultAI}
                 disabled={loading}
-                className="btn-primary py-2.5 sm:py-3 text-sm sm:text-base shadow-[0_0_20px_rgba(0,255,136,0.35)] disabled:opacity-50"
+                className="btn-primary py-2.5 sm:py-3 text-sm sm:text-base shadow-[0_0_20px_rgba(118,185,0,0.35)] disabled:opacity-50"
               >
                 {loading ? 'Analyzing...' : 'Begin Consultation'}
               </button>
@@ -534,7 +534,7 @@ export default function FitnessSetupWizard({
                 <button
                   type="button"
                   onClick={prevStep}
-                  className="text-[var(--text-muted)] hover:text-white transition-colors text-xs py-1"
+                  className="text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors text-xs py-1"
                 >
                   Go Back and Edit Goals
                 </button>
@@ -564,7 +564,7 @@ export default function FitnessSetupWizard({
                 )}
                 {aiResult.status === 'approved' ? 'Your Plan is Ready!' : 'Reality Check Required'}
               </h3>
-              <p className="text-gray-300 text-xs leading-relaxed italic">
+              <p className="text-[var(--text-muted)] text-xs leading-relaxed italic">
                 &ldquo;{aiResult.reasoning}&rdquo;
               </p>
             </div>
@@ -572,25 +572,25 @@ export default function FitnessSetupWizard({
             {aiResult.status === 'approved' ? (
               <>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <div className="bg-white/5 p-2.5 rounded-xl border border-white/10 text-center">
+                  <div className="bg-[var(--surface)] p-2.5 rounded-xl border border-[var(--card-border)] text-center">
                     <span className="block text-[var(--primary)] text-lg font-bold">
                       {aiResult.targets.calories}
                     </span>
                     <span className="text-[var(--text-muted)] text-[10px] uppercase">Calories</span>
                   </div>
-                  <div className="bg-white/5 p-2.5 rounded-xl border border-white/10 text-center">
+                  <div className="bg-[var(--surface)] p-2.5 rounded-xl border border-[var(--card-border)] text-center">
                     <span className="block text-red-400 text-lg font-bold">
                       {aiResult.targets.protein}g
                     </span>
                     <span className="text-[var(--text-muted)] text-[10px] uppercase">Protein</span>
                   </div>
-                  <div className="bg-white/5 p-2.5 rounded-xl border border-white/10 text-center">
+                  <div className="bg-[var(--surface)] p-2.5 rounded-xl border border-[var(--card-border)] text-center">
                     <span className="block text-blue-400 text-lg font-bold">
                       {aiResult.targets.carbs}g
                     </span>
                     <span className="text-[var(--text-muted)] text-[10px] uppercase">Carbs</span>
                   </div>
-                  <div className="bg-white/5 p-2.5 rounded-xl border border-white/10 text-center">
+                  <div className="bg-[var(--surface)] p-2.5 rounded-xl border border-[var(--card-border)] text-center">
                     <span className="block text-purple-400 text-lg font-bold">
                       {aiResult.targets.fats}g
                     </span>
@@ -602,7 +602,7 @@ export default function FitnessSetupWizard({
                   <h4 className="font-bold text-[var(--primary)] mb-1 flex items-center gap-1.5 text-xs">
                     <SparklesIcon className="w-3.5 h-3.5" /> Elite Coach Advice
                   </h4>
-                  <p className="text-xs text-gray-300 leading-relaxed">{aiResult.advice}</p>
+                  <p className="text-xs text-[var(--text-muted)] leading-relaxed">{aiResult.advice}</p>
                 </div>
 
                 <div className="flex flex-col-reverse sm:flex-row gap-2">
@@ -625,7 +625,7 @@ export default function FitnessSetupWizard({
               </>
             ) : (
               <div className="space-y-3 text-center">
-                <p className="text-xs sm:text-sm text-gray-300">
+                <p className="text-xs sm:text-sm text-[var(--text-muted)]">
                   Your AI coach suggests modifying your target date or weight for a healthier plan.
                 </p>
                 <button

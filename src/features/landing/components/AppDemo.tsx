@@ -300,18 +300,18 @@ const FeatureModal: React.FC<{
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="bg-[#111111] border border-white/10 rounded-3xl max-w-2xl w-full shadow-2xl relative my-8 text-left overflow-hidden"
+                className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-3xl max-w-2xl w-full shadow-2xl relative my-8 text-left overflow-hidden"
               >
                 {/* Close Button */}
                 <button
                   onClick={onClose}
-                  className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-white/60 hover:text-white z-20"
+                  className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 rounded-xl bg-[var(--surface)] hover:bg-[var(--surface-strong)] transition-colors text-[var(--text-muted)] hover:text-[var(--foreground)] z-20"
                 >
                   <XMarkIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                 </button>
 
                 {/* Header */}
-                <div className="p-6 sm:p-8 border-b border-white/5 bg-white/[0.02]">
+                <div className="p-6 sm:p-8 border-b border-[var(--card-border)] bg-[var(--surface)]">
                   <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-6 text-center sm:text-left">
                     <div
                       className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br ${feature.color} p-3 shadow-2xl flex items-center justify-center text-white flex-shrink-0`}
@@ -319,7 +319,7 @@ const FeatureModal: React.FC<{
                       <Icon className="w-8 h-8 sm:w-10 sm:h-10" />
                     </div>
                     <div className="flex-1">
-                      <h2 className="text-2xl sm:text-3xl font-black text-white mb-2 sm:mb-3">
+                      <h2 className="text-2xl sm:text-3xl font-black text-[var(--foreground)] mb-2 sm:mb-3">
                         {feature.title}
                       </h2>
                       <p className="text-[var(--text-muted)] text-base sm:text-lg leading-relaxed">
@@ -333,13 +333,13 @@ const FeatureModal: React.FC<{
                 <div className="p-6 sm:p-8 space-y-8 max-h-[60vh] overflow-y-auto custom-scrollbar">
                   {/* How It Works */}
                   <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    <h3 className="text-lg sm:text-xl font-bold text-[var(--foreground)] mb-4 flex items-center gap-2">
                       <span className="text-2xl">⚙️</span>
                       How It Works
                     </h3>
                     <ol className="space-y-3">
                       {feature.fullExplanation.howItWorks.map((step, index) => (
-                        <li key={index} className="flex gap-3 text-gray-300 text-sm sm:text-base">
+                        <li key={index} className="flex gap-3 text-[var(--text-muted)] text-sm sm:text-base">
                           <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--primary)]/20 text-[var(--primary)] text-sm font-bold flex items-center justify-center">
                             {index + 1}
                           </span>
@@ -351,13 +351,13 @@ const FeatureModal: React.FC<{
 
                   {/* Benefits */}
                   <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    <h3 className="text-lg sm:text-xl font-bold text-[var(--foreground)] mb-4 flex items-center gap-2">
                       <span className="text-2xl">✨</span>
                       Key Benefits
                     </h3>
                     <ul className="space-y-3">
                       {feature.fullExplanation.benefits.map((benefit, index) => (
-                        <li key={index} className="flex gap-3 text-gray-300 text-sm sm:text-base">
+                        <li key={index} className="flex gap-3 text-[var(--text-muted)] text-sm sm:text-base">
                           <span className="text-[var(--primary)] flex-shrink-0 mt-1">✓</span>
                           <span className="leading-relaxed">{benefit}</span>
                         </li>
@@ -367,10 +367,10 @@ const FeatureModal: React.FC<{
                 </div>
 
                 {/* Footer */}
-                <div className="p-5 sm:p-6 border-t border-white/5 bg-white/5">
+                <div className="p-5 sm:p-6 border-t border-[var(--card-border)] bg-[var(--surface)]">
                   <button
                     onClick={onClose}
-                    className="w-full py-3 px-6 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-black font-bold rounded-xl transition-all active:scale-95"
+                    className="w-full py-3 px-6 bg-[var(--btn-primary)] hover:bg-[var(--btn-primary-hover)] text-black font-bold rounded-xl transition-all active:scale-95"
                   >
                     Got it!
                   </button>
@@ -399,7 +399,7 @@ export const FeatureCard: React.FC<{ step: DemoStep; index: number }> = ({
         viewport={{ once: true }}
         transition={{ delay: index * 0.08 }}
         onClick={() => setIsModalOpen(true)}
-        className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-[var(--primary)]/30 transition-all duration-500 relative overflow-hidden cursor-pointer hover:scale-[1.02]"
+        className="group p-6 rounded-2xl bg-[var(--card-bg)] border border-[var(--card-border)] hover:border-[var(--primary)]/40 transition-all duration-500 relative overflow-hidden cursor-pointer hover:scale-[1.02] shadow-sm hover:shadow-md"
       >
         <div
           className={`absolute -top-12 -right-12 w-24 h-24 bg-gradient-to-br ${step.color} opacity-0 group-hover:opacity-10 blur-[40px] transition-opacity duration-500`}
@@ -413,8 +413,8 @@ export const FeatureCard: React.FC<{ step: DemoStep; index: number }> = ({
           </div>
 
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-              <span className="text-[var(--primary)] text-xs font-mono opacity-50">
+            <h3 className="text-lg font-bold text-[var(--foreground)] mb-2 flex items-center gap-2">
+              <span className="text-[var(--primary)] text-xs font-mono font-black">
                 0{index + 1}
               </span>
               {step.title}
@@ -453,11 +453,11 @@ export const AppDemo: React.FC = () => {
         viewport={{ once: true }}
         className="text-center mb-20"
       >
-        <div className="inline-block px-4 py-1.5 mb-6 rounded-full bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] text-xs font-bold uppercase tracking-widest">
+        <div className="inline-block px-4 py-1.5 mb-6 rounded-full bg-[var(--primary)]/10 border border-[var(--primary)]/25 text-[var(--primary)] text-xs font-bold uppercase tracking-widest">
           Complete Feature Walkthrough
         </div>
-        <h2 className="text-4xl sm:text-6xl font-black mb-6 bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] via-white to-[var(--secondary)]">
-          How {BRAND_ASSETS.name} Works
+        <h2 className="text-4xl sm:text-6xl font-black mb-6 text-[var(--foreground)]">
+          How <span className="text-[var(--primary)]">{BRAND_ASSETS.name}</span> Works
         </h2>
         <p className="text-[var(--text-muted)] text-xl max-w-3xl mx-auto leading-relaxed">
           Click any feature to learn exactly how it works and why it will transform your nutrition
@@ -476,13 +476,13 @@ export const AppDemo: React.FC = () => {
         initial={{ opacity: 0, scale: 0.95 }}
         whileInView={{ opacity: 1, scale: 1 }}
         viewport={{ once: true }}
-        className="mt-24 p-0.5 rounded-[3rem] bg-gradient-to-r from-[var(--primary)]/30 via-white/5 to-[var(--secondary)]/30 shadow-2xl"
+        className="mt-24 p-0.5 rounded-[3rem] bg-gradient-to-r from-[var(--primary)]/40 via-[var(--card-border)] to-[var(--primary)]/20 shadow-xl"
       >
-        <div className="bg-black/60 backdrop-blur-2xl p-10 sm:p-20 rounded-[2.9rem] flex flex-col items-center text-center">
-          <div className="w-20 h-20 mb-8 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center">
+        <div className="bg-[var(--card-bg)] border border-[var(--card-border)] p-10 sm:p-20 rounded-[2.9rem] flex flex-col items-center text-center">
+          <div className="w-20 h-20 mb-8 rounded-3xl bg-[var(--surface)] border border-[var(--card-border)] flex items-center justify-center">
             <img src={BRAND_ASSETS.logo} alt="" className="w-12 h-12 object-contain" />
           </div>
-          <h3 className="text-3xl sm:text-5xl font-black text-white mb-6">
+          <h3 className="text-3xl sm:text-5xl font-black text-[var(--foreground)] mb-6">
             Ready to transform your health?
           </h3>
           <p className="text-lg text-[var(--text-muted)] mb-10 max-w-xl">
@@ -490,7 +490,7 @@ export const AppDemo: React.FC = () => {
           </p>
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="px-10 py-5 bg-white text-black font-black text-lg rounded-2xl hover:bg-[var(--primary)] transition-all transform hover:scale-105 active:scale-95 shadow-[0_20px_50px_rgba(255,255,255,0.1)]"
+            className="px-10 py-5 bg-[var(--btn-primary)] text-black font-black text-lg rounded-2xl hover:bg-[var(--btn-primary-hover)] transition-all transform hover:scale-105 active:scale-95 shadow-[0_20px_50px_rgba(118,185,0,0.25)]"
           >
             Get Started Today
           </button>

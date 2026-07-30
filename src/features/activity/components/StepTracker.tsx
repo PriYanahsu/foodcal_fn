@@ -82,11 +82,11 @@ export const StepTracker: React.FC = () => {
       <div className="flex flex-col gap-4 sm:gap-6">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] border border-[var(--primary)]/20 shadow-[0_0_15px_rgba(0,255,136,0.1)] shrink-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] border border-[var(--primary)]/20 shadow-[0_0_15px_rgba(118,185,0,0.1)] shrink-0">
               <FootprintsIcon className={`w-5 h-5 sm:w-6 sm:h-6 ${isTracking ? 'animate-pulse' : ''}`} />
             </div>
             <div className="min-w-0">
-              <h3 className="font-black text-white text-base sm:text-lg tracking-tight">Daily Steps</h3>
+              <h3 className="font-black text-[var(--foreground)] text-base sm:text-lg tracking-tight">Daily Steps</h3>
               <p className="text-[var(--text-muted)] text-[10px] uppercase font-bold tracking-widest">
                 Activity Tracker
               </p>
@@ -96,7 +96,7 @@ export const StepTracker: React.FC = () => {
           {!isTracking ? (
             <button
               onClick={requestPermission}
-              className="btn-primary py-2 px-4 rounded-xl text-xs flex items-center gap-2 shadow-[0_0_15px_rgba(0,255,136,0.3)]"
+              className="btn-primary py-2 px-4 rounded-xl text-xs flex items-center gap-2 shadow-[0_0_15px_rgba(118,185,0,0.3)]"
             >
               <PlayIcon className="w-3 h-3 fill-current" />
               Start Tracking
@@ -123,7 +123,7 @@ export const StepTracker: React.FC = () => {
 
         <div className="relative pt-4">
           <div className="flex justify-between items-end mb-2">
-            <span className="text-2xl sm:text-4xl font-black text-white tabular-nums tracking-tighter">
+            <span className="text-2xl sm:text-4xl font-black text-[var(--foreground)] tabular-nums tracking-tighter">
               {steps.toLocaleString()}
             </span>
             {isEditingGoal ? (
@@ -142,7 +142,7 @@ export const StepTracker: React.FC = () => {
                         setTempGoal(stepGoal);
                       }
                     }}
-                    className="w-28 px-3 py-2 text-base font-bold bg-white/10 border border-[var(--primary)]/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-inner disabled:opacity-50"
+                    className="w-28 px-3 py-2 text-base font-bold bg-[var(--surface-strong)] border border-[var(--primary)]/50 rounded-xl text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-inner disabled:opacity-50"
                   />
                   <span className="text-[10px] text-[var(--text-muted)] absolute -top-4 right-0 font-bold uppercase tracking-wider bg-black/40 px-1.5 py-0.5 rounded backdrop-blur-sm">
                     Set Goal
@@ -152,7 +152,7 @@ export const StepTracker: React.FC = () => {
                 <button
                   onClick={saveStepGoal}
                   disabled={isSaving}
-                  className="w-10 h-10 rounded-xl bg-[var(--primary)] text-black flex items-center justify-center active:scale-95 transition-all shadow-[0_0_15px_rgba(0,255,136,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-10 h-10 rounded-xl bg-[var(--btn-primary)] text-black flex items-center justify-center active:scale-95 transition-all shadow-[0_0_15px_rgba(118,185,0,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Save Goal"
                 >
                   {isSaving ? (
@@ -198,7 +198,7 @@ export const StepTracker: React.FC = () => {
                     setTempGoal(stepGoal);
                   }}
                   disabled={isSaving}
-                  className="w-10 h-10 rounded-xl bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white flex items-center justify-center active:scale-95 transition-all disabled:opacity-50"
+                  className="w-10 h-10 rounded-xl bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)] hover:text-[var(--foreground)] flex items-center justify-center active:scale-95 transition-all disabled:opacity-50"
                   title="Cancel"
                 >
                   <svg
@@ -219,16 +219,16 @@ export const StepTracker: React.FC = () => {
             ) : (
               <button
                 onClick={() => setIsEditingGoal(true)}
-                className="group flex flex-col items-end p-2 -mr-2 rounded-xl hover:bg-white/5 active:bg-white/10 transition-colors"
+                className="group flex flex-col items-end p-2 -mr-2 rounded-xl hover:bg-[var(--surface)] active:bg-[var(--surface-strong)] transition-colors"
               >
                 <span className="text-[var(--text-muted)] text-[10px] uppercase font-bold tracking-wider group-hover:text-[var(--primary)] transition-colors mb-0.5">
                   Goal Target
                 </span>
-                <div className="flex items-center gap-2 text-white/80 group-hover:text-white transition-colors">
+                <div className="flex items-center gap-2 text-[var(--foreground)] group-hover:text-[var(--foreground)] transition-colors">
                   <span className="text-xl font-bold tabular-nums">
                     {stepGoal.toLocaleString()}
                   </span>
-                  <div className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-[var(--primary)] group-hover:text-black transition-all">
+                  <div className="w-6 h-6 rounded-full bg-[var(--surface)] flex items-center justify-center group-hover:bg-[var(--primary)] group-hover:text-black transition-all">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 24 24"
@@ -249,38 +249,38 @@ export const StepTracker: React.FC = () => {
           </div>
 
           {/* Progress Bar Container */}
-          <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 p-[2px]">
+          <div className="h-3 w-full bg-[var(--surface)] rounded-full overflow-hidden border border-[var(--card-border)] p-[2px]">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
               transition={{ type: 'spring', stiffness: 50, damping: 20 }}
-              className="h-full bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] rounded-full shadow-[0_0_10px_rgba(0,255,136,0.5)]"
+              className="h-full bg-[var(--primary)] rounded-full shadow-[0_0_10px_rgba(118,185,0,0.5)]"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white/5 p-3 rounded-2xl border border-white/5">
+          <div className="bg-[var(--surface)] p-3 rounded-2xl border border-[var(--card-border)]">
             <span className="block text-[var(--text-muted)] text-[10px] uppercase font-black mb-1">
               Distance
             </span>
-            <span className="text-white font-bold">
-              {distance.toFixed(2)} <small className="text-gray-500 font-normal">km</small>
+            <span className="text-[var(--foreground)] font-bold">
+              {distance.toFixed(2)} <small className="text-[var(--text-muted)] font-normal">km</small>
             </span>
           </div>
-          <div className="bg-white/5 p-3 rounded-2xl border border-white/5">
+          <div className="bg-[var(--surface)] p-3 rounded-2xl border border-[var(--card-border)]">
             <span className="block text-[var(--text-muted)] text-[10px] uppercase font-black mb-1">
               Burned
             </span>
-            <span className="text-white font-bold">
-              {calories.toFixed(0)} <small className="text-gray-500 font-normal">kcal</small>
+            <span className="text-[var(--foreground)] font-bold">
+              {calories.toFixed(0)} <small className="text-[var(--text-muted)] font-normal">kcal</small>
             </span>
           </div>
         </div>
 
-        <div className="pt-2 border-t border-white/5 flex items-center justify-center gap-2">
+        <div className="pt-2 border-t border-[var(--card-border)] flex items-center justify-center gap-2">
           <div className="h-1 w-1 bg-[var(--primary)] rounded-full animate-ping" />
-          <span className="text-[9px] text-gray-500 uppercase tracking-widest font-black">
+          <span className="text-[9px] text-[var(--text-muted)] uppercase tracking-widest font-black">
             {isTracking ? 'Smart tracking active' : 'Tracking paused'}
           </span>
         </div>

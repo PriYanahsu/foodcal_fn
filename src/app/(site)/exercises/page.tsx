@@ -29,12 +29,12 @@ export default function ExercisesPage() {
       <header className="relative space-y-8 mb-16 animate-fade-in">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8">
           <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] text-[10px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(0,255,136,0.1)]">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] text-[10px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(118,185,0,0.1)]">
               <SparklesIcon className="w-3.5 h-3.5" /> Exercise Library
             </div>
             <div>
-              <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-white uppercase leading-[0.9]">
-                EXERCISE <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">DIRECTORY</span>
+              <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-[var(--foreground)] uppercase leading-[0.9]">
+                EXERCISE <span className="text-[var(--primary)]">DIRECTORY</span>
               </h1>
               <p className="text-xs md:text-sm font-bold text-[var(--text-muted)] mt-4 uppercase tracking-[0.3em] opacity-60">
                 Select a muscle to find the best exercises for your workout
@@ -66,16 +66,16 @@ export default function ExercisesPage() {
                 placeholder="Search exercises..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 focus:border-[var(--primary)]/50 focus:bg-white/[0.08] text-white text-sm py-4 pl-14 pr-6 rounded-2xl outline-none transition-all shadow-2xl placeholder:opacity-20 font-bold"
+                className="w-full bg-[var(--surface)] border border-[var(--card-border)] focus:border-[var(--primary)]/50 focus:bg-[var(--surface-strong)] text-[var(--foreground)] text-sm py-4 pl-14 pr-6 rounded-2xl outline-none transition-all shadow-2xl placeholder:opacity-20 font-bold"
               />
             </div>
           </div>
         </div>
 
         {/* Tactical Filters */}
-        <div className="flex flex-wrap items-center gap-4 bg-white/5 backdrop-blur-md border border-white/10 p-2 rounded-2xl w-fit">
-          <div className="flex items-center gap-2 px-3 border-r border-white/10 mr-1">
-            <span className="text-[10px] font-black uppercase tracking-widest text-white/30">
+        <div className="flex flex-wrap items-center gap-4 bg-[var(--surface)] backdrop-blur-md border border-[var(--card-border)] p-2 rounded-2xl w-fit">
+          <div className="flex items-center gap-2 px-3 border-r border-[var(--card-border)] mr-1">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">
               Difficulty:
             </span>
           </div>
@@ -85,8 +85,8 @@ export default function ExercisesPage() {
                 key={level}
                 onClick={() => setSelectedDifficulty(selectedDifficulty === level ? null : level)}
                 className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all relative overflow-hidden group ${selectedDifficulty === level
-                  ? 'border-[var(--primary)] text-[var(--primary)] bg-[var(--primary)]/10 shadow-[0_0_20px_rgba(0,255,136,0.1)]'
-                  : 'border-white/5 text-[var(--text-muted)] hover:border-white/20 hover:text-white hover:bg-white/5'
+                  ? 'border-[var(--primary)] text-[var(--primary)] bg-[var(--primary)]/10 shadow-[0_0_20px_rgba(118,185,0,0.1)]'
+                  : 'border-[var(--card-border)] text-[var(--text-muted)] hover:border-[var(--card-border)] hover:text-[var(--foreground)] hover:bg-[var(--surface)]'
                   }`}
               >
                 {level}
@@ -121,7 +121,7 @@ export default function ExercisesPage() {
             <div className="absolute -top-6 -left-6 w-12 h-12 border-t-2 border-l-2 border-[var(--primary)]/20 rounded-tl-3xl group-hover:border-[var(--primary)] transition-colors duration-500" />
             <div className="absolute -bottom-6 -right-6 w-12 h-12 border-b-2 border-r-2 border-[var(--primary)]/20 rounded-br-3xl group-hover:border-[var(--primary)] transition-colors duration-500" />
 
-            <div className="glass-panel p-8 md:p-10 relative bg-black/40 border-white/5 shadow-3xl mb-12">
+            <div className="glass-panel p-8 md:p-10 relative bg-black/40 border-[var(--card-border)] shadow-3xl mb-12">
               <MuscleMap
                 onSelectMuscle={handleMuscleSelect}
                 selectedMuscle={selectedMuscle}

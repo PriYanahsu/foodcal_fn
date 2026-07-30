@@ -54,7 +54,7 @@ export default function HeroSection() {
             style={{ animationDelay: '0.1s' }}
           >
             Eat Smarter. <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
+            <span className="text-[var(--primary)]">
               Live Better.
             </span>
           </h1>
@@ -72,13 +72,13 @@ export default function HeroSection() {
             style={{ animationDelay: '0.3s' }}
           >
             <Link href={ROUTES.SCAN}>
-              <button className="btn-primary w-full sm:w-auto text-lg px-8 py-4 shadow-[0_0_30px_rgba(0,255,136,0.3)] hover:shadow-[0_0_50px_rgba(0,255,136,0.5)]">
+              <button className="btn-primary w-full sm:w-auto text-lg px-8 py-4 shadow-[0_0_30px_rgba(118,185,0,0.3)] hover:shadow-[0_0_50px_rgba(118,185,0,0.5)]">
                 Start Tracking Now
               </button>
             </Link>
             <Link href={ROUTES.LOGIN || '/login'}>
               {/* Fallback route if dashboard isn't clear */}
-              <button className="btn-secondary w-full sm:w-auto text-lg px-8 py-4 bg-transparent border-[var(--card-border)] hover:bg-white/5">
+              <button className="btn-secondary w-full sm:w-auto text-lg px-8 py-4">
                 View Dashboard
               </button>
             </Link>

@@ -318,14 +318,14 @@ export const MuscleMap: React.FC<MuscleMapProps> = ({
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-3xl border border-[var(--primary)]/30 p-1 rounded-full z-50 pointer-events-none shadow-5xl w-32 h-32 md:w-40 md:h-40 flex flex-col items-center justify-center text-center ring-4 ring-white/5"
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-3xl border border-[var(--primary)]/30 p-1 rounded-full z-50 pointer-events-none shadow-5xl w-32 h-32 md:w-40 md:h-40 flex flex-col items-center justify-center text-center ring-4 ring-[var(--card-border)]"
             >
               <div className="space-y-1">
                 <p className="text-[10px] font-black uppercase tracking-widest text-[var(--primary)] leading-none">
                   Selected
                 </p>
-                <div className="h-[1px] w-8 bg-white/20 mx-auto my-2" />
-                <p className="text-xs md:text-sm font-black text-white uppercase tracking-tighter">
+                <div className="h-[1px] w-8 bg-[var(--surface-strong)] mx-auto my-2" />
+                <p className="text-xs md:text-sm font-black text-[var(--foreground)] uppercase tracking-tighter">
                   {hoveredMuscle || selectedMuscle}
                 </p>
                 <div className="mt-2 flex items-center justify-center gap-1">
@@ -341,7 +341,7 @@ export const MuscleMap: React.FC<MuscleMapProps> = ({
 
       {/* Interactive Muscle Dock (Bottom) */}
       <div className="absolute inset-x-0 -bottom-12 flex justify-center h-16">
-        <div className="flex items-center gap-1.5 px-4 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-x-auto max-w-[90%] custom-scrollbar">
+        <div className="flex items-center gap-1.5 px-4 bg-[var(--surface)] backdrop-blur-xl border border-[var(--card-border)] rounded-2xl shadow-2xl overflow-x-auto max-w-[90%] custom-scrollbar">
           {muscles.map((m) => (
             <button
               key={m.id}
@@ -350,7 +350,7 @@ export const MuscleMap: React.FC<MuscleMapProps> = ({
               onClick={() => handleSelect(m.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all whitespace-nowrap group relative ${selectedMuscle === m.id
                 ? 'bg-[var(--primary)]/20 text-[var(--primary)] font-bold'
-                : 'text-white/40 hover:text-white hover:bg-white/5'
+                : 'text-[var(--text-muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface)]'
                 }`}
             >
               <span className="text-[10px] font-black uppercase tracking-tight">{m.name.split(' (')[0]}</span>

@@ -10,7 +10,7 @@ export default function Footer() {
           {/* Brand Section */}
           <div className="md:col-span-2 space-y-6">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[var(--primary)] to-[var(--secondary)] flex items-center justify-center shadow-lg shadow-[var(--primary)]/20 rotate-3 group-hover:rotate-6 transition-transform">
+              <div className="w-10 h-10 rounded-xl bg-[var(--primary)] flex items-center justify-center shadow-lg shadow-[var(--primary)]/20 rotate-3 group-hover:rotate-6 transition-transform">
                 <SparklesIcon className="w-6 h-6 text-black" />
               </div>
               <span className="text-2xl font-black tracking-tighter uppercase italic">
@@ -25,7 +25,7 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div className="space-y-6">
-            <h4 className="text-xs font-black uppercase tracking-widest text-white">Quick Links</h4>
+            <h4 className="text-xs font-black uppercase tracking-widest text-[var(--foreground)]">Quick Links</h4>
             <ul className="space-y-4">
               <li>
                 <Link
@@ -64,7 +64,7 @@ export default function Footer() {
 
           {/* Company */}
           <div className="space-y-6">
-            <h4 className="text-xs font-black uppercase tracking-widest text-white">Legal</h4>
+            <h4 className="text-xs font-black uppercase tracking-widest text-[var(--foreground)]">Legal</h4>
             <ul className="space-y-4">
               <li>
                 <Link
@@ -87,7 +87,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="pt-8 border-t border-[var(--card-border)] flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-[0.2em]">
             &copy; {new Date().getFullYear()} KRIXEN-ORG. Powered by Gemini AI.
           </p>

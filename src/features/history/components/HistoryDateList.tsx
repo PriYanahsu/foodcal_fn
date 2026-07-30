@@ -117,7 +117,7 @@ export default function HistoryDateList() {
         <header className="relative py-6 px-5 rounded-2xl lg:rounded-3xl overflow-hidden bg-gradient-to-br from-[var(--primary)]/10 via-transparent to-transparent border border-[var(--card-border)] shadow-xl">
           <h1 className="text-2xl lg:text-3xl font-black tracking-tight">
             Meal{' '}
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
+            <span className="text-[var(--primary)]">
               History
             </span>
           </h1>
@@ -128,7 +128,7 @@ export default function HistoryDateList() {
           <p className="text-[var(--text-muted)] font-medium">No meal history yet.</p>
           <Link
             href="/scan"
-            className="inline-flex mt-4 btn-primary px-5 py-2 text-sm shadow-[0_0_15px_#00ff8822]"
+            className="inline-flex mt-4 btn-primary px-5 py-2 text-sm shadow-[0_0_15px_#76b90022]"
           >
             Scan your first meal
           </Link>
@@ -152,7 +152,7 @@ export default function HistoryDateList() {
             </div>
             <h1 className="text-2xl lg:text-3xl font-black tracking-tight leading-tight">
               Meal{' '}
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
+              <span className="text-[var(--primary)]">
                 History
               </span>
             </h1>
@@ -232,7 +232,7 @@ export default function HistoryDateList() {
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-sm lg:text-base text-white truncate">
+                        <h3 className="font-bold text-sm lg:text-base text-[var(--foreground)] truncate">
                           {new Date(day.date + 'T12:00:00').toLocaleDateString(undefined, {
                             weekday: 'short',
                             month: 'short',
@@ -279,9 +279,9 @@ export default function HistoryDateList() {
                       {progress}%
                     </span>
                   </div>
-                  <div className="h-1 w-full bg-black/40 rounded-full overflow-hidden border border-white/5">
+                  <div className="h-2.5 w-full bg-[var(--surface-strong)] rounded-full overflow-hidden border border-[var(--card-border)]">
                     <div
-                      className={`h-full rounded-full transition-all ${progress > 100 ? 'bg-orange-400' : 'bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]'}`}
+                      className={`h-full rounded-full transition-all ${progress > 100 ? 'bg-orange-400' : 'bg-[var(--primary)]'}`}
                       style={{ width: `${Math.min(progress, 100)}%` }}
                     />
                   </div>

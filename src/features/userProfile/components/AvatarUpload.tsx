@@ -67,12 +67,12 @@ export default function AvatarUpload({
         <img
           src={avatarUrl}
           alt="Avatar"
-          className={`${isEditing ? 'border-4 border-white' : 'border-[var(--card-border)]'} rounded-full object-cover shadow-lg`}
+          className={`${isEditing ? 'border-4 border-[var(--foreground)]' : 'border-[var(--card-border)]'} rounded-full object-cover shadow-lg`}
           style={{ height: size, width: size, maxWidth: '100%' }}
         />
       ) : (
         <div
-          className="rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] flex items-center justify-center text-white font-bold border-4 border-[var(--background)] shadow-lg"
+          className="rounded-full bg-[var(--primary)] flex items-center justify-center text-black font-bold border-4 border-[var(--background)] shadow-lg"
           style={{ height: size, width: size, fontSize: size * 0.4, maxWidth: '100%' }}
         >
           ?
@@ -88,7 +88,7 @@ export default function AvatarUpload({
             {uploading ? (
               <div className="animate-spin h-3.5 w-3.5 border-2 border-[var(--primary)] border-t-transparent rounded-full" />
             ) : (
-              <CameraIcon className="h-3.5 w-3.5 text-gray-300" />
+              <CameraIcon className="h-3.5 w-3.5 text-[var(--text-muted)]" />
             )}
           </label>
         </div>

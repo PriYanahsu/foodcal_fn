@@ -58,7 +58,7 @@ export const FoodScanPage: React.FC = () => {
   return (
     <div className="page-container relative flex flex-col items-center animate-fade-in pb-28 md:pb-10">
       {/* Ambient AI glow */}
-      <div className="pointer-events-none absolute inset-x-0 -top-10 h-64 bg-[radial-gradient(ellipse_at_center,rgba(0,255,136,0.12),transparent_70%)]" />
+      <div className="pointer-events-none absolute inset-x-0 -top-10 h-64 bg-[radial-gradient(ellipse_at_center,rgba(118,185,0,0.12),transparent_70%)]" />
 
       {!preview && (
         <motion.div
@@ -66,16 +66,14 @@ export const FoodScanPage: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           className="relative z-10 text-center space-y-4 mb-8 w-full max-w-lg"
         >
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] text-[10px] font-black uppercase tracking-[0.22em] border border-[var(--primary)]/25 shadow-[0_0_24px_rgba(0,255,136,0.12)]">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] text-[10px] font-black uppercase tracking-[0.22em] border border-[var(--primary)]/25">
             <CpuChipIcon className="w-3.5 h-3.5" />
             AI Food Vision
           </div>
-          <h1 className="text-3xl md:text-4xl font-black tracking-tighter leading-none">
+          <h1 className="text-3xl md:text-4xl font-black tracking-tighter leading-none text-[var(--foreground)]">
             Scan. Predict.
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--primary)] to-emerald-200">
-              Know your macros.
-            </span>
+            <span className="text-[var(--primary)]">Know your macros.</span>
           </h1>
           <p className="text-[var(--text-muted)] text-sm md:text-base font-medium max-w-md mx-auto leading-relaxed">
             Point at any meal — AI identifies ingredients, portions, and calories in seconds.
@@ -93,29 +91,29 @@ export const FoodScanPage: React.FC = () => {
                 <button
                   onClick={openCamera}
                   disabled={isLoading}
-                  className="w-full aspect-[4/3] rounded-[2rem] border border-[var(--primary)]/20 bg-[#0a0f14] flex flex-col items-center justify-center p-4 text-center relative overflow-hidden group transition-all active:scale-[0.985] outline-none shadow-[0_0_0_1px_rgba(0,255,136,0.06),0_25px_80px_-20px_rgba(0,0,0,0.8)]"
+                  className="w-full aspect-[4/3] rounded-[2rem] border border-[var(--card-border)] bg-[var(--card-bg)] flex flex-col items-center justify-center p-4 text-center relative overflow-hidden group transition-all active:scale-[0.985] outline-none shadow-xl hover:border-[var(--primary)]/40"
                 >
                   {/* Idle scan atmosphere */}
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(0,255,136,0.08),transparent_55%)]" />
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(118,185,0,0.08),transparent_55%)]" />
                   <div
                     className="absolute inset-0 opacity-30"
                     style={{
                       backgroundImage:
-                        'linear-gradient(to right, rgba(0,255,136,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,255,136,0.06) 1px, transparent 1px)',
+                        'linear-gradient(to right, rgba(118,185,0,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(118,185,0,0.06) 1px, transparent 1px)',
                       backgroundSize: '32px 32px',
                     }}
                   />
                   <div className="scan-beam opacity-60" />
 
                   {/* Reticle corners */}
-                  <div className="absolute top-5 left-5 w-9 h-9 border-t-2 border-l-2 border-[var(--primary)]/70 rounded-tl-xl" />
-                  <div className="absolute top-5 right-5 w-9 h-9 border-t-2 border-r-2 border-[var(--primary)]/70 rounded-tr-xl" />
-                  <div className="absolute bottom-5 left-5 w-9 h-9 border-b-2 border-l-2 border-[var(--primary)]/70 rounded-bl-xl" />
-                  <div className="absolute bottom-5 right-5 w-9 h-9 border-b-2 border-r-2 border-[var(--primary)]/70 rounded-br-xl" />
+                  <div className="absolute top-5 left-5 w-9 h-9 border-t-2 border-l-2 border-[var(--primary)] rounded-tl-xl" />
+                  <div className="absolute top-5 right-5 w-9 h-9 border-t-2 border-r-2 border-[var(--primary)] rounded-tr-xl" />
+                  <div className="absolute bottom-5 left-5 w-9 h-9 border-b-2 border-l-2 border-[var(--primary)] rounded-bl-xl" />
+                  <div className="absolute bottom-5 right-5 w-9 h-9 border-b-2 border-r-2 border-[var(--primary)] rounded-br-xl" />
 
-                  <div className="absolute top-5 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/50 border border-white/10 backdrop-blur-sm">
+                  <div className="absolute top-5 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--surface-strong)] border border-[var(--card-border)] backdrop-blur-sm">
                     <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] animate-pulse" />
-                    <span className="text-[9px] font-black uppercase tracking-[0.18em] text-white/70">
+                    <span className="text-[9px] font-black uppercase tracking-[0.18em] text-[var(--foreground)]">
                       Ready
                     </span>
                   </div>
@@ -128,7 +126,7 @@ export const FoodScanPage: React.FC = () => {
                       </div>
                     </div>
                     <div className="space-y-1.5">
-                      <p className="font-black text-xl tracking-tight">Open AI Camera</p>
+                      <p className="font-black text-xl tracking-tight text-[var(--foreground)]">Open AI Camera</p>
                       <p className="text-[var(--text-muted)] text-xs font-medium">
                         Center your plate inside the frame
                       </p>
@@ -144,10 +142,10 @@ export const FoodScanPage: React.FC = () => {
                   ].map(({ icon: Icon, label }) => (
                     <div
                       key={label}
-                      className="rounded-2xl border border-white/8 bg-white/[0.03] py-3 px-2 flex flex-col items-center gap-1.5"
+                      className="rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] py-3 px-2 flex flex-col items-center gap-1.5 shadow-sm"
                     >
                       <Icon className="w-4 h-4 text-[var(--primary)]" />
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--foreground)]">
                         {label}
                       </span>
                     </div>
@@ -158,7 +156,7 @@ export const FoodScanPage: React.FC = () => {
                   <button
                     onClick={openUpload}
                     disabled={isLoading}
-                    className="flex-1 py-4 px-5 rounded-2xl bg-white/5 border border-white/10 text-sm font-bold tracking-tight hover:bg-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-2"
+                    className="flex-1 py-4 px-5 rounded-2xl bg-[var(--btn-primary)] text-black text-sm font-bold tracking-tight hover:bg-[var(--btn-primary-hover)] transition-all flex items-center justify-center gap-2"
                   >
                     <PhotoIcon className="w-4 h-4 opacity-70" />
                     Gallery
@@ -166,7 +164,7 @@ export const FoodScanPage: React.FC = () => {
                   <button
                     onClick={openCamera}
                     disabled={isLoading}
-                    className="flex-[1.3] py-4 px-5 rounded-2xl bg-[var(--primary)] text-black text-sm font-black tracking-tight shadow-[0_0_28px_rgba(0,255,136,0.25)] hover:shadow-[0_0_40px_rgba(0,255,136,0.4)] transition-all flex items-center justify-center gap-2"
+                    className="flex-[1.3] py-4 px-5 rounded-2xl bg-[var(--btn-primary)] text-black text-sm font-black tracking-tight shadow-[0_0_28px_rgba(118,185,0,0.25)] hover:shadow-[0_0_40px_rgba(118,185,0,0.4)] transition-all flex items-center justify-center gap-2"
                   >
                     <CameraIcon className="w-4 h-4" />
                     Capture
@@ -202,7 +200,7 @@ export const FoodScanPage: React.FC = () => {
               {!isLoading && (
                 <button
                   onClick={handleReset}
-                  className="shrink-0 text-[11px] font-bold uppercase tracking-widest text-[var(--text-muted)] hover:text-white transition-colors"
+                  className="shrink-0 text-[11px] font-bold uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors"
                 >
                   Reset
                 </button>
@@ -212,7 +210,7 @@ export const FoodScanPage: React.FC = () => {
             <div className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 lg:gap-8 md:items-stretch">
                 {/* Preview / analysis viewport */}
-                <div className="relative w-full aspect-square rounded-[2rem] overflow-hidden border border-[var(--primary)]/20 bg-[#0a0f14] shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_30px_80px_-30px_rgba(0,0,0,0.9)] ring-1 ring-white/5">
+                <div className="relative w-full aspect-square rounded-[2rem] overflow-hidden border border-[var(--card-border)] bg-[var(--card-bg)] shadow-xl ring-1 ring-[var(--card-border)]">
                   <img
                     src={preview}
                     alt="Meal preview"
@@ -223,17 +221,17 @@ export const FoodScanPage: React.FC = () => {
                   {!isLoading && !nutritionData && (
                     <>
                       <div className="absolute inset-0 pointer-events-none">
-                        <div className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-white/40 rounded-tl-lg" />
-                        <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-white/40 rounded-tr-lg" />
-                        <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-white/40 rounded-bl-lg" />
-                        <div className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-white/40 rounded-br-lg" />
+                        <div className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-[var(--card-border)] rounded-tl-lg" />
+                        <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-[var(--card-border)] rounded-tr-lg" />
+                        <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-[var(--card-border)] rounded-bl-lg" />
+                        <div className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-[var(--card-border)] rounded-br-lg" />
                       </div>
                       <button
                         onClick={() => {
                           setPreview(null);
                           setSelectedFile(null);
                         }}
-                        className="absolute top-4 right-4 z-20 p-2.5 rounded-xl bg-black/65 text-white backdrop-blur-xl hover:bg-black/80 transition-colors border border-white/15"
+                        className="absolute top-4 right-4 z-20 p-2.5 rounded-xl bg-[var(--card-bg)] text-[var(--foreground)] backdrop-blur-xl hover:bg-[var(--surface-strong)] transition-colors border border-[var(--card-border)] shadow-md"
                       >
                         <XMarkIcon className="w-5 h-5" />
                       </button>
@@ -242,9 +240,9 @@ export const FoodScanPage: React.FC = () => {
 
                   {nutritionData && (
                     <div className="absolute bottom-4 left-4 right-4 z-20">
-                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/70 border border-[var(--primary)]/40 backdrop-blur-md">
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--card-bg)] border border-[var(--primary)]/40 backdrop-blur-md shadow-md">
                         <SparklesIcon className="w-3.5 h-3.5 text-[var(--primary)]" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-white">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[var(--foreground)]">
                           {nutritionData.food_name}
                         </span>
                       </div>
@@ -255,7 +253,7 @@ export const FoodScanPage: React.FC = () => {
                 {/* Side panel — analyzing / prompt / result */}
                 <div className="flex flex-col w-full md:h-full md:min-h-0">
                   {isLoading && (
-                    <div className="hidden md:flex flex-col justify-center gap-4 rounded-3xl border border-white/10 bg-white/[0.03] p-6 h-full min-h-0">
+                    <div className="hidden md:flex flex-col justify-center gap-4 rounded-3xl border border-[var(--card-border)] bg-[var(--surface)] p-6 h-full min-h-0">
                       <div className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--primary)]">
                         <span className="relative flex h-2 w-2">
                           <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--primary)] opacity-75 animate-ping" />
@@ -281,7 +279,7 @@ export const FoodScanPage: React.FC = () => {
                   )}
 
                   {!nutritionData && !isLoading && (
-                    <div className="flex flex-col h-full min-h-[280px] md:min-h-0 rounded-3xl border border-white/10 bg-white/[0.03] p-4 md:p-5">
+                    <div className="flex flex-col h-full min-h-[280px] md:min-h-0 rounded-3xl border border-[var(--card-border)] bg-[var(--surface)] p-4 md:p-5">
                       <div className="flex justify-between items-center shrink-0">
                         <label
                           htmlFor="prompt"
@@ -296,7 +294,7 @@ export const FoodScanPage: React.FC = () => {
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
                         placeholder="e.g. 2 slices pepperoni pizza + coke…"
-                        className="w-full flex-1 min-h-[112px] md:min-h-0 mt-3 p-4 bg-black/30 border border-white/8 rounded-2xl focus:border-[var(--primary)]/50 focus:bg-black/40 outline-none resize-none text-sm font-medium transition-all placeholder:text-white/25"
+                        className="w-full flex-1 min-h-[112px] md:min-h-0 mt-3 p-4 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-2xl focus:border-[var(--primary)]/50 focus:bg-[var(--surface)] outline-none resize-none text-sm font-medium text-[var(--foreground)] transition-all placeholder:text-[var(--text-muted)]"
                       />
                       <p className="text-[11px] text-[var(--text-muted)] leading-relaxed shrink-0 mt-3">
                         Tip: name portions or hidden ingredients — AI folds them into the prediction.
@@ -340,7 +338,7 @@ export const FoodScanPage: React.FC = () => {
                         <button
                           onClick={handleReset}
                           disabled={isSaving}
-                          className="w-full py-4 rounded-2xl border border-white/10 bg-white/5 text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-all"
+                          className="w-full py-4 rounded-2xl bg-[var(--btn-primary)] text-black text-xs font-black uppercase tracking-widest hover:bg-[var(--btn-primary-hover)] transition-all"
                         >
                           Scan Another
                         </button>
@@ -354,7 +352,7 @@ export const FoodScanPage: React.FC = () => {
                 <div className="flex justify-center px-1">
                   <button
                     onClick={handleScan}
-                    className="w-full max-w-md py-5 rounded-2xl bg-[var(--primary)] text-black text-sm font-black uppercase tracking-[0.18em] flex items-center justify-center gap-3 shadow-[0_0_32px_rgba(0,255,136,0.35)] hover:shadow-[0_0_48px_rgba(0,255,136,0.5)] transition-all"
+                    className="w-full max-w-md py-5 rounded-2xl bg-[var(--btn-primary)] text-black text-sm font-black uppercase tracking-[0.18em] flex items-center justify-center gap-3 shadow-[0_0_32px_rgba(118,185,0,0.35)] hover:shadow-[0_0_48px_rgba(118,185,0,0.5)] transition-all"
                   >
                     <SparklesIcon className="w-5 h-5" />
                     Run AI Scan

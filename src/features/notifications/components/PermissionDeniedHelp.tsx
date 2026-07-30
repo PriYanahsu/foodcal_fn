@@ -33,7 +33,7 @@ export const PermissionDeniedHelp: React.FC<PermissionDeniedHelpProps> = ({ isOp
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
         className="fixed z-[111] left-3 right-3 bottom-[max(1rem,env(safe-area-inset-bottom))] md:left-auto md:right-4 md:w-96 max-h-[80vh] isolate"
       >
-        <div className="overflow-hidden overflow-y-auto max-h-[80vh] rounded-2xl border border-red-500/30 p-5 shadow-2xl bg-black/95 backdrop-blur-xl">
+        <div className="overflow-hidden overflow-y-auto max-h-[80vh] rounded-2xl border border-red-500/30 p-5 shadow-2xl bg-[var(--card-bg)] backdrop-blur-xl">
           <div className="flex items-start gap-4">
             <div className="flex-shrink-0">
               <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center">
@@ -42,18 +42,18 @@ export const PermissionDeniedHelp: React.FC<PermissionDeniedHelpProps> = ({ isOp
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-3">
-                <h4 className="font-bold text-base text-white">Enable Notifications</h4>
+                <h4 className="font-bold text-base text-[var(--foreground)]">Enable Notifications</h4>
                 <button
                   onClick={onClose}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors"
                 >
                   <XMarkIcon className="w-5 h-5" />
                 </button>
               </div>
 
               {isIOS ? (
-                <div className="space-y-3 text-sm text-gray-300">
-                  <p className="font-semibold text-white">For iOS Safari:</p>
+                <div className="space-y-3 text-sm text-[var(--text-muted)]">
+                  <p className="font-semibold text-[var(--foreground)]">For iOS Safari:</p>
                   <ol className="list-decimal list-inside space-y-2 ml-2">
                     <li>
                       Tap the <strong>Share</strong> button (square with arrow up)
@@ -64,13 +64,13 @@ export const PermissionDeniedHelp: React.FC<PermissionDeniedHelpProps> = ({ isOp
                     <li>Open the app from your home screen</li>
                     <li>Then tap "Enable Push" again</li>
                   </ol>
-                  <p className="text-xs text-gray-400 mt-4">
+                  <p className="text-xs text-[var(--text-muted)] mt-4">
                     Or go to: <strong>Settings → Safari → Website Settings → Notifications</strong>
                   </p>
                 </div>
               ) : isAndroid ? (
-                <div className="space-y-3 text-sm text-gray-300">
-                  <p className="font-semibold text-white">For Android Chrome:</p>
+                <div className="space-y-3 text-sm text-[var(--text-muted)]">
+                  <p className="font-semibold text-[var(--foreground)]">For Android Chrome:</p>
                   <ol className="list-decimal list-inside space-y-2 ml-2">
                     <li>
                       Tap the <strong>menu</strong> (3 dots) in the top right
@@ -86,8 +86,8 @@ export const PermissionDeniedHelp: React.FC<PermissionDeniedHelpProps> = ({ isOp
                   </ol>
                 </div>
               ) : (
-                <div className="space-y-3 text-sm text-gray-300">
-                  <p className="font-semibold text-white">For Desktop:</p>
+                <div className="space-y-3 text-sm text-[var(--text-muted)]">
+                  <p className="font-semibold text-[var(--foreground)]">For Desktop:</p>
                   <ol className="list-decimal list-inside space-y-2 ml-2">
                     <li>
                       Click the <strong>lock icon</strong> in the address bar
