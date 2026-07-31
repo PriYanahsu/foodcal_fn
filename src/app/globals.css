@@ -185,6 +185,32 @@ body {
     background: var(--primary-hover);
   }
 
+  /* Light/white scrollbar for dense inputs (scan prompt, etc.) */
+  .scrollbar-theme {
+    scrollbar-width: thin;
+    scrollbar-color: #ffffff var(--surface);
+  }
+
+  .scrollbar-theme::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-theme::-webkit-scrollbar-track {
+    background: var(--surface);
+    border-radius: 999px;
+  }
+
+  .scrollbar-theme::-webkit-scrollbar-thumb {
+    background: #ffffff;
+    border-radius: 999px;
+    border: 1px solid var(--card-border);
+  }
+
+  .scrollbar-theme::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, #ffffff 70%, var(--primary));
+    border-color: var(--primary);
+  }
+
   @keyframes slide-up {
     0% {
       transform: translateY(20px);
