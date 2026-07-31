@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Sidebar } from './Sidebar';
 import { NotificationProvider } from '@/features/notifications/context/NotificationContext';
@@ -17,6 +17,13 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const isAuthPage = pathname === '/login' || pathname === '/signup';
+
+  // Always open sections from the top — shared layout otherwise keeps scroll position
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [pathname]);
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-[var(--background)] text-[var(--foreground)]">

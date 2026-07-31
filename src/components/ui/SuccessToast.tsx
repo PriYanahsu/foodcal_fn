@@ -31,7 +31,21 @@ export function SuccessToast({
   return (
     <AnimatePresence>
       {message && (
+        <motion.button
+          key="success-toast-backdrop"
+          type="button"
+          aria-label="Dismiss"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-[199] bg-transparent backdrop-blur-md cursor-default"
+          onClick={onClose}
+        />
+      )}
+      {message && (
         <motion.div
+          key="success-toast-card"
           initial={{ opacity: 0, y: 24, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 16, scale: 0.96 }}
