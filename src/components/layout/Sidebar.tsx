@@ -267,10 +267,6 @@ interface SidebarProps {
 
 const SETTINGS_LINKS: SettingsLink[] = [
   { name: 'All settings', path: '/settings' },
-  { name: 'Edit Profile', path: '/profile', feature: 'profile' },
-  { name: 'Notifications', path: '/notifications', feature: 'notifications' },
-  { name: 'Privacy Policy', path: '/privacy' },
-  { name: 'Terms of Service', path: '/terms' },
   { name: 'Delete Account', path: '/settings?delete=1', danger: true },
 ];
 
