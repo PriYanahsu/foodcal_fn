@@ -172,10 +172,7 @@ export default function Dashboard() {
           </motion.div>
           <div className="text-center sm:text-left min-w-0 w-full sm:w-auto sm:flex-1">
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-[var(--foreground)] mb-0.5 leading-tight">
-              Hello,{' '}
-              <span className="inline-block text-[var(--foreground)] px-2.5 py-0.5 rounded-lg bg-[var(--surface)] border border-[var(--card-border)]">
-                {userName}
-              </span>
+              Hello, {userName}
             </h1>
             <p className="text-sm sm:text-base text-[var(--text-muted)] font-medium">
               {loading
