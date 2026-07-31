@@ -447,14 +447,14 @@ export default function FitnessHub() {
           </div>
 
           {/* Bottom grid — progression + sidebar */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 lg:gap-4">
-            <div className="lg:col-span-3">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 lg:gap-4 min-w-0">
+            <div className="lg:col-span-3 min-w-0">
               <CollapsibleSection
                 title="Progression Tracking"
                 subtitle="Weight logs & trends"
                 icon={ScaleIcon}
                 defaultOpen={true}
-                className="shadow-xl"
+                className="shadow-xl min-w-0"
               >
                 {user && (
                   <WeightProgressWidget

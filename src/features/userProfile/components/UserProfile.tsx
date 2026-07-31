@@ -447,7 +447,7 @@ export default function UserProfile() {
             </div>
 
             <div className="flex-1 min-w-0">
-              <h1 className="text-lg sm:text-3xl font-bold text-white truncate leading-tight">
+              <h1 className="text-lg sm:text-3xl font-bold text-[var(--foreground)] truncate leading-tight">
                 {profile.full_name || 'Your Name'}
               </h1>
               <p className="text-xs sm:text-base text-[var(--text-muted)] truncate mt-0.5">@{profile.username || 'username'}</p>

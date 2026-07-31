@@ -26,7 +26,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
         className={`flex-1 transition-all duration-300 w-full relative ${!isAuthPage ? 'md:ml-64' : ''}`}
       >
         {!isAuthPage && (
-          <div className="md:hidden sticky top-0 z-[80] flex items-center justify-between px-4 py-2.5 bg-[var(--background)] border-b border-[var(--card-border)]">
+          <div className="md:hidden sticky top-0 z-[80] flex items-center justify-between px-4 py-2.5 bg-[var(--background)] border-0 border-b border-[var(--card-border)]">
             <div className="flex items-center gap-2.5">
               <button
                 onClick={() => setIsSidebarOpen(true)}

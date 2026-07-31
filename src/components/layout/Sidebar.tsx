@@ -274,13 +274,52 @@ const SETTINGS_LINKS: SettingsLink[] = [
   { name: 'Delete Account', path: '/settings?delete=1', danger: true },
 ];
 
-function SidebarFooter({
+function LogoutButton({
   isLoggingOut,
   onLogout,
-  onNavigate,
 }: {
   isLoggingOut: boolean;
   onLogout: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onLogout}
+      disabled={isLoggingOut}
+      className="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl w-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {isLoggingOut ? (
+        <svg
+          className="animate-spin h-5 w-5 text-red-400"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          />
+        </svg>
+      ) : (
+        <Icons.Logout />
+      )}
+      <span>{isLoggingOut ? 'Logging Out...' : 'Log Out'}</span>
+    </button>
+  );
+}
+
+function SidebarFooter({
+  onNavigate,
+}: {
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
@@ -293,7 +332,7 @@ function SidebarFooter({
   );
 
   return (
-    <div className="pt-6 border-t border-[var(--sidebar-border)] space-y-1">
+    <div className="pt-4 border-t border-[var(--sidebar-border)] space-y-1">
       <button
         type="button"
         onClick={toggleTheme}
@@ -355,39 +394,6 @@ function SidebarFooter({
           </motion.div>
         )}
       </AnimatePresence>
-
-      <button
-        type="button"
-        onClick={onLogout}
-        disabled={isLoggingOut}
-        className="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl w-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {isLoggingOut ? (
-          <svg
-            className="animate-spin h-5 w-5 text-red-400"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            />
-          </svg>
-        ) : (
-          <Icons.Logout />
-        )}
-        <span>{isLoggingOut ? 'Logging Out...' : 'Log Out'}</span>
-      </button>
     </div>
   );
 }
@@ -432,8 +438,8 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
               transition={{ type: 'spring', bounce: 0, duration: 0.3 }}
               className="fixed inset-y-0 left-0 z-[110] w-64 bg-[var(--sidebar-bg)] border-r border-[var(--sidebar-border)] md:hidden"
             >
-              <div className="flex flex-col h-full p-6">
-                <div className="mb-10 flex items-center gap-3">
+              <div className="flex flex-col h-full min-h-0 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                <div className="mb-6 flex items-center gap-3 shrink-0">
                   <img
                     src={BRAND_ASSETS.logo}
                     alt={`${BRAND_ASSETS.name} Logo`}
@@ -444,41 +450,43 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                   </h1>
                 </div>
 
-                <nav className="flex-1 space-y-2">
-                  {menuItems.map((item) => {
-                    const isActive = pathname === item.path;
-                    const Icon = item.icon;
-                    return (
-                      <Link
-                        key={item.path}
-                        href={item.path}
-                        onClick={() => setIsOpen(false)}
-                        className="relative block"
-                      >
-                        {isActive && (
-                          <motion.div
-                            layoutId="sidebar-active-mobile"
-                            className="absolute inset-0 bg-[var(--btn-primary)] rounded-xl shadow-[0_0_15px_#76b90033]"
-                            initial={false}
-                            transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-                          />
-                        )}
-                        <span
-                          className={`relative flex items-center gap-3 px-4 py-3 rounded-xl transition-colors duration-200 ${isActive ? 'text-black font-semibold' : 'text-[var(--sidebar-muted)] hover:text-[var(--sidebar-fg)]'}`}
+                <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
+                  <nav className="space-y-2">
+                    {menuItems.map((item) => {
+                      const isActive = pathname === item.path;
+                      const Icon = item.icon;
+                      return (
+                        <Link
+                          key={item.path}
+                          href={item.path}
+                          onClick={() => setIsOpen(false)}
+                          className="relative block"
                         >
-                          <Icon />
-                          <span>{item.name}</span>
-                        </span>
-                      </Link>
-                    );
-                  })}
-                </nav>
+                          {isActive && (
+                            <motion.div
+                              layoutId="sidebar-active-mobile"
+                              className="absolute inset-0 bg-[var(--btn-primary)] rounded-xl shadow-[0_0_15px_#76b90033]"
+                              initial={false}
+                              transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                            />
+                          )}
+                          <span
+                            className={`relative flex items-center gap-3 px-4 py-3 rounded-xl transition-colors duration-200 ${isActive ? 'text-black font-semibold' : 'text-[var(--sidebar-muted)] hover:text-[var(--sidebar-fg)]'}`}
+                          >
+                            <Icon />
+                            <span>{item.name}</span>
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </nav>
 
-                <SidebarFooter
-                  isLoggingOut={isLoggingOut}
-                  onLogout={handleLogout}
-                  onNavigate={() => setIsOpen(false)}
-                />
+                  <SidebarFooter onNavigate={() => setIsOpen(false)} />
+                </div>
+
+                <div className="shrink-0 pt-3 mt-2 border-t border-[var(--sidebar-border)]">
+                  <LogoutButton isLoggingOut={isLoggingOut} onLogout={handleLogout} />
+                </div>
               </div>
             </motion.div>
           </>
@@ -487,8 +495,8 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
 
       {/* Desktop Sidebar (Static) */}
       <div className="hidden md:block fixed inset-y-0 left-0 z-40 w-64 bg-[var(--sidebar-bg)] border-r border-[var(--sidebar-border)]">
-        <div className="flex flex-col h-full p-6">
-          <div className="mb-10 flex items-center gap-3">
+        <div className="flex flex-col h-full min-h-0 p-6">
+          <div className="mb-10 flex items-center gap-3 shrink-0">
             <img
               src={BRAND_ASSETS.logo}
               alt={`${BRAND_ASSETS.name} Logo`}
@@ -499,37 +507,43 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
             </h1>
           </div>
 
-          <nav className="flex-1 space-y-2">
-            {menuItems.map((item) => {
-              const isActive = pathname === item.path;
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.path}
-                  href={item.path}
-                  onClick={() => setIsOpen(false)}
-                  className="relative block"
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="sidebar-active"
-                      className="absolute inset-0 bg-[var(--btn-primary)] rounded-xl shadow-[0_0_15px_#76b90033]"
-                      initial={false}
-                      transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-                    />
-                  )}
-                  <span
-                    className={`relative flex items-center gap-3 px-4 py-3 rounded-xl transition-colors duration-200 ${isActive ? 'text-black font-semibold' : 'text-[var(--sidebar-muted)] hover:text-[var(--sidebar-fg)]'}`}
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
+            <nav className="space-y-2">
+              {menuItems.map((item) => {
+                const isActive = pathname === item.path;
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.path}
+                    href={item.path}
+                    onClick={() => setIsOpen(false)}
+                    className="relative block"
                   >
-                    <Icon />
-                    <span>{item.name}</span>
-                  </span>
-                </Link>
-              );
-            })}
-          </nav>
+                    {isActive && (
+                      <motion.div
+                        layoutId="sidebar-active"
+                        className="absolute inset-0 bg-[var(--btn-primary)] rounded-xl shadow-[0_0_15px_#76b90033]"
+                        initial={false}
+                        transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                      />
+                    )}
+                    <span
+                      className={`relative flex items-center gap-3 px-4 py-3 rounded-xl transition-colors duration-200 ${isActive ? 'text-black font-semibold' : 'text-[var(--sidebar-muted)] hover:text-[var(--sidebar-fg)]'}`}
+                    >
+                      <Icon />
+                      <span>{item.name}</span>
+                    </span>
+                  </Link>
+                );
+              })}
+            </nav>
 
-          <SidebarFooter isLoggingOut={isLoggingOut} onLogout={handleLogout} />
+            <SidebarFooter />
+          </div>
+
+          <div className="shrink-0 pt-3 mt-2 border-t border-[var(--sidebar-border)]">
+            <LogoutButton isLoggingOut={isLoggingOut} onLogout={handleLogout} />
+          </div>
         </div>
       </div>
     </>

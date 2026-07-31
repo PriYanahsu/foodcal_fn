@@ -262,79 +262,77 @@ export default function Dashboard() {
       {/* Main Content Split */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-8">
         {/* Recent Activity */}
-        <motion.div variants={itemVariants} className="lg:col-span-2 space-y-4 sm:space-y-6">
-          <div className="flex flex-wrap justify-between items-end gap-2 sm:gap-4 p-1 sm:p-2">
-            <div>
-              <h2 className="text-lg sm:text-2xl font-bold flex items-center gap-2 sm:gap-3">
+        <motion.div variants={itemVariants} className="lg:col-span-2 min-w-0">
+          <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl sm:rounded-3xl shadow-xl overflow-hidden flex flex-col max-h-[420px] sm:max-h-[520px]">
+            <div className="flex flex-wrap justify-between items-center gap-2 px-3.5 py-3 sm:px-5 sm:py-4 border-b border-[var(--card-border)] shrink-0 bg-[var(--card-bg)]">
+              <h2 className="text-base sm:text-xl font-bold flex items-center gap-2 text-[var(--foreground)]">
                 Daily Log
-                <span className="text-[10px] sm:text-xs font-normal text-[var(--text-muted)] bg-white/5 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg border border-white/5">
+                <span className="text-[10px] sm:text-xs font-normal text-[var(--text-muted)] bg-[var(--surface)] px-1.5 sm:px-2 py-0.5 rounded-md border border-[var(--card-border)]">
                   {recentLogs.length} Items
                 </span>
               </h2>
+              <Link
+                href={ROUTES.HISTORY}
+                className="text-[var(--primary)] hover:text-[var(--primary-hover)] text-xs sm:text-sm font-bold flex items-center gap-1 group"
+              >
+                Full History
+                <ChevronRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
             </div>
-            <Link
-              href={ROUTES.HISTORY}
-              className="text-[var(--primary)] hover:text-[var(--primary-hover)] text-xs sm:text-sm font-bold flex items-center gap-1 group"
-            >
-              Full History
-              <ChevronRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
 
-          <div className="space-y-3 min-h-[300px]">
-            {loading ? (
-              <div className="space-y-4">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="h-24 bg-white/5 rounded-2xl animate-pulse" />
-                ))}
-              </div>
-            ) : recentLogs.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-10 sm:py-16 px-4 sm:px-6 bg-[var(--card-bg)]/30 backdrop-blur-md rounded-2xl sm:rounded-3xl border border-[var(--card-border)] border-dashed text-center">
-                <div className="w-14 h-14 sm:w-20 sm:h-20 mb-4 sm:mb-6 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-2xl sm:text-4xl shadow-inner border border-white/5">
-                  🍽️
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-2.5 sm:p-4 space-y-2 sm:space-y-3">
+              {loading ? (
+                <div className="space-y-3">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="h-16 sm:h-20 bg-[var(--surface)] rounded-xl animate-pulse" />
+                  ))}
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold mb-1.5 sm:mb-2 text-white">Empty Plate?</h3>
-                <p className="text-sm sm:text-base text-[var(--text-muted)] max-w-sm mb-6 sm:mb-8">
-                  You haven't logged any meals for this day yet.
-                  {isToday
-                    ? ' Start tracking now to hit your goals!'
-                    : ' Select another date to view history.'}
-                </p>
-                {isToday && (
-                  <Link href={ROUTES.SCAN}>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="px-6 py-2.5 sm:px-8 sm:py-3 text-sm sm:text-base bg-[var(--primary)] text-black font-bold rounded-xl shadow-[0_4px_20px_-5px_rgba(0,0,0,0.5)]"
-                    >
-                      Scan First Meal
-                    </motion.button>
-                  </Link>
-                )}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-3">
+              ) : recentLogs.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 sm:py-14 px-4 text-center min-h-[240px]">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 mb-4 rounded-full bg-[var(--surface)] flex items-center justify-center text-2xl sm:text-3xl border border-[var(--card-border)]">
+                    🍽️
+                  </div>
+                  <h3 className="text-base sm:text-lg font-bold mb-1.5 text-[var(--foreground)]">Empty Plate?</h3>
+                  <p className="text-sm text-[var(--text-muted)] max-w-sm mb-5">
+                    You haven&apos;t logged any meals for this day yet.
+                    {isToday
+                      ? ' Start tracking now to hit your goals!'
+                      : ' Select another date to view history.'}
+                  </p>
+                  {isToday && (
+                    <Link href={ROUTES.SCAN}>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="px-6 py-2.5 text-sm bg-[var(--primary)] text-black font-bold rounded-xl"
+                      >
+                        Scan First Meal
+                      </motion.button>
+                    </Link>
+                  )}
+                </div>
+              ) : (
                 <AnimatePresence>
                   {recentLogs.map((log, i) => (
                     <motion.div
                       key={log.id}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.05 }}
+                      transition={{ delay: Math.min(i * 0.04, 0.24) }}
                     >
                       <Link
                         href={`/history/${new Date(log.created_at).toLocaleDateString('en-CA')}/${log.id}`}
                       >
-                        <div className="bg-[var(--card-bg)]/60 hover:bg-[var(--card-bg)] backdrop-blur-md border border-[var(--card-border)] hover:border-[var(--primary)]/30 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between gap-3 sm:gap-5 transition-all group shadow-sm hover:shadow-md">
-                          <div className="flex items-center gap-3 sm:gap-5 flex-1 min-w-0">
-                            <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-[var(--surface)] group-hover:bg-[var(--primary)]/10 transition-all flex items-center justify-center text-lg sm:text-2xl border border-[var(--card-border)] group-hover:border-[var(--primary)]/20 shadow-inner shrink-0">
+                        <div className="bg-[var(--surface)] hover:bg-[var(--surface-strong)] border border-[var(--card-border)] hover:border-[var(--primary)]/30 rounded-xl sm:rounded-2xl p-2.5 sm:p-4 flex items-center justify-between gap-2 sm:gap-5 transition-all group">
+                          <div className="flex items-center gap-2.5 sm:gap-5 flex-1 min-w-0">
+                            <div className="w-9 h-9 sm:w-14 sm:h-14 rounded-lg sm:rounded-2xl bg-[var(--card-bg)] group-hover:bg-[var(--primary)]/10 transition-all flex items-center justify-center text-base sm:text-2xl border border-[var(--card-border)] group-hover:border-[var(--primary)]/20 shrink-0">
                               🥗
                             </div>
                             <div className="min-w-0 flex-1">
-                              <h3 className="font-bold truncate text-lg text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors">
+                              <h3 className="font-bold text-[13px] sm:text-lg leading-snug line-clamp-2 text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors">
                                 {log.food_name}
                               </h3>
-                              <p className="text-xs font-medium text-[var(--text-muted)] flex items-center gap-2">
+                              <p className="text-[10px] sm:text-xs font-medium text-[var(--text-muted)] flex items-center gap-1.5 sm:gap-2 mt-0.5">
                                 <span>
                                   {mounted
                                     ? new Date(log.created_at).toLocaleTimeString([], {
@@ -343,16 +341,16 @@ export default function Dashboard() {
                                     })
                                     : ''}
                                 </span>
-                                <span className="w-1 h-1 rounded-full bg-[var(--text-muted)]" />
-                                <span>{Math.round(log.protein)}g Protein</span>
+                                <span className="w-1 h-1 rounded-full bg-[var(--text-muted)] shrink-0" />
+                                <span className="truncate">{Math.round(log.protein)}g Protein</span>
                               </p>
                             </div>
                           </div>
-                          <div className="text-right shrink-0 bg-[var(--surface-strong)] border border-[var(--card-border)] px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl">
-                            <span className="block font-black text-base sm:text-xl text-[var(--primary)]">
+                          <div className="text-right shrink-0 bg-[var(--card-bg)] border border-[var(--card-border)] px-2 py-1 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl">
+                            <span className="block font-black text-sm sm:text-xl text-[var(--primary)] leading-none">
                               +{Math.round(log.calories)}
                             </span>
-                            <span className="text-[9px] sm:text-[10px] uppercase font-bold text-[var(--text-muted)] tracking-wider">
+                            <span className="text-[8px] sm:text-[10px] uppercase font-bold text-[var(--text-muted)] tracking-wider">
                               kcal
                             </span>
                           </div>
@@ -361,8 +359,8 @@ export default function Dashboard() {
                     </motion.div>
                   ))}
                 </AnimatePresence>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </motion.div>
 

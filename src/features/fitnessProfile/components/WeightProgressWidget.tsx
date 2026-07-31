@@ -86,7 +86,7 @@ export default function WeightProgressWidget({
 
   return (
     <div
-      className={`bg-gradient-to-br from-[var(--card-bg)]/40 to-black/10 backdrop-blur-md border border-[var(--card-border)] rounded-2xl transition-all ${compact ? 'p-4 mt-0' : 'p-6 mt-4'}`}
+      className={`bg-gradient-to-br from-[var(--card-bg)]/40 to-black/10 backdrop-blur-md border border-[var(--card-border)] rounded-2xl transition-all min-w-0 overflow-hidden ${compact ? 'p-3 sm:p-4 mt-0' : 'p-4 sm:p-6 mt-4'}`}
     >
       <div className={`flex justify-between items-center ${compact ? 'mb-4' : 'mb-6'}`}>
         <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--primary)]/70 flex items-center gap-2">
@@ -108,20 +108,21 @@ export default function WeightProgressWidget({
       </div>
 
       {isLogging ? (
-        <div className="flex gap-3 animate-slide-up">
+        <div className="flex items-stretch gap-2 sm:gap-3 animate-slide-up min-w-0 w-full max-w-full">
           <input
             type="number"
             step="0.1"
+            inputMode="decimal"
             autoFocus
             placeholder="Weight in kg"
             value={newWeight}
             onChange={(e) => setNewWeight(e.target.value)}
-            className="flex-1 bg-black/40 border border-[var(--card-border)] rounded-xl px-4 py-2 outline-none focus:border-[var(--primary)]/50 transition-colors text-[var(--foreground)] placeholder:text-[var(--text-muted)] font-medium"
+            className="min-w-0 w-0 flex-1 bg-black/40 border border-[var(--card-border)] rounded-xl px-3 sm:px-4 py-2 outline-none focus:border-[var(--primary)]/50 transition-colors text-[var(--foreground)] placeholder:text-[var(--text-muted)] font-medium text-sm"
           />
           <button
             onClick={handleLogWeight}
             disabled={loading}
-            className="bg-[var(--btn-primary)] text-black px-6 py-2 rounded-xl font-black text-sm hover:scale-105 transition-transform disabled:opacity-50"
+            className="shrink-0 bg-[var(--btn-primary)] text-black px-4 sm:px-6 py-2 rounded-xl font-black text-sm hover:scale-105 transition-transform disabled:opacity-50"
           >
             Save
           </button>

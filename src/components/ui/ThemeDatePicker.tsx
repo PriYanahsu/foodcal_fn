@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
 function toLocalISO(d: Date) {
@@ -21,9 +21,16 @@ interface ThemeDatePickerProps {
   max?: string; // YYYY-MM-DD
 }
 
+const PANEL_WIDTH = 280;
+const VIEWPORT_PAD = 12;
+
 export function ThemeDatePicker({ value, onChange, max }: ThemeDatePickerProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [panelPos, setPanelPos] = useState<{ top: number; left: number; width: number } | null>(
+    null
+  );
   const selected = useMemo(() => parseISO(value), [value]);
   const [view, setView] = useState(() => new Date(selected.getFullYear(), selected.getMonth(), 1));
   const todayISO = toLocalISO(new Date());
@@ -34,6 +41,26 @@ export function ThemeDatePicker({ value, onChange, max }: ThemeDatePickerProps) 
       setView(new Date(selected.getFullYear(), selected.getMonth(), 1));
     }
   }, [open, selected]);
+
+  useLayoutEffect(() => {
+    if (!open || !buttonRef.current) return;
+
+    const updatePosition = () => {
+      const rect = buttonRef.current!.getBoundingClientRect();
+      const width = Math.min(PANEL_WIDTH, window.innerWidth - VIEWPORT_PAD * 2);
+      let left = rect.left + rect.width / 2 - width / 2;
+      left = Math.max(VIEWPORT_PAD, Math.min(left, window.innerWidth - width - VIEWPORT_PAD));
+      setPanelPos({ top: rect.bottom + 8, left, width });
+    };
+
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+    };
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -90,6 +117,7 @@ export function ThemeDatePicker({ value, onChange, max }: ThemeDatePickerProps) 
   return (
     <div ref={rootRef} className="relative">
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
         className="w-full px-1.5 sm:px-6 text-center min-w-0 sm:min-w-[140px] group"
@@ -107,8 +135,11 @@ export function ThemeDatePicker({ value, onChange, max }: ThemeDatePickerProps) 
         </span>
       </button>
 
-      {open && (
-        <div className="absolute left-1/2 -translate-x-1/2 top-[calc(100%+0.5rem)] z-30 w-[280px] rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-2xl p-3">
+      {open && panelPos && (
+        <div
+          className="fixed z-50 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-2xl p-3"
+          style={{ top: panelPos.top, left: panelPos.left, width: panelPos.width }}
+        >
           <div className="flex items-center justify-between mb-3 px-1">
             <button
               type="button"
