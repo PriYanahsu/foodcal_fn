@@ -14,6 +14,7 @@ import {
   PhotoIcon,
   CpuChipIcon,
   EyeIcon,
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 
 export const FoodScanPage: React.FC = () => {
@@ -55,8 +56,18 @@ export const FoodScanPage: React.FC = () => {
 
   const stage = !preview ? 'idle' : isLoading ? 'analyzing' : nutritionData ? 'result' : 'confirm';
 
+  const isConfirm = stage === 'confirm';
+  const isResult = stage === 'result';
+  const fitScreen = isConfirm || isResult;
+
   return (
-    <div className="page-container relative flex flex-col items-center animate-fade-in pb-28 md:pb-10">
+    <div
+      className={`page-container relative flex flex-col items-center animate-fade-in md:pb-10 ${
+        fitScreen
+          ? 'pb-3 max-md:h-[calc(100dvh-3.75rem)] max-md:max-h-[calc(100dvh-3.75rem)] max-md:overflow-hidden max-md:pb-[max(0.75rem,env(safe-area-inset-bottom))]'
+          : 'pb-28'
+      }`}
+    >
       {/* Ambient AI glow */}
       <div className="pointer-events-none absolute inset-x-0 -top-10 h-64 bg-[radial-gradient(ellipse_at_center,rgba(118,185,0,0.12),transparent_70%)]" />
 
@@ -82,7 +93,9 @@ export const FoodScanPage: React.FC = () => {
       )}
 
       <div
-        className={`relative z-10 w-full mx-auto ${preview ? 'max-w-lg md:max-w-4xl lg:max-w-5xl' : 'max-w-lg'}`}
+        className={`relative z-10 w-full mx-auto ${preview ? 'max-w-lg md:max-w-4xl lg:max-w-5xl' : 'max-w-lg'} ${
+          fitScreen ? 'max-md:flex-1 max-md:min-h-0 max-md:flex max-md:flex-col' : ''
+        }`}
       >
         {!preview ? (
           <CameraInput onImageSelect={handleImageSelect} isLoading={isLoading}>
@@ -177,19 +190,23 @@ export const FoodScanPage: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-5"
+            className={
+              fitScreen
+                ? 'flex flex-col w-full gap-2.5 md:gap-5 max-md:flex-1 max-md:min-h-0'
+                : 'space-y-5'
+            }
           >
             {/* Stage header */}
-            <div className="flex items-center justify-between gap-3 px-1">
+            <div className="flex items-center justify-between gap-3 px-1 shrink-0">
               <div>
-                <p className="text-[9px] font-black uppercase tracking-[0.22em] text-[var(--primary)] mb-1">
+                <p className="text-[9px] font-black uppercase tracking-[0.22em] text-[var(--primary)] mb-0.5 md:mb-1">
                   {stage === 'analyzing'
                     ? 'Neural Pass'
                     : stage === 'result'
                       ? 'Prediction Ready'
                       : 'Pre-Scan'}
                 </p>
-                <h2 className="text-xl font-black tracking-tight">
+                <h2 className="text-base md:text-xl font-black tracking-tight">
                   {stage === 'analyzing'
                     ? 'AI is reading your meal'
                     : stage === 'result'
@@ -200,17 +217,38 @@ export const FoodScanPage: React.FC = () => {
               {!isLoading && (
                 <button
                   onClick={handleReset}
-                  className="shrink-0 text-[11px] font-bold uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors"
+                  className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[var(--card-border)] bg-[var(--surface)] text-[11px] font-bold uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--foreground)] hover:border-[var(--primary)]/40 hover:bg-[var(--surface-strong)] active:scale-[0.97] transition-all"
                 >
+                  <ArrowPathIcon className="w-3.5 h-3.5" />
                   Reset
                 </button>
               )}
             </div>
 
-            <div className="space-y-5">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 lg:gap-8 md:items-stretch">
+            <div
+              className={
+                fitScreen
+                  ? 'flex flex-col gap-2.5 md:gap-5 max-md:flex-1 max-md:min-h-0'
+                  : 'space-y-5'
+              }
+            >
+              <div
+                className={`grid grid-cols-1 md:grid-cols-2 gap-2.5 md:gap-6 lg:gap-8 md:items-stretch ${
+                  isConfirm
+                    ? 'max-md:flex-1 max-md:min-h-0 max-md:grid-rows-[6fr_4fr]'
+                    : isResult
+                      ? 'max-md:flex-1 max-md:min-h-0 max-md:grid-rows-[5fr_5fr]'
+                      : ''
+                }`}
+              >
                 {/* Preview / analysis viewport */}
-                <div className="relative w-full aspect-square rounded-[2rem] overflow-hidden border border-[var(--card-border)] bg-[var(--card-bg)] shadow-xl ring-1 ring-[var(--card-border)]">
+                <div
+                  className={`relative w-full rounded-[1.25rem] md:rounded-[2rem] overflow-hidden border border-[var(--card-border)] bg-[var(--card-bg)] shadow-xl ring-1 ring-[var(--card-border)] ${
+                    isConfirm || isResult
+                      ? 'max-md:min-h-0 max-md:h-full md:aspect-square'
+                      : 'aspect-square'
+                  }`}
+                >
                   <img
                     src={preview}
                     alt="Meal preview"
@@ -221,17 +259,17 @@ export const FoodScanPage: React.FC = () => {
                   {!isLoading && !nutritionData && (
                     <>
                       <div className="absolute inset-0 pointer-events-none">
-                        <div className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-[var(--card-border)] rounded-tl-lg" />
-                        <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-[var(--card-border)] rounded-tr-lg" />
-                        <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-[var(--card-border)] rounded-bl-lg" />
-                        <div className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-[var(--card-border)] rounded-br-lg" />
+                        <div className="absolute top-3 left-3 md:top-4 md:left-4 w-7 h-7 md:w-8 md:h-8 border-t-2 border-l-2 border-[var(--card-border)] rounded-tl-lg" />
+                        <div className="absolute top-3 right-3 md:top-4 md:right-4 w-7 h-7 md:w-8 md:h-8 border-t-2 border-r-2 border-[var(--card-border)] rounded-tr-lg" />
+                        <div className="absolute bottom-3 left-3 md:bottom-4 md:left-4 w-7 h-7 md:w-8 md:h-8 border-b-2 border-l-2 border-[var(--card-border)] rounded-bl-lg" />
+                        <div className="absolute bottom-3 right-3 md:bottom-4 md:right-4 w-7 h-7 md:w-8 md:h-8 border-b-2 border-r-2 border-[var(--card-border)] rounded-br-lg" />
                       </div>
                       <button
                         onClick={() => {
                           setPreview(null);
                           setSelectedFile(null);
                         }}
-                        className="absolute top-4 right-4 z-20 p-2.5 rounded-xl bg-[var(--card-bg)] text-[var(--foreground)] backdrop-blur-xl hover:bg-[var(--surface-strong)] transition-colors border border-[var(--card-border)] shadow-md"
+                        className="absolute top-3 right-3 md:top-4 md:right-4 z-20 p-2 md:p-2.5 rounded-xl bg-[var(--card-bg)] text-[var(--foreground)] backdrop-blur-xl hover:bg-[var(--surface-strong)] transition-colors border border-[var(--card-border)] shadow-md"
                       >
                         <XMarkIcon className="w-5 h-5" />
                       </button>
@@ -239,7 +277,7 @@ export const FoodScanPage: React.FC = () => {
                   )}
 
                   {nutritionData && (
-                    <div className="absolute bottom-4 left-4 right-4 z-20">
+                    <div className="absolute bottom-3 left-3 right-3 md:bottom-4 md:left-4 md:right-4 z-20 hidden md:block">
                       <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--card-bg)] border border-[var(--primary)]/40 backdrop-blur-md shadow-md">
                         <SparklesIcon className="w-3.5 h-3.5 text-[var(--primary)]" />
                         <span className="text-[10px] font-black uppercase tracking-widest text-[var(--foreground)]">
@@ -251,7 +289,11 @@ export const FoodScanPage: React.FC = () => {
                 </div>
 
                 {/* Side panel — analyzing / prompt / result */}
-                <div className="flex flex-col w-full md:h-full md:min-h-0">
+                <div
+                  className={`flex flex-col w-full md:h-full md:min-h-0 ${
+                    isConfirm || isResult ? 'max-md:h-full max-md:min-h-0' : 'shrink-0'
+                  }`}
+                >
                   {isLoading && (
                     <div className="hidden md:flex flex-col justify-center gap-4 rounded-3xl border border-[var(--card-border)] bg-[var(--surface)] p-6 h-full min-h-0">
                       <div className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--primary)]">
@@ -279,7 +321,7 @@ export const FoodScanPage: React.FC = () => {
                   )}
 
                   {!nutritionData && !isLoading && (
-                    <div className="flex flex-col h-full min-h-[280px] md:min-h-0 rounded-3xl border border-[var(--card-border)] bg-[var(--surface)] p-4 md:p-5">
+                    <div className="flex flex-col h-full min-h-0 rounded-2xl md:rounded-3xl border border-[var(--card-border)] bg-[var(--surface)] p-3 md:p-5">
                       <div className="flex justify-between items-center shrink-0">
                         <label
                           htmlFor="prompt"
@@ -293,20 +335,29 @@ export const FoodScanPage: React.FC = () => {
                         id="prompt"
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
+                        rows={2}
                         placeholder="e.g. 2 slices pepperoni pizza + coke…"
-                        className="w-full flex-1 min-h-[112px] md:min-h-0 mt-3 p-4 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-2xl focus:border-[var(--primary)]/50 focus:bg-[var(--surface)] outline-none resize-none text-sm font-medium text-[var(--foreground)] transition-all placeholder:text-[var(--text-muted)]"
+                        className="scrollbar-theme w-full flex-1 min-h-0 mt-2 md:mt-3 p-3 md:p-4 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl md:rounded-2xl focus:border-[var(--primary)]/50 focus:bg-[var(--surface)] outline-none resize-none overflow-y-auto text-sm font-medium text-[var(--foreground)] transition-all placeholder:text-[var(--text-muted)]"
                       />
-                      <p className="text-[11px] text-[var(--text-muted)] leading-relaxed shrink-0 mt-3">
+                      <p className="hidden md:block text-[11px] text-[var(--text-muted)] leading-relaxed shrink-0 mt-3">
                         Tip: name portions or hidden ingredients — AI folds them into the prediction.
                       </p>
                     </div>
                   )}
 
                   {nutritionData && (
-                    <div className="flex flex-col justify-center gap-5 h-full">
-                      <NutritionCard data={nutritionData} />
+                    <div className="flex flex-col h-full min-h-0 max-md:overflow-hidden md:justify-center md:gap-5">
+                      <div className="max-md:h-full max-md:min-h-0 max-md:overflow-hidden md:contents">
+                        <div className="h-full min-h-0 md:hidden">
+                          <NutritionCard data={nutritionData} compact />
+                        </div>
+                        <div className="hidden md:block">
+                          <NutritionCard data={nutritionData} />
+                        </div>
+                      </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-3">
+                      {/* Desktop CTAs stay in panel; mobile CTAs are pinned below grid */}
+                      <div className="hidden md:grid md:grid-cols-1 gap-3 shrink-0">
                         <button
                           onClick={async () => {
                             if (selectedFile && nutritionData) {
@@ -332,7 +383,7 @@ export const FoodScanPage: React.FC = () => {
                               Saving…
                             </>
                           ) : (
-                            'Log This Meal'
+                            'Log Meal'
                           )}
                         </button>
                         <button
@@ -349,10 +400,10 @@ export const FoodScanPage: React.FC = () => {
               </div>
 
               {!nutritionData && !isLoading && (
-                <div className="flex justify-center px-1">
+                <div className="flex justify-center px-1 shrink-0 pt-0.5">
                   <button
                     onClick={handleScan}
-                    className="w-full max-w-md py-5 rounded-2xl bg-[var(--btn-primary)] text-black text-sm font-black uppercase tracking-[0.18em] flex items-center justify-center gap-3 shadow-[0_0_32px_rgba(118,185,0,0.35)] hover:shadow-[0_0_48px_rgba(118,185,0,0.5)] transition-all"
+                    className="w-full max-w-md py-3.5 md:py-5 rounded-2xl bg-[var(--btn-primary)] text-black text-sm font-black uppercase tracking-[0.18em] flex items-center justify-center gap-3 shadow-[0_0_32px_rgba(118,185,0,0.35)] hover:shadow-[0_0_48px_rgba(118,185,0,0.5)] transition-all"
                   >
                     <SparklesIcon className="w-5 h-5" />
                     Run AI Scan
@@ -360,8 +411,48 @@ export const FoodScanPage: React.FC = () => {
                 </div>
               )}
 
+              {nutritionData && (
+                <div className="grid grid-cols-2 gap-2 shrink-0 md:hidden">
+                  <button
+                    onClick={async () => {
+                      if (selectedFile && nutritionData) {
+                        const foodName = nutritionData.food_name;
+                        const success = await saveFoodLog(selectedFile, nutritionData);
+                        if (success) {
+                          setToast({
+                            message: 'Meal logged & saved!',
+                            detail: `${foodName || 'Your meal'} was added to History. Track calories on your dashboard.`,
+                            actionLabel: 'View in History',
+                            actionHref: '/history',
+                          });
+                          handleReset();
+                        }
+                      }
+                    }}
+                    disabled={isSaving}
+                    className="w-full py-3 rounded-2xl bg-[var(--btn-primary)] text-black text-sm font-black uppercase tracking-[0.18em] flex items-center justify-center gap-2 shadow-[0_0_32px_rgba(118,185,0,0.35)] hover:shadow-[0_0_48px_rgba(118,185,0,0.5)] transition-all disabled:opacity-60"
+                  >
+                    {isSaving ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                        Saving…
+                      </>
+                    ) : (
+                      'Log Meal'
+                    )}
+                  </button>
+                  <button
+                    onClick={handleReset}
+                    disabled={isSaving}
+                    className="w-full py-3 rounded-2xl bg-[var(--btn-primary)] text-black text-sm font-black uppercase tracking-[0.18em] hover:bg-[var(--btn-primary-hover)] transition-all disabled:opacity-60"
+                  >
+                    Scan Another
+                  </button>
+                </div>
+              )}
+
               {error && (
-                <div className="p-4 bg-red-500/10 border border-red-500/25 rounded-2xl text-center">
+                <div className="p-4 bg-red-500/10 border border-red-500/25 rounded-2xl text-center shrink-0">
                   <p className="text-red-400 text-xs font-bold uppercase tracking-tight">{error}</p>
                 </div>
               )}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   CameraIcon,
@@ -87,6 +87,25 @@ export default function Dashboard() {
   useEffect(() => {
     if (!profileLoading && !loading) setInitialReady(true);
   }, [profileLoading, loading]);
+
+  // Only become a scroll container when the list actually overflows — otherwise
+  // overflow:auto traps the wheel and page scroll feels dead/laggy.
+  const dailyLogRef = useRef<HTMLDivElement>(null);
+  const [logScrollable, setLogScrollable] = useState(false);
+
+  useLayoutEffect(() => {
+    const el = dailyLogRef.current;
+    if (!el) return;
+
+    const update = () => {
+      setLogScrollable(el.scrollHeight > el.clientHeight + 1);
+    };
+
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [recentLogs, loading, selectedDate]);
 
   if (!initialReady) {
     return (
@@ -263,8 +282,8 @@ export default function Dashboard() {
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-8">
         {/* Recent Activity */}
         <motion.div variants={itemVariants} className="lg:col-span-2 min-w-0">
-          <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl sm:rounded-3xl shadow-xl overflow-hidden flex flex-col max-h-[420px] sm:max-h-[520px]">
-            <div className="flex flex-wrap justify-between items-center gap-2 px-3.5 py-3 sm:px-5 sm:py-4 border-b border-[var(--card-border)] shrink-0 bg-[var(--card-bg)]">
+          <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl sm:rounded-3xl shadow-xl flex flex-col">
+            <div className="flex flex-wrap justify-between items-center gap-2 px-3.5 py-3 sm:px-5 sm:py-4 border-b border-[var(--card-border)] shrink-0 bg-[var(--card-bg)] rounded-t-2xl sm:rounded-t-3xl">
               <h2 className="text-base sm:text-xl font-bold flex items-center gap-2 text-[var(--foreground)]">
                 Daily Log
                 <span className="text-[10px] sm:text-xs font-normal text-[var(--text-muted)] bg-[var(--surface)] px-1.5 sm:px-2 py-0.5 rounded-md border border-[var(--card-border)]">
@@ -280,7 +299,12 @@ export default function Dashboard() {
               </Link>
             </div>
 
-            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-2.5 sm:p-4 space-y-2 sm:space-y-3">
+            <div
+              ref={dailyLogRef}
+              className={`max-h-[360px] sm:max-h-[460px] p-2.5 sm:p-4 space-y-2 sm:space-y-3 rounded-b-2xl sm:rounded-b-3xl ${
+                logScrollable ? 'overflow-y-auto' : 'overflow-y-visible'
+              }`}
+            >
               {loading ? (
                 <div className="space-y-3">
                   {[...Array(3)].map((_, i) => (

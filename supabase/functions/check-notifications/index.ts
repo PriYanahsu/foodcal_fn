@@ -246,186 +246,79 @@ function checkDietCompletion(
   return { isBehind, progressPercent, timeOfDay, mealType };
 }
 
-// Generate positive, motivating notification messages
+// Only 3 scheduled slots + optional night nudge if not tracking
 function generateNotification(
-  timeOfDay: string,
-  mealType: string,
   progressPercent: number,
-  caloriesNeeded: number,
   hasLoggedToday: boolean,
-  isGoalAchieved: boolean,
-  hour: number,
-  minutes: number
+  hour: number
 ): {
   title: string;
   message: string;
   type: 'goal_reminder' | 'coach_advice' | 'system' | 'milestone' | 'motivation';
 } {
-  // Test condition window
-  if (hour === 0 && minutes >= 23 && minutes <= 25) {
-    return {
-      title: 'Global Test Active 🌍',
-      message:
-        'Your push notification system is now configured for global timezones and background delivery!',
-      type: 'system',
-    };
-  }
-
-  // Morning notifications (7-9 AM)
-  if (hour >= 7 && hour < 9) {
+  // 1. Morning (~8 AM)
+  if (hour === 8) {
     if (!hasLoggedToday) {
       return {
-        title: 'Good Morning, Champion! 🌅',
+        title: 'Good Morning! 🌅',
         message:
-          'Rise and shine! Your journey to greatness starts with a healthy breakfast. Ready to fuel your day?',
-        type: 'motivation',
-      };
-    }
-    if (progressPercent < 20) {
-      return {
-        title: 'Morning Fuel-Up! ⚡',
-        message: `You're off to a great start! Let's keep the momentum going. You've got ${Math.round(100 - progressPercent)}% of your day ahead - make it count!`,
+          'Start your day by logging breakfast. A quick log keeps you on track.',
         type: 'motivation',
       };
     }
     return {
-      title: "You're Crushing It! 🔥",
-      message: `Amazing start to your day! You're already at ${Math.round(progressPercent)}% of your goal. Keep this energy going!`,
-      type: 'milestone',
-    };
-  }
-
-  // Lunch notifications (12-2 PM)
-  if (hour >= 12 && hour < 14) {
-    if (!hasLoggedToday) {
-      return {
-        title: 'Lunch Time, Hero! 🍽️',
-        message:
-          "Your body is asking for fuel! Time to log that delicious lunch and keep your progress on track. You've got this!",
-        type: 'motivation',
-      };
-    }
-    if (progressPercent < 50) {
-      return {
-        title: 'Midday Momentum! 💪',
-        message: `You're at ${Math.round(progressPercent)}% - that's solid progress! A balanced lunch will power you through the afternoon. Let's do this!`,
-        type: 'coach_advice',
-      };
-    }
-    return {
-      title: "You're On Fire! 🔥",
-      message: `Wow! ${Math.round(progressPercent)}% already? You're absolutely killing it today. Keep up this incredible pace!`,
-      type: 'milestone',
-    };
-  }
-
-  // Afternoon check-in (3-4 PM)
-  if (hour >= 15 && hour < 16) {
-    if (!hasLoggedToday) {
-      return {
-        title: 'Afternoon Check-In! ☀️',
-        message:
-          "Hey there! Don't forget to log your meals today. Every entry brings you closer to your goals. You're doing amazing!",
-        type: 'goal_reminder',
-      };
-    }
-    if (progressPercent < 60) {
-      return {
-        title: 'Keep Going Strong! 💪',
-        message: `You're at ${Math.round(progressPercent)}% - you've got this! A healthy snack or meal will keep your energy levels perfect.`,
-        type: 'coach_advice',
-      };
-    }
-    return {
-      title: 'Incredible Progress! 🌟',
-      message: `Look at you go! ${Math.round(progressPercent)}% already? You're making this look easy. Keep it up!`,
-      type: 'milestone',
-    };
-  }
-
-  // Dinner notifications (6-8 PM)
-  if (hour >= 18 && hour < 20) {
-    if (!hasLoggedToday) {
-      return {
-        title: 'Evening Excellence! 🌙',
-        message:
-          "Time for dinner! Log your meal and celebrate another day of progress. You're building something amazing!",
-        type: 'motivation',
-      };
-    }
-    if (progressPercent < 80) {
-      return {
-        title: 'Almost There! 🎯',
-        message: `You're at ${Math.round(progressPercent)}% - so close! A nutritious dinner will help you finish strong. You've got this!`,
-        type: 'coach_advice',
-      };
-    }
-    return {
-      title: 'Outstanding Work! ⭐',
-      message: `${Math.round(progressPercent)}%? You're absolutely incredible! Finish strong with a great dinner.`,
-      type: 'milestone',
-    };
-  }
-
-  // End of day (9-11 PM)
-  if (hour >= 21 && hour < 23) {
-    if (isGoalAchieved) {
-      return {
-        title: 'Goal Achieved! 🎉',
-        message: `Congratulations, superstar! You've crushed your daily goal with ${Math.round(progressPercent)}%! This is what dedication looks like. Rest well, champion!`,
-        type: 'milestone',
-      };
-    }
-    if (progressPercent >= 90) {
-      return {
-        title: 'So Close! 🌟',
-        message: `You're at ${Math.round(progressPercent)}% - absolutely incredible! You're so close to perfection. Every step counts!`,
-        type: 'milestone',
-      };
-    }
-    if (progressPercent >= 70) {
-      return {
-        title: 'Great Day! 💫',
-        message: `You've reached ${Math.round(progressPercent)}% today - that's fantastic progress! Consistency is key, and you're showing it.`,
-        type: 'milestone',
-      };
-    }
-    if (!hasLoggedToday) {
-      return {
-        title: "Don't Miss Out! 🌙",
-        message:
-          "It's not too late! Log your meals and end your day on a high note. Every entry matters in your journey!",
-        type: 'goal_reminder',
-      };
-    }
-    return {
-      title: 'End of Day Reflection 📊',
-      message: `You're at ${Math.round(progressPercent)}% today. Progress, not perfection! Tomorrow is another opportunity to shine.`,
-      type: 'goal_reminder',
-    };
-  }
-
-  // Late night (11 PM - 1 AM)
-  if (hour >= 23 || hour < 1) {
-    if (isGoalAchieved) {
-      return {
-        title: 'Perfect Day Complete! ✨',
-        message: `You did it! ${Math.round(progressPercent)}% achieved. Rest well knowing you gave it your all today.`,
-        type: 'milestone',
-      };
-    }
-    return {
-      title: 'Rest Well, Warrior! 🌙',
-      message:
-        'Another day of progress in the books. Rest up and recharge - tomorrow is full of new possibilities!',
+      title: 'Morning Fuel-Up! ⚡',
+      message: `Nice start — you're at ${Math.round(progressPercent)}%. Keep logging as you go.`,
       type: 'motivation',
     };
   }
 
-  // Default fallback
+  // 2. Noon (12 PM)
+  if (hour === 12) {
+    if (!hasLoggedToday) {
+      return {
+        title: 'Lunch Time! 🍽️',
+        message: "Haven't logged yet today — snap or log lunch to stay on track.",
+        type: 'goal_reminder',
+      };
+    }
+    return {
+      title: 'Midday Check-In 💪',
+      message: `You're at ${Math.round(progressPercent)}% of your goal. Log lunch if you haven't already.`,
+      type: 'goal_reminder',
+    };
+  }
+
+  // 3. Afternoon (4 PM)
+  if (hour === 16) {
+    if (!hasLoggedToday) {
+      return {
+        title: 'Afternoon Reminder ☀️',
+        message: "Still nothing logged today. A quick meal log now keeps your day accurate.",
+        type: 'goal_reminder',
+      };
+    }
+    return {
+      title: 'Afternoon Check-In ☀️',
+      message: `You're at ${Math.round(progressPercent)}%. Log any afternoon meals or snacks.`,
+      type: 'goal_reminder',
+    };
+  }
+
+  // Night — only when not tracking (no logs today)
+  if (hour === 21 && !hasLoggedToday) {
+    return {
+      title: "Don't Miss Today 🌙",
+      message:
+        "You haven't logged any meals today. Still time to add something before the day ends.",
+      type: 'goal_reminder',
+    };
+  }
+
+  // Fallback (should rarely hit — schedule gates sends)
   return {
     title: 'Keep Going! 💪',
-    message: `You're at ${Math.round(progressPercent)}% of your goal. Every moment is a chance to make progress. You've got this!`,
+    message: `You're at ${Math.round(progressPercent)}% of your goal. Log your next meal when you can.`,
     type: 'motivation',
   };
 }
@@ -554,68 +447,51 @@ Deno.serve(async (req) => {
         };
 
         const hasLoggedToday = (foodLogs?.length || 0) > 0;
-        const isGoalAchieved = currentStats.calories >= profile.daily_calorie_target;
 
-        // Check diet completion
-        const { isBehind, progressPercent, timeOfDay, mealType } = checkDietCompletion(
+        // Check diet completion (progress % for message copy)
+        const { isBehind, progressPercent } = checkDietCompletion(
           currentStats.calories,
           profile.daily_calorie_target,
           hour
         );
 
-        const caloriesNeeded = Math.max(0, profile.daily_calorie_target - currentStats.calories);
+        // Exactly 3 daily slots + night only if not tracking
+        // 30 min windows so cron (~every 15–30m) still hits them
+        const isMorning = hour === 8 && minutes < 30;
+        const isNoon = hour === 12 && minutes < 30;
+        const isAfternoon4pm = hour === 16 && minutes < 30;
+        // Night nudge: only when user hasn't logged anything today
+        const isNightNoTrack = hour === 21 && minutes < 30 && !hasLoggedToday;
 
-        // Schedule notifications at optimal meal times
-        // Test time: Global trigger for verification
-        const isTestTime = hour === 0 && minutes >= 23 && minutes < 25;
-
-        // Breakfast: 7-9 AM (30 min window for cron)
-        const isBreakfastTime = hour === 8 && minutes < 30;
-        // Lunch: 12-2 PM (30 min window for cron)
-        const isLunchTime = hour === 13 && minutes < 30;
-        // Afternoon check-in: 3-4 PM (30 min window for cron)
-        const isAfternoonCheck = hour === 15 && minutes >= 30;
-        // Dinner: 6-8 PM (30 min window for cron)
-        const isDinnerTime = hour === 19 && minutes < 30;
-        // Evening wrap-up: 9-11 PM (30 min window for cron)
-        const isEveningWrap = hour === 22 && minutes < 30;
-        // Late night: 11 PM - 1 AM (30 min window for cron)
-        const isLateNight = hour === 23 && minutes >= 30;
-
-        // Determine if we should send a notification
-        // IF isTestMode is true (from URL), we ALWAYS send.
         const shouldSendNotification =
-          isTestMode ||
-          isTestTime ||
-          isBreakfastTime ||
-          isLunchTime ||
-          isAfternoonCheck ||
-          isDinnerTime ||
-          isEveningWrap ||
-          isLateNight ||
-          (isBehind && hour >= 12 && hour < 22); // Send reminder if behind during active hours
+          isTestMode || isMorning || isNoon || isAfternoon4pm || isNightNoTrack;
 
         console.log(
-          `User ${profile.id}: shouldSendNotification=${shouldSendNotification} (isTestTime=${isTestTime}, isBehind=${isBehind})`
+          `User ${profile.id}: shouldSend=${shouldSendNotification} (morning=${isMorning}, noon=${isNoon}, 4pm=${isAfternoon4pm}, nightNoTrack=${isNightNoTrack}, hasLogged=${hasLoggedToday})`
         );
 
         if (!shouldSendNotification) continue;
 
-        // Generate notification based on context
+        // In test mode, force a morning-style message via hour override
+        const messageHour = isTestMode
+          ? 8
+          : isMorning
+            ? 8
+            : isNoon
+              ? 12
+              : isAfternoon4pm
+                ? 16
+                : 21;
+
         const notification = generateNotification(
-          timeOfDay,
-          mealType,
           progressPercent,
-          caloriesNeeded,
           hasLoggedToday,
-          isGoalAchieved,
-          hour,
-          minutes
+          messageHour
         );
 
-        // Get AI coaching advice if user is behind on diet
+        // Optional AI tip only on scheduled sends when behind (not a separate notif)
         let suggestion: string | null = null;
-        if (isBehind && apiBaseUrl && hour >= 12 && hour < 22) {
+        if (isBehind && apiBaseUrl && (isNoon || isAfternoon4pm)) {
           try {
             console.log(`User ${profile.id}: Fetching coaching advice...`);
             suggestion = await getCoachingAdvice(
@@ -642,9 +518,8 @@ Deno.serve(async (req) => {
           }
         }
 
-        // ... DUPLICATE CHECK LOGIC ...
-        // Check for duplicates (unless it's test mode or test time)
-        if (!isTestMode && !isTestTime) {
+        // Duplicate guard (skip in test mode)
+        if (!isTestMode) {
           const { data: recentNotifs } = await supabase
             .from('notifications')
             .select('title, created_at, type')
@@ -652,11 +527,10 @@ Deno.serve(async (req) => {
             .order('created_at', { ascending: false })
             .limit(10);
 
-          // Check if same notification was sent in the last 2 hours (to prevent spam)
+          // Same title/type within 2 hours → skip
           const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
           const alreadySent = recentNotifs?.some((n) => {
             const notifDate = new Date(n.created_at);
-            // Same title and type, and sent within last 2 hours
             return (
               notifDate > twoHoursAgo &&
               n.title === notification.title &&
