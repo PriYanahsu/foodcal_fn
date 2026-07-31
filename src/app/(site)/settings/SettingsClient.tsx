@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
+  ArrowLeftIcon,
   BellIcon,
   ChevronRightIcon,
   DocumentTextIcon,
@@ -107,12 +108,22 @@ export default function SettingsClient() {
   };
 
   return (
-    <div className="min-h-screen pt-20 pb-16 px-4 md:px-6 max-w-2xl mx-auto">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold text-[var(--foreground)] tracking-tight">Settings</h1>
-        <p className="text-[var(--text-muted)] text-sm mt-1">
-          Manage your account and preferences
-        </p>
+    <div className="min-h-screen pt-6 md:pt-16 pb-16 px-4 md:px-6 max-w-2xl mx-auto">
+      <header className="mb-8 flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="text-3xl font-bold text-[var(--foreground)] tracking-tight">Settings</h1>
+          <p className="text-[var(--text-muted)] text-sm mt-1">
+            Manage your account and preferences
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="shrink-0 inline-flex items-center gap-2 text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--foreground)] py-2 px-3 rounded-xl bg-[var(--surface)] hover:bg-[var(--surface-strong)] border border-[var(--card-border)] transition-colors group"
+        >
+          <ArrowLeftIcon className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+          Back
+        </button>
       </header>
 
       <section className="mb-8">
@@ -265,13 +276,6 @@ export default function SettingsClient() {
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={() => router.back()}
-        className="mt-10 text-sm text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors"
-      >
-        ← Back
-      </button>
     </div>
   );
 }
