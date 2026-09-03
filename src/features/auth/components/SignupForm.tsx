@@ -16,7 +16,6 @@ const INITIAL_FORM: SignupCredentials & {
   success: boolean;
   successMessage: string | null;
 } = {
-  userName: '',
   fullName: '',
   email: '',
   password: '',
@@ -38,9 +37,9 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    const { userName, fullName, email, password, gender } = form;
+    const { fullName, email, password, gender } = form;
 
-    if (!userName || !fullName || !email || !password) {
+    if (!fullName || !email || !password) {
       setForm((prev) => ({ ...prev, validationError: 'Please fill in all fields' }));
       return;
     }
@@ -58,7 +57,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
       return;
     }
 
-    const result = await signup({ userName, fullName, email, password, gender });
+    const result = await signup({ fullName, email, password, gender });
 
     if (result.success) {
       if (result.authenticated) {
@@ -122,16 +121,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
         value={form.fullName}
         onChange={handleChange}
         placeholder="Enter your full name"
-        required
-      />
-
-      <Input
-        type="text"
-        name="userName"
-        label="Username"
-        value={form.userName}
-        onChange={handleChange}
-        placeholder="Choose a username"
         required
       />
 

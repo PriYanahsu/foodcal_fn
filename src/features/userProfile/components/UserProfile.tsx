@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { getLocal, profileKey, setLocal } from '@/lib/local-store';
 import AvatarUpload from '@/features/userProfile/components/AvatarUpload';
-import { ProfileData } from '../type';
+import { EMPTY_FITNESS_DETAILS, ProfileData } from '../type';
 import Link from 'next/link';
 import {
   SparklesIcon,
@@ -21,6 +21,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import FitnessSetupWizard from '@/features/fitnessProfile/components/setup/FitnessSetupWizard';
+import axiosInstance from '@/lib/springboot/axios';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,7 +41,7 @@ const ACTIVITY_HINTS: Record<string, string> = {
   'Very Active': '6–7 days/week',
 };
 
-const MISSING_FIELD_LABELS: Partial<Record<keyof ProfileData, string>> = {
+const MISSING_FIELD_LABELS: Record<string, string> = {
   full_name: 'Full name',
   avatar_url: 'Profile photo',
   gender: 'Gender',
@@ -57,17 +58,12 @@ const selectClass =
   'w-full px-2.5 py-1.5 sm:px-4 sm:py-2.5 text-xs sm:text-base bg-[var(--input-bg)] border border-[var(--input-border)] rounded-lg sm:rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] appearance-none';
 
 function getMissingFields(profile: ProfileData): string[] {
-  const checks: [keyof ProfileData, unknown][] = [
-    ['full_name', profile.full_name],
+  const { fitness_details: fitness } = profile;
+  const checks: [string, unknown][] = [
+    ['fullName', profile.fullName],
     ['avatar_url', profile.avatar_url],
     ['gender', profile.gender],
-    ['age', profile.age],
-    ['height', profile.height],
-    ['weight', profile.weight],
-    ['activity_level', profile.activity_level],
-    ['goal', profile.goal],
-    ['target_weight', profile.target_weight],
-    ['target_date', profile.target_date],
+    ['fitness_details', fitness],
   ];
 
   return checks
@@ -171,18 +167,11 @@ export default function UserProfile() {
   const [isEditing, setIsEditing] = useState(false);
   const [savedProfile, setSavedProfile] = useState<ProfileData | null>(null);
   const [profile, setProfile] = useState<ProfileData>({
-    username: '',
-    full_name: '',
+    fullName: '',
     email: '',
     gender: '',
-    age: '',
-    height: '',
-    weight: '',
-    activity_level: '',
-    goal: '',
     avatar_url: null,
-    target_weight: null,
-    target_date: null,
+    fitness_details: EMPTY_FITNESS_DETAILS,
   });
   const [showReminder, setShowReminder] = useState(false);
   const [showConsult, setShowConsult] = useState(false);
@@ -204,19 +193,14 @@ export default function UserProfile() {
   }, [feedback]);
 
   const applyProfileData = (data: Record<string, unknown>) => {
+    const fitnessDetails =
+      (data.fitness_details as Partial<ProfileData['fitness_details']> | undefined) ?? {};
     const next: ProfileData = {
-      username: (data.username as string) || '',
-      full_name: (data.full_name as string) || '',
+      fullName: (data.fullName as string) || '',
       email: user?.email || '',
       gender: (data.gender as string) || '',
-      age: data.age != null && data.age !== '' ? Number(data.age) : '',
-      height: data.height != null && data.height !== '' ? Number(data.height) : '',
-      weight: data.weight != null && data.weight !== '' ? Number(data.weight) : '',
-      activity_level: (data.activity_level as string) || '',
-      goal: (data.goal as string) || '',
       avatar_url: (data.avatar_url as string | null) ?? null,
-      target_weight: (data.target_weight as number | null) ?? null,
-      target_date: (data.target_date as string | null) ?? null,
+      fitness_details: { ...EMPTY_FITNESS_DETAILS, ...fitnessDetails },
     };
     setProfile(next);
     setSavedProfile(next);
@@ -227,11 +211,11 @@ export default function UserProfile() {
     try {
       setLoading(true);
       if (!user?.id) return;
-      const data = getLocal<Record<string, unknown>>(profileKey(user.id));
+      const { data } = await axiosInstance.get<ProfileData>(`/v1/user/${user.id}`);
       const applied = applyProfileData({
         ...(data || {}),
         email: user.email,
-        full_name: data?.full_name || user.name,
+        fitness_details: data.fitness_details,
       });
       if (calculateProfileCompletion(applied) < 100) setShowReminder(true);
     } finally {
@@ -241,6 +225,8 @@ export default function UserProfile() {
 
   const completionPercentage = calculateProfileCompletion(profile);
   const missingFields = getMissingFields(profile);
+  const fitness = profile.fitness_details;
+  const goal = deriveGoal(fitness.weight, fitness.target_weight_kg);
 
   const startEditing = () => {
     setFeedback(null);
@@ -254,7 +240,7 @@ export default function UserProfile() {
   };
 
   const handleUpdate = async () => {
-    if (!profile.full_name.trim()) {
+    if (!profile.fullName.trim()) {
       setFeedback({ type: 'error', message: 'Please enter your full name.' });
       return;
     }
@@ -263,43 +249,26 @@ export default function UserProfile() {
       setSaving(true);
       setFeedback(null);
 
-      const age = profile.age === '' ? null : Number(profile.age);
-      const height = profile.height === '' ? null : Number(profile.height);
-      const weight = profile.weight === '' ? null : Number(profile.weight);
-      const targetWeight =
-        profile.target_weight === null || profile.target_weight === undefined
-          ? null
-          : Number(profile.target_weight);
+      const fitness = profile.fitness_details;
+      const age = Number(fitness.age);
+      const height = Number(fitness.height);
+      const weight = Number(fitness.weight);
+      const targetWeight = Number(fitness.target_weight_kg);
 
       const updates = {
         updated_at: new Date().toISOString(),
-        full_name: profile.full_name.trim(),
+        fullName: profile.fullName.trim(),
         gender: profile.gender || null,
-        age,
-        height,
-        weight,
-        activity_level: profile.activity_level || null,
-        goal: profile.goal || null,
-        avatar_url: profile.avatar_url,
-        target_weight: targetWeight,
-        target_date: profile.target_date || null,
+        avatar_url: profile.avatar_url || null,
       };
 
-      if (user?.id) setLocal(profileKey(user.id), { ...updates, username: profile.username });
+      const { data, status } = await axiosInstance.put<ProfileData>(`/v1/user/update`, updates);
+      if (status !== 200) {
+        setFeedback({ type: 'error', message: 'Failed to save profile. Please try again.' });
+        return;
+      }
 
-      const updatedProfile: ProfileData = {
-        ...profile,
-        full_name: profile.full_name.trim(),
-        gender: profile.gender,
-        age: age ?? '',
-        height: height ?? '',
-        weight: weight ?? '',
-        activity_level: profile.activity_level,
-        goal: profile.goal,
-        avatar_url: profile.avatar_url,
-        target_weight: targetWeight,
-        target_date: profile.target_date || null,
-      };
+      const updatedProfile = data;
       setProfile(updatedProfile);
       setSavedProfile(updatedProfile);
       setIsEditing(false);
@@ -440,9 +409,8 @@ export default function UserProfile() {
 
             <div className="flex-1 min-w-0">
               <h1 className="text-lg sm:text-3xl font-bold text-[var(--foreground)] truncate leading-tight">
-                {profile.full_name || 'Your Name'}
+                {profile.fullName || 'Your Name'}
               </h1>
-              <p className="text-xs sm:text-base text-[var(--text-muted)] truncate mt-0.5">@{profile.username || 'username'}</p>
               <p className="text-xs sm:text-base text-[var(--text-muted)] truncate">{profile.email}</p>
             </div>
 
@@ -496,10 +464,10 @@ export default function UserProfile() {
 
         <div className="flex gap-1.5 sm:gap-3 mb-6 sm:mb-8">
           {[
-            { label: 'Age', value: profile.age, unit: 'yrs', wide: false },
-            { label: 'Height', value: profile.height, unit: 'cm', wide: false },
-            { label: 'Weight', value: profile.weight, unit: 'kg', wide: false },
-            { label: 'Goal', value: profile.goal, unit: '', wide: true },
+            { label: 'Age', value: fitness.age, unit: 'yrs', wide: false },
+            { label: 'Height', value: fitness.height, unit: 'cm', wide: false },
+            { label: 'Weight', value: fitness.weight, unit: 'kg', wide: false },
+            { label: 'Goal', value: goal, unit: '', wide: true },
           ].map(({ label, value, unit, wide }) => {
             const shortGoal =
               value === 'Lose Weight'
@@ -565,8 +533,8 @@ export default function UserProfile() {
                     <div className="col-span-2 sm:col-span-1">
                       <Input
                         label="Full Name"
-                        value={profile.full_name}
-                        onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
+                        value={profile.fullName}
+                        onChange={(e) => setProfile({ ...profile, fullName: e.target.value })}
                         placeholder="Enter your full name"
                         autoFocus
                       />
@@ -582,12 +550,6 @@ export default function UserProfile() {
                       />
                     </div>
                     <div className="col-span-2 sm:col-span-1">
-                      <Input
-                        label="Username"
-                        value={profile.username}
-                        disabled
-                        className="opacity-60"
-                      />
                     </div>
                     <div className="col-span-2 sm:col-span-1">
                       <Input label="Email" value={profile.email} disabled className="opacity-60" />
@@ -601,15 +563,10 @@ export default function UserProfile() {
                 <div className="grid grid-cols-2 gap-2 sm:gap-4">
                   <ProfileField
                     label="Full Name"
-                    value={profile.full_name}
+                    value={profile.fullName}
                     className="col-span-2 sm:col-span-1"
                   />
                   <ProfileField label="Gender" value={profile.gender} />
-                  <ProfileField
-                    label="Username"
-                    value={profile.username ? `@${profile.username}` : ''}
-                    hint="Cannot be changed"
-                  />
                   <ProfileField
                     label="Email"
                     value={profile.email}
@@ -646,9 +603,15 @@ export default function UserProfile() {
                       type="number"
                       min={1}
                       max={120}
-                      value={profile.age}
+                      value={fitness.age}
                       onChange={(e) =>
-                        setProfile({ ...profile, age: parseOptionalNumber(e.target.value) })
+                        setProfile({
+                          ...profile,
+                          fitness_details: {
+                            ...fitness,
+                            age: parseOptionalNumber(e.target.value) || 0,
+                          },
+                        })
                       }
                       placeholder="e.g. 28"
                     />
@@ -657,9 +620,15 @@ export default function UserProfile() {
                       type="number"
                       min={50}
                       max={300}
-                      value={profile.height}
+                      value={fitness.height}
                       onChange={(e) =>
-                        setProfile({ ...profile, height: parseOptionalNumber(e.target.value) })
+                        setProfile({
+                          ...profile,
+                          fitness_details: {
+                            ...fitness,
+                            height: parseOptionalNumber(e.target.value) || 0,
+                          },
+                        })
                       }
                       placeholder="e.g. 175"
                     />
@@ -669,11 +638,13 @@ export default function UserProfile() {
                       min={20}
                       max={400}
                       step="0.1"
-                      value={profile.weight}
+                      value={fitness.weight}
                       onChange={(e) => {
                         const w = parseOptionalNumber(e.target.value);
-                        const derived = deriveGoal(w, profile.target_weight);
-                        setProfile({ ...profile, weight: w, ...(derived ? { goal: derived } : {}) });
+                        setProfile({
+                          ...profile,
+                          fitness_details: { ...fitness, weight: w || 0 },
+                        });
                       }}
                       placeholder="e.g. 70"
                     />
@@ -685,12 +656,17 @@ export default function UserProfile() {
                     </label>
                     <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
                       {ACTIVITY_LEVELS.map((level) => {
-                        const selected = profile.activity_level === level;
+                        const selected = fitness.activity_level === level;
                         return (
                           <button
                             key={level}
                             type="button"
-                            onClick={() => setProfile({ ...profile, activity_level: level })}
+                            onClick={() =>
+                              setProfile({
+                                ...profile,
+                                fitness_details: { ...fitness, activity_level: level },
+                              })
+                            }
                             className={`text-left px-2.5 py-2 sm:px-4 sm:py-3 rounded-lg sm:rounded-xl border sm:border-2 transition-all ${
                               selected
                                 ? 'border-[var(--primary)] bg-[var(--primary)]/10'
@@ -715,22 +691,22 @@ export default function UserProfile() {
                 <div className="grid grid-cols-2 gap-2 sm:gap-4">
                   <ProfileField
                     label="Age"
-                    value={profile.age !== '' ? `${profile.age} years` : ''}
+                    value={fitness.age ? `${fitness.age} years` : ''}
                   />
                   <ProfileField
                     label="Height"
-                    value={profile.height !== '' ? `${profile.height} cm` : ''}
+                    value={fitness.height ? `${fitness.height} cm` : ''}
                   />
                   <ProfileField
                     label="Weight"
-                    value={profile.weight !== '' ? `${profile.weight} kg` : ''}
+                    value={fitness.weight ? `${fitness.weight} kg` : ''}
                   />
                   <ProfileField
                     label="Activity Level"
-                    value={profile.activity_level}
+                    value={fitness.activity_level}
                     hint={
-                      profile.activity_level
-                        ? ACTIVITY_HINTS[profile.activity_level]
+                      fitness.activity_level
+                        ? ACTIVITY_HINTS[fitness.activity_level]
                         : 'Helps calculate calorie needs'
                     }
                   />
@@ -775,7 +751,7 @@ export default function UserProfile() {
                       <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)]">
                         Objective
                       </label>
-                      {deriveGoal(profile.weight, profile.target_weight ?? null) && (
+                      {goal && (
                         <span className="text-[9px] sm:text-[10px] text-[var(--primary)] font-semibold">
                           Auto-set from weight vs target
                         </span>
@@ -783,15 +759,15 @@ export default function UserProfile() {
                     </div>
                     <ChoiceChips
                       options={GOALS}
-                      value={profile.goal}
-                      onChange={(goal) => setProfile({ ...profile, goal })}
+                      value={goal ?? ''}
+                      onChange={() => undefined}
                       accent="accent"
                     />
-                    {deriveGoal(profile.weight, profile.target_weight ?? null) && (
+                    {goal && (
                       <p className="text-[10px] sm:text-xs text-[var(--text-muted)] mt-1 sm:mt-1.5">
-                        Current <span className="text-white font-medium">{profile.weight} kg</span> → Target{' '}
-                        <span className="text-white font-medium">{profile.target_weight} kg</span> — goal auto-corrected to{' '}
-                        <span className="text-[var(--primary)] font-semibold">{profile.goal}</span>
+                        Current <span className="text-white font-medium">{fitness.weight} kg</span> → Target{' '}
+                        <span className="text-white font-medium">{fitness.target_weight_kg} kg</span> — goal auto-corrected to{' '}
+                        <span className="text-[var(--primary)] font-semibold">{goal}</span>
                       </p>
                     )}
                   </div>
@@ -803,15 +779,15 @@ export default function UserProfile() {
                       min={20}
                       max={400}
                       step="0.1"
-                      value={profile.target_weight ?? ''}
+                      value={fitness.target_weight_kg || ''}
                       onChange={(e) => {
                         const next = parseOptionalNumber(e.target.value);
-                        const tw = next === '' ? null : (next as number);
-                        const derived = deriveGoal(profile.weight, tw);
                         setProfile({
                           ...profile,
-                          target_weight: tw,
-                          ...(derived ? { goal: derived } : {}),
+                          fitness_details: {
+                            ...fitness,
+                            target_weight_kg: next || 0,
+                          },
                         });
                       }}
                       placeholder="e.g. 65"
@@ -822,9 +798,12 @@ export default function UserProfile() {
                       </label>
                       <input
                         type="date"
-                        value={profile.target_date ?? ''}
+                        value={fitness.target_date}
                         onChange={(e) =>
-                          setProfile({ ...profile, target_date: e.target.value || null })
+                          setProfile({
+                            ...profile,
+                            fitness_details: { ...fitness, target_date: e.target.value },
+                          })
                         }
                         className={selectClass}
                         style={{ colorScheme: 'dark' }}
@@ -836,18 +815,16 @@ export default function UserProfile() {
                 <div className="grid grid-cols-2 gap-2 sm:gap-4">
                   <ProfileField
                     label="Objective"
-                    value={profile.goal}
+                    value={goal ?? ''}
                     className="col-span-2 sm:col-span-1"
                   />
                   <ProfileField
                     label="Target Weight"
-                    value={
-                      profile.target_weight != null ? `${profile.target_weight} kg` : ''
-                    }
+                    value={fitness.target_weight_kg ? `${fitness.target_weight_kg} kg` : ''}
                   />
                   <ProfileField
                     label="Target Date"
-                    value={formatDate(profile.target_date)}
+                    value={formatDate(fitness.target_date)}
                   />
                 </div>
               )}
