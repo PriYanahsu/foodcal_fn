@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { CameraIcon } from '@heroicons/react/24/outline';
 import { AvatarUploadProps } from '../type';
 
@@ -12,48 +11,27 @@ export default function AvatarUpload({
   size = 150,
   isEditing,
 }: AvatarUploadProps) {
-  const supabase = createClient();
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(url);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    if (url) downloadImage(url);
+    setAvatarUrl(url);
   }, [url]);
-
-  async function downloadImage(path: string) {
-    try {
-      const { data, error } = await supabase.storage.from('avatars').download(path);
-      if (error) {
-        throw error;
-      }
-      const url = URL.createObjectURL(data);
-      setAvatarUrl(url);
-    } catch (error) {
-      console.log('Error downloading image: ', error);
-    }
-  }
 
   const uploadAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
       setUploading(true);
-
-      if (!event.target.files || event.target.files.length === 0) {
-        throw new Error('You must select an image to upload.');
-      }
-
-      const file = event.target.files[0];
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${uid}-${Math.random()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file);
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
-      onUpload(filePath);
+      const file = event.target.files?.[0];
+      if (!file) throw new Error('You must select an image to upload.');
+      const reader = new FileReader();
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      setAvatarUrl(dataUrl);
+      onUpload(dataUrl);
     } catch (error) {
-      alert('Error uploading avatar! Ensure "avatars" bucket exists in Supabase Storage.');
       console.log(error);
     } finally {
       setUploading(false);
@@ -82,7 +60,7 @@ export default function AvatarUpload({
       {isEditing && (
         <div className="absolute bottom-1 right-1">
           <label
-            htmlFor="single"
+            htmlFor={`avatar-${uid}`}
             className="bg-[var(--card-bg)] p-1.5 rounded-full cursor-pointer hover:bg-gray-700 transition-colors border border-[var(--card-border)] shadow-md flex items-center justify-center"
           >
             {uploading ? (
@@ -95,12 +73,9 @@ export default function AvatarUpload({
       )}
       <div style={{ width: size }} className="absolute bottom-0 left-0 right-0 flex justify-center">
         <input
-          style={{
-            visibility: 'hidden',
-            position: 'absolute',
-          }}
+          style={{ visibility: 'hidden', position: 'absolute' }}
           type="file"
-          id="single"
+          id={`avatar-${uid}`}
           accept="image/*"
           onChange={uploadAvatar}
           disabled={uploading}

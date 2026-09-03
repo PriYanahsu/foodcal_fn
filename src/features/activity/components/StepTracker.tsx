@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useStepTrackerContext } from '../context/StepTrackerContext';
-import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 // We use custom SVGs defined below instead of external icon libraries
 
@@ -23,16 +22,11 @@ export const StepTracker: React.FC = () => {
     const loadStepGoal = async () => {
       if (!user) return;
 
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from('user_preferences')
-        .select('step_goal')
-        .eq('user_id', user.id)
-        .single();
-
-      if (data && data.step_goal) {
-        setStepGoal(data.step_goal);
-        setTempGoal(data.step_goal);
+      const stored = localStorage.getItem(`step_goal_${user.id}`);
+      if (stored) {
+        const goal = Number(stored);
+        setStepGoal(goal);
+        setTempGoal(goal);
       }
     };
 
@@ -44,27 +38,10 @@ export const StepTracker: React.FC = () => {
     if (!user || tempGoal < 100) return;
 
     setIsSaving(true);
-    const supabase = createClient();
-
     try {
-      const { error } = await supabase.from('user_preferences').upsert(
-        {
-          user_id: user.id,
-          step_goal: tempGoal,
-          updated_at: new Date().toISOString(),
-        },
-        {
-          onConflict: 'user_id',
-        }
-      );
-
-      if (!error) {
-        setStepGoal(tempGoal);
-        setIsEditingGoal(false);
-      } else {
-        console.error('Failed to save goal:', error);
-        alert('Failed to save goal. Please check your connection.');
-      }
+      localStorage.setItem(`step_goal_${user.id}`, String(tempGoal));
+      setStepGoal(tempGoal);
+      setIsEditingGoal(false);
     } catch (e) {
       console.error('Unexpected error saving goal', e);
     } finally {

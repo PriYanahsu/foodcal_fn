@@ -1,137 +1,122 @@
+import axiosInstance from '@/lib/springboot/axios';
 import { LoginCredentials, SignupCredentials, AuthResponse } from '../types';
-import { createClient } from '@/lib/supabase/client';
+import { clearTokens, setAccessToken } from '@/lib/springboot/auth-tokens';
+
+const extractTokens = (data: any) => {
+  const payload = data?.data ?? data;
+  const accessToken =
+    payload?.accessToken ??
+    payload?.access_token ??
+    payload?.token ??
+    payload?.jwt ??
+    payload?.tokens?.accessToken;
+  const refreshToken =
+    payload?.refreshToken ?? payload?.refresh_token ?? payload?.tokens?.refreshToken;
+
+  return { payload, accessToken, refreshToken };
+};
+
+const extractError = (error: any, fallback: string) => {
+  const payload = error?.response?.data;
+  if (!payload) return error?.message || fallback;
+  if (typeof payload === 'string') return payload;
+  if (payload.message) return payload.message;
+  if (payload.detail) return payload.detail;
+  if (payload.error) return payload.error;
+  const fieldErrors = Object.values(payload).flat().filter(Boolean);
+  if (fieldErrors.length) return String(fieldErrors[0]);
+  return fallback;
+};
 
 export const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
   try {
-    let { email, password } = credentials;
-    const supabase = createClient();
+    const { email, password } = credentials;
 
-    // Check if input is username (no @)
-    if (!email.includes('@')) {
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('email')
-        .eq('username', email)
-        .single();
-
-      if (profileError || !profile) {
-        return {
-          success: false,
-          error: 'Username not found.',
-        };
-      }
-      email = profile.email;
-    }
-
-    const { data, error: loginError } = await supabase.auth.signInWithPassword({
+    const { data, status } = await axiosInstance.post('/v1/auth/login', {
       email,
       password,
     });
 
-    if (loginError) {
+    if (status !== 200) {
       return {
         success: false,
-        error: loginError.message || 'Login failed. Please try again.',
+        error: data?.message || data?.detail || 'Login failed. Please try again.',
       };
     }
 
-    if (data?.session) {
+    const { payload, accessToken, refreshToken } = extractTokens(data);
+    if (!accessToken) {
       return {
-        success: true,
-        user: {
-          id: data.user?.id || '',
-          name: data.user?.user_metadata?.full_name || '',
-          email: data.user?.email || email,
-        },
-        token: data.session.access_token,
+        success: false,
+        error: 'Login succeeded but no access token was returned.',
       };
     }
+
+    const user = {
+      id: String(payload?.userId ?? payload?.id ?? payload?.user?.id ?? ''),
+      name: payload?.fullName ?? payload?.userName ?? payload?.user?.name ?? '',
+      email: payload?.email ?? payload?.user?.email ?? email,
+    };
+    setAccessToken(accessToken, refreshToken, user);
 
     return {
-      success: false,
-      error: 'Login failed. Please try again.',
+      success: true,
+      user,
+      token: accessToken,
     };
   } catch (error: any) {
     return {
       success: false,
-      error: error.message || 'Login failed. Please try again.',
+      error: extractError(error, 'Login failed. Please try again.'),
     };
   }
 };
 
 export const signup = async (credentials: SignupCredentials): Promise<AuthResponse> => {
   try {
-    const { name, username, email, gender, password } = credentials;
-    const supabase = createClient();
+    const { userName, fullName, email, password, gender } = credentials;
 
-    const { data, error: signupError } = await supabase.auth.signUp({
-      email: email,
-      password: password,
-      options: {
-        data: {
-          full_name: name,
-          username: username,
-          gender: gender,
-        },
-      },
+    const { data, status } = await axiosInstance.post('/v1/auth/signup', {
+      userName,
+      fullName,
+      email,
+      password,
+      gender,
     });
 
-    if (signupError) {
+    if (status !== 201 && status !== 200) {
       return {
         success: false,
-        error: signupError.message || 'Signup failed. Please try again.',
+        error: data?.message || 'Signup failed. Please try again.',
       };
     }
 
-    // Supabase may not return a session if email confirmation is required
-    // In that case, data.user exists but data.session is null
-    if (data?.user) {
-      // If email confirmation is required, session will be null
-      // User needs to confirm email before they can sign in
-      if (data.session) {
-        // Email confirmation is disabled or auto-confirmed
-        return {
-          success: true,
-          user: {
-            id: data.user.id,
-            name: name,
-            email: data.user.email || email,
-          },
-          token: data.session.access_token,
-        };
-      } else {
-        // Email confirmation is required
-        return {
-          success: true,
-          user: {
-            id: data.user.id,
-            name: name,
-            email: data.user.email || email,
-          },
-          error: 'Please check your email to confirm your account before signing in.',
-        };
-      }
+    const { payload, accessToken, refreshToken } = extractTokens(data);
+    const user = {
+      id: String(payload?.userId ?? payload?.id ?? payload?.user?.id ?? ''),
+      name: payload?.fullName ?? fullName,
+      email: payload?.email ?? email,
+    };
+    if (accessToken) {
+      setAccessToken(accessToken, refreshToken, user);
     }
 
     return {
-      success: false,
-      error: 'Signup failed. Please try again.',
+      success: true,
+      user,
+      token: accessToken,
     };
   } catch (error: any) {
     return {
       success: false,
-      error: error.message || 'Signup failed. Please try again.',
+      error: extractError(error, 'Signup failed. Please try again.'),
     };
   }
 };
 
 export const logout = async (): Promise<{ success: boolean; error?: string }> => {
   try {
-    const supabase = createClient();
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      return { success: false, error: error.message };
-    }
+    clearTokens();
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message || 'Logout failed' };

@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import WeightProgressWidget from '@/features/fitnessProfile/components/WeightProgressWidget';
 import FitnessSetupWizard from '@/features/fitnessProfile/components/setup/FitnessSetupWizard';
 import { StatCard } from '@/components/dashboard/StatCard';
+import { getLocal, profileKey } from '@/lib/local-store';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import {
   SparklesIcon,
@@ -116,23 +116,20 @@ interface ProfileData {
 }
 
 export default function FitnessHub() {
-  const supabase = createClient();
   const { user } = useAuth();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [showWizard, setShowWizard] = useState(false);
   const [loading, setLoading] = useState(true);
 
   async function fetchProfile() {
-    if (!user) return;
-    const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    const data = getLocal<ProfileData>(profileKey(user.id));
     if (data) {
       setProfile(data);
-
-      // Only show reminder if profile is not complete
-      const completion = calculateProfileCompletion(data);
-      if (completion < 100) {
-        setShowReminder(true);
-      }
+      if (calculateProfileCompletion(data) < 100) setShowReminder(true);
     }
     setLoading(false);
   }

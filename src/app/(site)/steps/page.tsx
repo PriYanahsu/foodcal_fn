@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { motion } from 'framer-motion';
 import { CalendarDaysIcon } from '@heroicons/react/24/outline';
@@ -16,30 +15,13 @@ interface StepLog {
 
 export default function StepHistoryPage() {
   const { user } = useAuth();
-  const supabase = createClient();
   const [logs, setLogs] = useState<StepLog[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
-
-    const fetchStepHistory = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('step_logs')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('log_date', { ascending: false })
-        .limit(30); // Last 30 days
-
-      if (data && !error) {
-        setLogs(data);
-      }
-      setLoading(false);
-    };
-
-    fetchStepHistory();
-  }, [user, supabase]);
+    setLogs([]);
+    setLoading(false);
+  }, [user]);
 
   const totalSteps = logs.reduce((sum, log) => sum + log.steps, 0);
   const avgSteps = logs.length > 0 ? Math.round(totalSteps / logs.length) : 0;

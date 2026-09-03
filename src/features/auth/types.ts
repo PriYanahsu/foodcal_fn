@@ -4,21 +4,22 @@ export interface LoginCredentials {
 }
 
 export interface SignupCredentials {
-  name: string;
-  username: string;
+  userName: string;
+  fullName: string;
   email: string;
-  gender: string;
   password: string;
-  confirmPassword: string;
+  gender: string;
+}
+
+export interface AuthUser {
+  id: string;
+  name: string;
+  email: string;
 }
 
 export interface AuthResponse {
   success: boolean;
-  user?: {
-    id: string;
-    name: string;
-    email: string;
-  };
+  user?: AuthUser;
   token?: string;
   error?: string;
 }

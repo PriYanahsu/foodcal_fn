@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { MealLog } from '../types';
 import Link from 'next/link';
@@ -18,40 +17,14 @@ interface DailyMealListProps {
 }
 
 export default function DailyMealList({ date }: DailyMealListProps) {
-  const supabase = createClient();
   const { user } = useAuth();
   const [meals, setMeals] = useState<MealLog[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchMeals() {
-      if (!user) return;
-
-      const [year, month, day] = date.split('-').map(Number);
-      const startOfDay = new Date(year, month - 1, day);
-      startOfDay.setHours(0, 0, 0, 0);
-
-      const endOfDay = new Date(year, month - 1, day);
-      endOfDay.setHours(23, 59, 59, 999);
-
-      const { data, error } = await supabase
-        .from('food_logs')
-        .select('*')
-        .eq('user_id', user.id)
-        .gte('created_at', startOfDay.toISOString())
-        .lte('created_at', endOfDay.toISOString())
-        .order('created_at', { ascending: true });
-
-      if (error) {
-        console.error('Error fetching meals:', error);
-      } else if (data) {
-        setMeals(data as MealLog[]);
-      }
-      setLoading(false);
-    }
-
-    fetchMeals();
-  }, [user, date, supabase]);
+    setMeals([]);
+    setLoading(false);
+  }, [user, date]);
 
   const totals = useMemo(
     () =>

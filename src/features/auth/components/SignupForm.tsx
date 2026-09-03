@@ -1,72 +1,82 @@
 'use client';
 
-import React, { useState, FormEvent } from 'react';
+import React, { useState, FormEvent, ChangeEvent } from 'react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '../hooks/useAuth';
-import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/constants/routes';
+import { SignupCredentials } from '../types';
 
 interface SignupFormProps {
   onSuccess: () => void;
 }
 
+const INITIAL_FORM: SignupCredentials & {
+  validationError: string | null;
+  success: boolean;
+  successMessage: string | null;
+} = {
+  userName: '',
+  fullName: '',
+  email: '',
+  password: '',
+  gender: 'Other',
+  validationError: null,
+  success: false,
+  successMessage: null,
+};
+
 export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [validationError, setValidationError] = useState<string | null>(null);
+  const [form, setForm] = useState(INITIAL_FORM);
   const { signup, isLoading, error } = useAuth();
-  const [success, setSuccess] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const router = useRouter();
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value, validationError: null }));
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setValidationError(null);
 
-    // Basic validation
-    if (!email || !password) {
-      setValidationError('Please fill in all fields');
+    const { userName, fullName, email, password, gender } = form;
+
+    if (!userName || !fullName || !email || !password) {
+      setForm((prev) => ({ ...prev, validationError: 'Please fill in all fields' }));
       return;
     }
 
     if (!email.includes('@')) {
-      setValidationError('Please enter a valid email address');
+      setForm((prev) => ({ ...prev, validationError: 'Please enter a valid email address' }));
       return;
     }
 
     if (password.length < 8) {
-      setValidationError('Password must be at least 8 characters long');
+      setForm((prev) => ({
+        ...prev,
+        validationError: 'Password must be at least 8 characters long',
+      }));
       return;
     }
 
-    const defaultUsername = email.split('@')[0] + Math.floor(Math.random() * 1000);
-    const defaultName = email.split('@')[0];
-
-    const result = await signup({
-      name: defaultName,
-      username: defaultUsername,
-      email,
-      gender: 'Other',
-      password,
-      confirmPassword: password,
-    });
+    const result = await signup({ userName, fullName, email, password, gender });
 
     if (result.success) {
       if (result.authenticated) {
-        router.push(ROUTES.HOME);
+        window.location.assign(ROUTES.HOME);
         return;
       }
-      // Email confirmation required — no session yet
-      setSuccessMessage(result.message || 'Please check your email to confirm your account.');
-      setSuccess(true);
+      setForm((prev) => ({
+        ...prev,
+        success: true,
+        successMessage: result.message || 'Your account has been successfully created.',
+      }));
       setTimeout(() => {
         onSuccess();
       }, 2000);
     }
   };
 
-  if (success) {
+  if (form.success) {
     return (
       <div className="text-center py-8">
         <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -81,7 +91,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
         </div>
         <h3 className="text-xl font-bold text-[var(--foreground)] mb-2">Account Created!</h3>
         <p className="text-[var(--text-muted)] mb-6">
-          {successMessage || 'Your account has been successfully created.'}
+          {form.successMessage || 'Your account has been successfully created.'}
           <br />
           Redirecting to login...
         </p>
@@ -99,26 +109,48 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
           <p className="text-sm text-red-400">{error}</p>
         </div>
       )}
-      {validationError && (
+      {form.validationError && (
         <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
-          <p className="text-sm text-red-400">{validationError}</p>
+          <p className="text-sm text-red-400">{form.validationError}</p>
         </div>
       )}
 
       <Input
+        type="text"
+        name="fullName"
+        label="Full Name"
+        value={form.fullName}
+        onChange={handleChange}
+        placeholder="Enter your full name"
+        required
+      />
+
+      <Input
+        type="text"
+        name="userName"
+        label="Username"
+        value={form.userName}
+        onChange={handleChange}
+        placeholder="Choose a username"
+        required
+      />
+
+      <Input
         type="email"
+        name="email"
         label="Email Address"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        value={form.email}
+        onChange={handleChange}
         placeholder="Enter your email"
         required
       />
 
       <Input
         type="password"
+        name="password"
         label="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        value={form.password}
+        onChange={handleChange}
         placeholder="Create a password (min. 8 chars)"
         required
       />

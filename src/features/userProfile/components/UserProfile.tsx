@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { createClient } from '@/lib/supabase/client';
+import { getLocal, profileKey, setLocal } from '@/lib/local-store';
 import AvatarUpload from '@/features/userProfile/components/AvatarUpload';
 import { ProfileData } from '../type';
 import Link from 'next/link';
@@ -165,7 +165,6 @@ function deriveGoal(weight: number | '', targetWeight: number | null | undefined
 }
 
 export default function UserProfile() {
-  const supabase = createClient();
   const { user, logout } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -227,22 +226,14 @@ export default function UserProfile() {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user?.id)
-        .single();
-
-      if (error) {
-        console.error('Error fetching profile:', error);
-      } else if (data) {
-        applyProfileData(data);
-
-        const completion = calculateProfileCompletion(data);
-        if (completion < 100) {
-          setShowReminder(true);
-        }
-      }
+      if (!user?.id) return;
+      const data = getLocal<Record<string, unknown>>(profileKey(user.id));
+      const applied = applyProfileData({
+        ...(data || {}),
+        email: user.email,
+        full_name: data?.full_name || user.name,
+      });
+      if (calculateProfileCompletion(applied) < 100) setShowReminder(true);
     } finally {
       setLoading(false);
     }
@@ -294,9 +285,7 @@ export default function UserProfile() {
         target_date: profile.target_date || null,
       };
 
-      const { error } = await supabase.from('profiles').update(updates).eq('id', user?.id);
-
-      if (error) throw error;
+      if (user?.id) setLocal(profileKey(user.id), { ...updates, username: profile.username });
 
       const updatedProfile: ProfileData = {
         ...profile,
@@ -438,7 +427,10 @@ export default function UserProfile() {
                   const newProfile = { ...profile, avatar_url: url };
                   setProfile(newProfile);
                   setSavedProfile((prev) => (prev ? { ...prev, avatar_url: url } : newProfile));
-                  supabase.from('profiles').update({ avatar_url: url }).eq('id', user?.id).then();
+                  if (user?.id) {
+                    const current = getLocal<Record<string, unknown>>(profileKey(user.id)) || {};
+                    setLocal(profileKey(user.id), { ...current, avatar_url: url });
+                  }
                   if (calculateProfileCompletion(newProfile) === 100) setShowReminder(false);
                   setFeedback({ type: 'success', message: 'Profile photo updated.' });
                 }}

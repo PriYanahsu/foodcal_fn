@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { DailySummary } from '../types';
 import Link from 'next/link';
@@ -14,14 +13,6 @@ import {
 } from '@heroicons/react/24/outline';
 import { StatCard } from '@/components/dashboard/StatCard';
 
-interface DailyLog {
-  created_at: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-}
-
 function isWithinLastDays(dateStr: string, days: number): boolean {
   const d = new Date(dateStr);
   const cutoff = new Date();
@@ -31,64 +22,15 @@ function isWithinLastDays(dateStr: string, days: number): boolean {
 }
 
 export default function HistoryDateList() {
-  const supabase = createClient();
   const { user } = useAuth();
   const [history, setHistory] = useState<DailySummary[]>([]);
-  const [calorieTarget, setCalorieTarget] = useState<number | null>(null);
+  const [calorieTarget] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchHistory() {
-      if (!user) return;
-
-      const [{ data, error }, { data: profile }] = await Promise.all([
-        supabase
-          .from('food_logs')
-          .select('created_at, calories, protein, carbs, fats')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false }),
-        supabase.from('profiles').select('daily_calorie_target').eq('id', user.id).single(),
-      ]);
-
-      if (profile?.daily_calorie_target) {
-        setCalorieTarget(profile.daily_calorie_target);
-      }
-
-      if (error) {
-        console.error('Error fetching history:', error);
-        setLoading(false);
-        return;
-      }
-
-      const grouped = (data as DailyLog[]).reduce(
-        (acc, curr) => {
-          const date = new Date(curr.created_at).toLocaleDateString('en-CA');
-          if (!acc[date]) {
-            acc[date] = {
-              date,
-              totalCalories: 0,
-              totalProtein: 0,
-              totalCarbs: 0,
-              totalFats: 0,
-              mealCount: 0,
-            };
-          }
-          acc[date].totalCalories += curr.calories || 0;
-          acc[date].totalProtein += curr.protein || 0;
-          acc[date].totalCarbs += curr.carbs || 0;
-          acc[date].totalFats += curr.fats || 0;
-          acc[date].mealCount += 1;
-          return acc;
-        },
-        {} as Record<string, DailySummary>
-      );
-
-      setHistory(Object.values(grouped));
-      setLoading(false);
-    }
-
-    fetchHistory();
-  }, [user, supabase]);
+    setHistory([]);
+    setLoading(false);
+  }, [user]);
 
   const stats = useMemo(() => {
     const totalMeals = history.reduce((s, d) => s + d.mealCount, 0);

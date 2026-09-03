@@ -11,7 +11,6 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
 interface StepTrackerContextType {
@@ -28,7 +27,6 @@ const StepTrackerContext = createContext<StepTrackerContextType | undefined>(und
 
 export const StepTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
-  const supabase = createClient();
 
   // -- State --
   const [steps, setSteps] = useState(0);
@@ -80,25 +78,8 @@ export const StepTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   // 1. Load User Profile
   useEffect(() => {
-    if (!user || hasProfileLoaded.current) return;
-    const fetchProfile = async () => {
-      const { data } = await supabase
-        .from('profiles')
-        .select('height, weight')
-        .eq('id', user.id)
-        .single();
-
-      if (data) {
-        profileRef.current = {
-          height: data.height || 175,
-          weight: data.weight || 75,
-        };
-        hasProfileLoaded.current = true;
-        console.log('👤 Step Tracker: Loaded Profile', profileRef.current);
-      }
-    };
-    fetchProfile();
-  }, [user, supabase]);
+    hasProfileLoaded.current = true;
+  }, [user]);
 
   // 2. Resume State & Load Initial Data
   useEffect(() => {
@@ -115,32 +96,10 @@ export const StepTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
       // Fetch DB totals for today
       const today = new Date().toISOString().split('T')[0];
-      const { data, error } = await supabase
-        .from('step_logs')
-        .select('steps, distance_km, calories_burned')
-        .eq('user_id', user.id)
-        .eq('log_date', today)
-        .single();
-
-      let dbSteps = 0;
-      let dbDist = 0;
-      let dbCals = 0;
-
-      if (data && !error) {
-        console.log('📊 Step Tracker: DB Loaded', data);
-        dbSteps = data.steps;
-        dbDist = data.distance_km;
-        dbCals = data.calories_burned;
-      } else {
-        // Initialize today's log if missing
-        await supabase.from('step_logs').insert({
-          user_id: user.id,
-          steps: 0,
-          log_date: today,
-          distance_km: 0,
-          calories_burned: 0,
-        });
-      }
+      const stored = localStorage.getItem(`steps_${user.id}_${today}`);
+      const dbSteps = stored ? Number(stored) : 0;
+      const dbDist = 0;
+      const dbCals = 0;
 
       // RECOVERY: Check for unsynced steps in localStorage
       try {
@@ -169,7 +128,7 @@ export const StepTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     };
 
     initSession();
-  }, [user, supabase]);
+  }, [user]);
 
   // -- Permission & Control --
 
@@ -409,23 +368,7 @@ export const StepTrackerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     pendingStepsRef.current = { steps: 0, distance: 0, calories: 0 };
     savePendingToLocal();
 
-    const { error } = await supabase.rpc('increment_steps', {
-      user_id_input: user.id,
-      steps_count: payload.steps,
-      distance_inc: payload.distance,
-      calories_inc: payload.calories,
-    });
-
-    if (error) {
-      console.error('❌ Sync failed, putting back pending');
-      pendingStepsRef.current.steps += payload.steps;
-      pendingStepsRef.current.distance += payload.distance;
-      pendingStepsRef.current.calories += payload.calories;
-      savePendingToLocal();
-    } else {
-      console.log('✅ Sync success');
-      lastSyncedStepsRef.current = stepCountRef.current;
-    }
+    lastSyncedStepsRef.current = stepCountRef.current;
   };
 
   // Sync on visibility change

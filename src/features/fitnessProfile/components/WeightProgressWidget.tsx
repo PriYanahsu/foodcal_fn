@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { ScaleIcon, PlusIcon, ChartBarIcon } from '@heroicons/react/24/outline';
+import { getLocal, setLocal } from '@/lib/local-store';
 
 interface WeightLog {
   weight: number;
@@ -23,57 +23,32 @@ export default function WeightProgressWidget({
   onLogSuccess?: () => void;
   compact?: boolean;
 }) {
-  const supabase = createClient();
   const [currentWeight, setCurrentWeight] = useState<number | null>(initialWeight);
   const [loading, setLoading] = useState(true);
   const [isLogging, setIsLogging] = useState(false);
   const [newWeight, setNewWeight] = useState('');
 
   useEffect(() => {
-    async function fetchLatestWeight() {
-      setLoading(true);
-      const { data } = await supabase
-        .from('weight_logs')
-        .select('weight')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      if (data && data.length > 0) {
-        setCurrentWeight(data[0].weight);
-      } else if (initialWeight != null) {
-        setCurrentWeight(initialWeight);
-      } else {
-        setCurrentWeight(null);
-      }
-      setLoading(false);
-    }
-
-    if (userId) fetchLatestWeight();
+    const logs = getLocal<{ weight: number }[]>(`weight_logs_${userId}`) || [];
+    if (logs.length) setCurrentWeight(logs[0].weight);
+    else if (initialWeight != null) setCurrentWeight(initialWeight);
+    else setCurrentWeight(null);
+    setLoading(false);
   }, [userId, initialWeight]);
 
   const handleLogWeight = async () => {
     const weightValue = parseFloat(newWeight);
     if (!newWeight || isNaN(weightValue)) return;
-
     setLoading(true);
-
-    // 1. Log to weight_logs history
-    const { error: logError } = await supabase
-      .from('weight_logs')
-      .insert({ user_id: userId, weight: weightValue });
-
-    if (!logError) {
-      // 2. Update profiles table for sync across app
-      await supabase.from('profiles').update({ weight: weightValue }).eq('id', userId);
-
-      setCurrentWeight(weightValue);
-      setIsLogging(false);
-      setNewWeight('');
-      if (onLogSuccess) onLogSuccess();
-    } else {
-      alert('Failed to log weight');
-    }
+    const logs = getLocal<{ weight: number; created_at: string }[]>(`weight_logs_${userId}`) || [];
+    logs.unshift({ weight: weightValue, created_at: new Date().toISOString() });
+    setLocal(`weight_logs_${userId}`, logs);
+    const profile = getLocal<Record<string, unknown>>(`profile_${userId}`) || {};
+    setLocal(`profile_${userId}`, { ...profile, weight: weightValue });
+    setCurrentWeight(weightValue);
+    setIsLogging(false);
+    setNewWeight('');
+    onLogSuccess?.();
     setLoading(false);
   };
 

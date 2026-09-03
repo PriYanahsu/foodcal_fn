@@ -1,4 +1,4 @@
-import axiosInstance from '@/lib/axios';
+import axiosInstance from '@/lib/springboot/axios';
 import { FoodScanResponse } from '../types';
 
 export const scanFoodImage = async (imageFile: File): Promise<FoodScanResponse> => {

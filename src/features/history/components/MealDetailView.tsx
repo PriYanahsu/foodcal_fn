@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { MealLog } from '../types';
 import { ArrowLeftIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
@@ -11,35 +10,15 @@ interface MealDetailViewProps {
 }
 
 export default function MealDetailView({ mealId }: MealDetailViewProps) {
-  const supabase = createClient();
   const router = useRouter();
   const [meal, setMeal] = useState<MealLog | null>(null);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchMeal() {
-      const { data } = await supabase.from('food_logs').select('*').eq('id', mealId).single();
-
-      if (data) {
-        setMeal(data as MealLog);
-        if (data.image_path) {
-          if (data.image_path.startsWith('http')) {
-            setImageUrl(data.image_path);
-          } else {
-            const { data: blob } = await supabase.storage
-              .from('meal_images')
-              .download(data.image_path);
-            if (blob) {
-              setImageUrl(URL.createObjectURL(blob));
-            }
-          }
-        }
-      }
-      setLoading(false);
-    }
-    fetchMeal();
-  }, [mealId, supabase]);
+    setMeal(null);
+    setLoading(false);
+  }, [mealId]);
 
   if (loading) {
     return (

@@ -1,12 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export const useStepTracker = () => {
   const { user } = useAuth();
-  const supabase = createClient();
 
   const [steps, setSteps] = useState(0);
   const [isTracking, setIsTracking] = useState(false);
@@ -40,37 +38,14 @@ export const useStepTracker = () => {
 
     const fetchInitialSteps = async () => {
       const today = new Date().toISOString().split('T')[0];
-
-      const { data, error } = await supabase
-        .from('step_logs')
-        .select('steps')
-        .eq('user_id', user.id)
-        .eq('log_date', today)
-        .single();
-
-      if (data && !error) {
-        console.log('Step Tracker: Loaded steps from DB:', data.steps);
-        setSteps(data.steps);
-        stepCountRef.current = data.steps;
-      } else {
-        console.log('Step Tracker: No existing steps for today, starting from 0');
-        // Initialize today's log with 0 steps
-        await supabase
-          .from('step_logs')
-          .insert({
-            user_id: user.id,
-            steps: 0,
-            log_date: today,
-            distance_km: 0,
-            calories_burned: 0,
-          })
-          .select()
-          .single();
-      }
+      const stored = localStorage.getItem(`steps_${user.id}_${today}`);
+      const value = stored ? Number(stored) : 0;
+      setSteps(value);
+      stepCountRef.current = value;
     };
 
     fetchInitialSteps();
-  }, [user, supabase]);
+  }, [user]);
 
   const requestPermission = async () => {
     if (typeof window === 'undefined') return;
@@ -167,21 +142,14 @@ export const useStepTracker = () => {
     if (!user || steps === 0 || steps % 10 !== 0) return;
 
     const syncSteps = async () => {
-      console.log('Step Tracker: Syncing', steps, 'steps to database');
-      const { error } = await supabase.rpc('increment_steps', {
-        user_id_input: user.id,
-        steps_count: 10,
-      });
-
-      if (error) {
-        console.error('Step Tracker: Sync failed', error);
-      } else {
-        console.log('Step Tracker: Sync successful');
-      }
+      localStorage.setItem(
+        `steps_${user.id}_${new Date().toISOString().split('T')[0]}`,
+        String(steps)
+      );
     };
 
     syncSteps();
-  }, [steps, user, supabase]);
+  }, [steps, user]);
 
   // Cleanup: Stop tracking when user logs out
   useEffect(() => {

@@ -4,7 +4,6 @@ import React, { useState, FormEvent } from 'react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '../hooks/useAuth';
-import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/constants/routes';
 
 export const LoginForm: React.FC = () => {
@@ -12,7 +11,6 @@ export const LoginForm: React.FC = () => {
   const [password, setPassword] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
   const { login, isLoading, error } = useAuth();
-  const router = useRouter();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -30,7 +28,7 @@ export const LoginForm: React.FC = () => {
 
     const result = await login({ email, password });
     if (result.success) {
-      router.push(ROUTES.HOME);
+      window.location.assign(ROUTES.HOME);
     }
   };
 

@@ -16,7 +16,7 @@ import { StatCard } from '@/components/dashboard/StatCard';
 import { ThemeDatePicker } from '@/components/ui/ThemeDatePicker';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useDailyStats } from '@/features/dashboard/hooks/useDailyStats';
-import { createClient } from '@/lib/supabase/client';
+import { getLocal, profileKey, setLocal } from '@/lib/local-store';
 import FitnessSetupWizard from '@/features/fitnessProfile/components/setup/FitnessSetupWizard';
 import { StepTracker } from '@/features/activity/components/StepTracker';
 import { isFeatureEnabled } from '@/config/features';
@@ -37,7 +37,6 @@ interface ProfileData {
 }
 
 export default function Dashboard() {
-  const supabase = createClient();
   const { user } = useAuth();
 
   // Date State
@@ -56,22 +55,20 @@ export default function Dashboard() {
 
   useEffect(() => {
     async function fetchProfile() {
-      if (!user) return;
-
-      setProfileLoading(true);
-      const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-
-      if (data) {
-        setProfile(data);
+      if (!user) {
+        setProfileLoading(false);
+        return;
       }
+      setProfileLoading(true);
+      const data = getLocal<ProfileData>(profileKey(user.id));
+      if (data) setProfile(data);
       setProfileLoading(false);
     }
 
     fetchProfile();
   }, [user]);
 
-  const userName =
-    profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+  const userName = profile?.full_name || user?.name || user?.email?.split('@')[0] || 'User';
 
   const hasPlan = !!profile?.goal;
   const goals = {
@@ -164,7 +161,10 @@ export default function Dashboard() {
               url={profile?.avatar_url ?? null}
               isEditing={false}
               onUpload={(url) => {
-                supabase.from('profiles').update({ avatar_url: url }).eq('id', user?.id).then();
+                if (user?.id) {
+                  const current = getLocal<ProfileData>(profileKey(user.id)) || {};
+                  setLocal(profileKey(user.id), { ...current, avatar_url: url });
+                }
                 setProfile((prev) => (prev ? { ...prev, avatar_url: url } : null));
               }}
               size={96}

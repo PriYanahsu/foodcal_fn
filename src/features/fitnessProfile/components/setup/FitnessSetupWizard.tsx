@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { getLocal, profileKey, setLocal } from '@/lib/local-store';
 import {
   UserIcon,
   TrophyIcon,
@@ -59,7 +59,6 @@ export default function FitnessSetupWizard({
   onCancel?: () => void;
   isInline?: boolean;
 }) {
-  const supabase = createClient();
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -82,13 +81,7 @@ export default function FitnessSetupWizard({
 
     async function loadProfile() {
       setPrefillLoading(true);
-      const { data } = await supabase
-        .from('profiles')
-        .select(
-          'gender, age, height, weight, activity_level, goal, target_weight, target_date'
-        )
-        .eq('id', userId)
-        .single();
+      const data = getLocal<any>(profileKey(userId));
 
       if (cancelled) return;
 
@@ -200,41 +193,34 @@ export default function FitnessSetupWizard({
 
   const handleSavePlan = async () => {
     setLoading(true);
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        gender: stats.gender,
-        age: stats.age,
-        height: stats.height,
-        weight: stats.weight,
-        activity_level: stats.activity_level,
-        goal: goals.objective,
-        target_weight: goals.target_weight,
-        target_date: goals.target_date,
-        daily_calorie_target: aiResult.targets.calories,
-        daily_protein_target: aiResult.targets.protein,
-        daily_carbs_target: aiResult.targets.carbs,
-        daily_fats_target: aiResult.targets.fats,
-        ai_coach_advice: aiResult.advice,
-      })
-      .eq('id', userId);
-
-    if (!error) {
-      setToast({
-        message: 'Plan saved to Fitness Hub!',
-        detail:
-          'Your calorie, protein, carbs & fat targets are live. Check Fitness Hub & dashboard to track them.',
-        actionLabel: 'Open Fitness Hub',
-        actionHref: '/fitness',
-      });
-      window.setTimeout(() => {
-        onComplete();
-        router.refresh();
-      }, 2400);
-    } else {
-      alert('Failed to save your plan. Please try again.');
-      setLoading(false);
-    }
+    const current = getLocal<Record<string, unknown>>(profileKey(userId)) || {};
+    setLocal(profileKey(userId), {
+      ...current,
+      gender: stats.gender,
+      age: stats.age,
+      height: stats.height,
+      weight: stats.weight,
+      activity_level: stats.activity_level,
+      goal: goals.objective,
+      target_weight: goals.target_weight,
+      target_date: goals.target_date,
+      daily_calorie_target: aiResult.targets.calories,
+      daily_protein_target: aiResult.targets.protein,
+      daily_carbs_target: aiResult.targets.carbs,
+      daily_fats_target: aiResult.targets.fats,
+      ai_coach_advice: aiResult.advice,
+    });
+    setToast({
+      message: 'Plan saved to Fitness Hub!',
+      detail:
+        'Your calorie, protein, carbs & fat targets are live. Check Fitness Hub & dashboard to track them.',
+      actionLabel: 'Open Fitness Hub',
+      actionHref: '/fitness',
+    });
+    window.setTimeout(() => {
+      onComplete();
+      router.refresh();
+    }, 2400);
   };
 
   const inputClass =
