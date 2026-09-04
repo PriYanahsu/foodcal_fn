@@ -10,6 +10,7 @@ interface CompletionFields {
 
 interface CompletionProfile extends CompletionFields {
   full_name?: string | null;
+  fullName?: string | null;
   avatar_url?: string | null;
   gender?: string | null;
   goal?: string | null;
@@ -22,7 +23,7 @@ export const calculateProfileCompletion = (profile: CompletionProfile | null | u
 
   // Fields that contribute to completion
   const fields = [
-    profile.full_name,
+    profile.full_name ?? profile.fullName,
     profile.avatar_url,
     profile.gender,
     fitness.age,

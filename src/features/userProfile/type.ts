@@ -11,7 +11,6 @@ export interface ProfileData {
   email: string;
   gender: string;
   avatar_url: string | null;
-  fitness_details: FitnessDetails;
 }
 
 export interface FitnessDetails {
@@ -29,17 +28,44 @@ export interface FitnessDetails {
   ai_coach_advice: string;
 }
 
-export const EMPTY_FITNESS_DETAILS: FitnessDetails = {
-  id: '',
-  age: 0,
-  height: 0,
-  weight: 0,
-  activity_level: '',
-  target_weight_kg: 0,
-  target_date: '',
-  daily_calorie_target: 0,
-  daily_protein_target_g: 0,
-  daily_carbs_target_g: 0,
-  daily_fat_target_g: 0,
-  ai_coach_advice: '',
-};
+export interface ProfileFieldProps {
+  label: string;
+  value: string;
+  hint?: string;
+  className?: string;
+}
+
+export interface ChoiceChipsProps {
+  options: readonly string[];
+  value: string;
+  onChange: (next: string) => void;
+  accent?: 'primary' | 'accent';
+}
+
+export interface ProfileFeedback {
+  type: 'success' | 'error';
+  message: string;
+}
+
+export interface UserDetailFormProps {
+  profile: ProfileData;
+  isEditing: boolean;
+  saving: boolean;
+  onChange: (patch: Partial<Pick<ProfileData, 'fullName' | 'gender'>>) => void;
+  onStartEdit: () => void;
+  onCancel: () => void;
+  onSave: () => void;
+}
+
+export interface FitnessDetailFormProps {
+  fitness: FitnessDetails;
+  isEditing: boolean;
+  saving: boolean;
+  canConsult: boolean;
+  showConsultCta: boolean;
+  onChange: (patch: Partial<FitnessDetails>) => void;
+  onStartEdit: () => void;
+  onCancel: () => void;
+  onSave: () => void;
+  onConsult: () => void;
+}
