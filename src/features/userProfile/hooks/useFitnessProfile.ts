@@ -27,7 +27,7 @@ export function useFitnessProfile(options?: { autoFetch?: boolean }) {
 
       try {
         if (!silent) setLoading(true);
-        const { data } = await axiosInstance.get<FitnessDetails>(`/v1/fitness/${user.id}`);
+        const { data } = await axiosInstance.get<FitnessDetails>(`/v1/fitness/get`);
         const next = { ...EMPTY_FITNESS_DETAILS, ...data };
         setFitness(next);
         setSavedFitness(next);
@@ -83,7 +83,7 @@ export function useFitnessProfile(options?: { autoFetch?: boolean }) {
       setFeedback(null);
 
       const { data, status } = await axiosInstance.put<FitnessDetails>(
-        `/v1/fitness/${user.id}`,
+        `/v1/fitness/update`,
         fitness
       );
 

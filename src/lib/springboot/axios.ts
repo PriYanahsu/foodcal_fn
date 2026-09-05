@@ -14,6 +14,13 @@ axiosInstance.interceptors.request.use((config) => {
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
+  const method = (config.method || 'get').toLowerCase();
+  if (method === 'get' || method === 'head' || method === 'options') {
+    if (config.headers) {
+      delete config.headers['Content-Type'];
+      delete config.headers['content-type'];
+    }
+  }
   return config;
 });
 

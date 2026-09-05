@@ -100,7 +100,7 @@ export default function UserProfile() {
     fitness_details: fitness,
   });
   const missingFields = getMissingFields(profile, fitness);
-  const goal = deriveGoal(fitness.weight, fitness.target_weight_kg);
+  const goal = deriveGoal(fitness.weight, fitness.targetWeightKg);
 
   return (
     <div className="page-container max-w-5xl pb-8">

@@ -13,9 +13,9 @@ export function getMissingFields(profile: ProfileData, fitness: FitnessDetails):
     ['age', fitness.age],
     ['height', fitness.height],
     ['weight', fitness.weight],
-    ['activity_level', fitness.activity_level],
-    ['target_weight', fitness.target_weight_kg],
-    ['target_date', fitness.target_date],
+    ['activity_level', fitness.activityLevel],
+    ['target_weight', fitness.targetWeightKg],
+    ['target_date', fitness.targetDate],
   ];
 
   return checks

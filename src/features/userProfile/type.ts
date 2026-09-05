@@ -18,14 +18,14 @@ export interface FitnessDetails {
   age: number;
   height: number;
   weight: number;
-  activity_level: string;
-  target_weight_kg: number;
-  target_date: string;
-  daily_calorie_target: number;
-  daily_protein_target_g: number;
-  daily_carbs_target_g: number;
-  daily_fat_target_g: number;
-  ai_coach_advice: string;
+  activityLevel: string;
+  targetWeightKg: number;
+  targetDate: string;
+  dailyCalorieTarget: number;
+  dailyProteinTargetG: number;
+  dailyCarbsTargetG: number;
+  dailyFatTargetG: number;
+  aiCoachAdvice: string;
 }
 
 export interface ProfileFieldProps {

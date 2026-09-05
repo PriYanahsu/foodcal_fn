@@ -24,7 +24,7 @@ export default function FitnessDetailForm({
   onSave,
   onConsult,
 }: FitnessDetailFormProps) {
-  const goal = deriveGoal(fitness.weight, fitness.target_weight_kg);
+  const goal = deriveGoal(fitness.weight, fitness.targetWeightKg);
 
   return (
     <Card className="p-4 sm:p-6 md:p-8 bg-[var(--card-bg)] border border-[var(--card-border)] shadow-xl">
@@ -108,12 +108,12 @@ export default function FitnessDetailForm({
             </label>
             <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
               {ACTIVITY_LEVELS.map((level) => {
-                const selected = fitness.activity_level === level;
+                const selected = fitness.activityLevel === level;
                 return (
                   <button
                     key={level}
                     type="button"
-                    onClick={() => onChange({ activity_level: level })}
+                    onClick={() => onChange({ activityLevel: level })}
                     className={`text-left px-2.5 py-2 sm:px-4 sm:py-3 rounded-lg sm:rounded-xl border sm:border-2 transition-all ${
                       selected
                         ? 'border-[var(--primary)] bg-[var(--primary)]/10'
@@ -143,10 +143,10 @@ export default function FitnessDetailForm({
           <ProfileField label="Weight" value={fitness.weight ? `${fitness.weight} kg` : ''} />
           <ProfileField
             label="Activity Level"
-            value={fitness.activity_level}
+            value={fitness.activityLevel}
             hint={
-              fitness.activity_level
-                ? ACTIVITY_HINTS[fitness.activity_level]
+              fitness.activityLevel
+                ? ACTIVITY_HINTS[fitness.activityLevel]
                 : 'Helps calculate calorie needs'
             }
           />
@@ -175,7 +175,7 @@ export default function FitnessDetailForm({
             {goal && (
               <p className="text-[10px] sm:text-xs text-[var(--text-muted)] mt-1 sm:mt-1.5">
                 Current <span className="text-white font-medium">{fitness.weight} kg</span> → Target{' '}
-                <span className="text-white font-medium">{fitness.target_weight_kg} kg</span> — goal
+                <span className="text-white font-medium">{fitness.targetWeightKg} kg</span> — goal
                 auto-corrected to{' '}
                 <span className="text-[var(--primary)] font-semibold">{goal}</span>
               </p>
@@ -189,10 +189,10 @@ export default function FitnessDetailForm({
               min={20}
               max={400}
               step="0.1"
-              value={fitness.target_weight_kg || ''}
+              value={fitness.targetWeightKg || ''}
               onChange={(e) => {
                 const next = parseOptionalNumber(e.target.value);
-                onChange({ target_weight_kg: next || 0 });
+                onChange({ targetWeightKg: next || 0 });
               }}
               placeholder="e.g. 65"
             />
@@ -202,8 +202,8 @@ export default function FitnessDetailForm({
               </label>
               <input
                 type="date"
-                value={fitness.target_date}
-                onChange={(e) => onChange({ target_date: e.target.value })}
+                value={fitness.targetDate}
+                onChange={(e) => onChange({ targetDate: e.target.value })}
                 className={SELECT_CLASS}
                 style={{ colorScheme: 'dark' }}
               />
@@ -215,9 +215,9 @@ export default function FitnessDetailForm({
           <ProfileField label="Objective" value={goal ?? ''} className="col-span-2 sm:col-span-1" />
           <ProfileField
             label="Target Weight"
-            value={fitness.target_weight_kg ? `${fitness.target_weight_kg} kg` : ''}
+            value={fitness.targetWeightKg ? `${fitness.targetWeightKg} kg` : ''}
           />
-          <ProfileField label="Target Date" value={formatDate(fitness.target_date)} />
+          <ProfileField label="Target Date" value={formatDate(fitness.targetDate)} />
         </div>
       )}
 
