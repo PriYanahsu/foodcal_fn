@@ -3,27 +3,12 @@ import { GoogleGenerativeAI, type GenerateContentResult } from '@google/generati
 
 export const runtime = 'nodejs';
 
-const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
-const MODEL_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
-
-interface GeminiModelInfo {
-  name: string;
-  displayName?: string;
-  description?: string;
-  supportedGenerationMethods?: string[];
-}
-
-interface ListModelsResponse {
-  models?: GeminiModelInfo[];
-  nextPageToken?: string;
-}
-
-interface ModelCache {
-  models: string[];
-  fetchedAt: number;
-}
-
-let modelCache: ModelCache | null = null;
+const FALLBACK_MODELS = [
+  'gemini-2.5-flash',
+  'gemini-2.0-flash',
+  'gemini-2.5-flash-lite',
+  'gemini-1.5-flash',
+];
 
 function getApiKey(): string {
   const key = process.env.GEMINI_API_KEY;
@@ -33,38 +18,32 @@ function getApiKey(): string {
   return key;
 }
 
-/** Strip the `models/` prefix returned by the ListModels API. */
-function normalizeModelName(name: string): string {
-  return name.replace(/^models\//, '');
+function getErrorMessage(error: unknown): string {
+  if (!(error instanceof Error)) return String(error);
+
+  const cause = (error as Error & { cause?: unknown }).cause;
+  const causeErr = cause instanceof Error ? cause : undefined;
+  const code =
+    causeErr && 'code' in causeErr ? String((causeErr as NodeJS.ErrnoException).code) : undefined;
+
+  const parts = [error.message];
+  if (causeErr?.message && causeErr.message !== error.message) parts.push(causeErr.message);
+  if (code) parts.push(code);
+
+  return parts.join(': ');
 }
 
-function supportsGenerateContent(model: GeminiModelInfo): boolean {
-  return (model.supportedGenerationMethods ?? []).includes('generateContent');
-}
-
-/** Drop task-specific / non-text generative models. */
-function isTextGenerativeModel(model: GeminiModelInfo): boolean {
-  const haystack = [model.name, model.displayName, model.description]
-    .filter(Boolean)
-    .join(' ')
-    .toLowerCase();
-
-  const excluded = [
-    'embedding',
-    'embed-content',
-    'aqa',
-    'imagen',
-    'veo',
-    'tts',
-    'robotics',
-    'computer-use',
-  ];
-
-  return !excluded.some((token) => haystack.includes(token));
+function isTlsCertError(error: unknown): boolean {
+  const message = getErrorMessage(error).toLowerCase();
+  return (
+    message.includes('unable to verify the first certificate') ||
+    message.includes('unable_to_verify_leaf_signature') ||
+    message.includes('cert') && message.includes('self-signed')
+  );
 }
 
 function isRetryableModelError(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error);
+  const message = getErrorMessage(error).toLowerCase();
   const status =
     typeof error === 'object' &&
     error !== null &&
@@ -73,143 +52,57 @@ function isRetryableModelError(error: unknown): boolean {
       ? (error as { status: number }).status
       : undefined;
 
-  const lower = message.toLowerCase();
-
   return (
     status === 404 ||
     status === 429 ||
-    lower.includes('404') ||
-    lower.includes('429') ||
-    lower.includes('not found') ||
-    lower.includes('is not found') ||
-    lower.includes('quota') ||
-    lower.includes('rate limit') ||
-    lower.includes('resource_exhausted') ||
-    lower.includes('deprecated') ||
-    lower.includes('no longer available') ||
-    lower.includes('not supported') ||
-    lower.includes('unavailable')
+    message.includes('404') ||
+    message.includes('429') ||
+    message.includes('not found') ||
+    message.includes('is not found') ||
+    message.includes('quota') ||
+    message.includes('rate limit') ||
+    message.includes('resource_exhausted') ||
+    message.includes('deprecated') ||
+    message.includes('no longer available') ||
+    message.includes('not supported') ||
+    message.includes('unavailable')
   );
 }
 
-/** Rank models so faster / cheaper flash variants are tried first. */
-function rankModels(a: string, b: string): number {
-  const score = (name: string) => {
-    const n = name.toLowerCase();
-    if (n.includes('flash-lite')) return 0;
-    if (n.includes('flash')) return 1;
-    if (n.includes('pro')) return 3;
-    return 2;
-  };
-  return score(a) - score(b) || a.localeCompare(b);
-}
-
-/**
- * Fetch models available to the current API key, filter to generateContent
- * text models, and cache the result in memory.
- */
-async function getAvailableModels(apiKey: string): Promise<string[]> {
-  const now = Date.now();
-
-  if (modelCache && now - modelCache.fetchedAt < MODEL_CACHE_TTL_MS) {
-    console.log(
-      `[fitness-consultant] Using cached model list (${modelCache.models.length} models, age ${Math.round((now - modelCache.fetchedAt) / 1000)}s)`
-    );
-    return modelCache.models;
-  }
-
-  console.log('[fitness-consultant] Fetching available models from Gemini ListModels API...');
-
-  const models: GeminiModelInfo[] = [];
-  let pageToken: string | undefined;
-
-  do {
-    const url = new URL(`${GEMINI_API_BASE}/models`);
-    url.searchParams.set('key', apiKey);
-    url.searchParams.set('pageSize', '100');
-    if (pageToken) {
-      url.searchParams.set('pageToken', pageToken);
-    }
-
-    const res = await fetch(url.toString(), {
-      method: 'GET',
-      headers: { Accept: 'application/json' },
-      cache: 'no-store',
-    });
-
-    if (!res.ok) {
-      const body = await res.text();
-      throw new Error(`Failed to list Gemini models (${res.status}): ${body}`);
-    }
-
-    const data = (await res.json()) as ListModelsResponse;
-    if (data.models?.length) {
-      models.push(...data.models);
-    }
-    pageToken = data.nextPageToken;
-  } while (pageToken);
-
-  const compatible = models
-    .filter((m) => supportsGenerateContent(m) && isTextGenerativeModel(m))
-    .map((m) => normalizeModelName(m.name))
-    .filter(Boolean)
-    .sort(rankModels);
-
-  const unique = [...new Set(compatible)];
-
-  console.log(
-    `[fitness-consultant] Available generateContent models (${unique.length}):`,
-    unique
-  );
-
-  modelCache = { models: unique, fetchedAt: now };
-  return unique;
-}
-
-/**
- * Try each compatible model until one successfully generates content.
- * Skips models that return 404 / 429 / deprecated / not-found style errors.
- */
 async function generateWithFallback(
   genAI: GoogleGenerativeAI,
-  apiKey: string,
   prompt: string
 ): Promise<GenerateContentResult> {
-  const models = await getAvailableModels(apiKey);
-
-  if (models.length === 0) {
-    throw new Error('No compatible Gemini models found for generateContent.');
-  }
-
   const failures: string[] = [];
 
-  for (const modelName of models) {
+  for (const modelName of FALLBACK_MODELS) {
     console.log(`[fitness-consultant] Trying model: ${modelName}`);
 
     try {
-      const model = genAI.getGenerativeModel({ model: modelName });
+      const model = genAI.getGenerativeModel({
+        model: modelName,
+        generationConfig: { responseMimeType: 'application/json' },
+      });
       const result = await model.generateContent(prompt);
       console.log(`[fitness-consultant] Success with model: ${modelName}`);
       return result;
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
+      const message = getErrorMessage(error);
       console.error(`[fitness-consultant] Model failed (${modelName}): ${message}`);
-
       failures.push(`${modelName}: ${message}`);
 
-      if (isRetryableModelError(error)) {
-        console.log(`[fitness-consultant] Skipping ${modelName} (retryable) → next model`);
-        continue;
+      if (isTlsCertError(error)) {
+        throw error;
       }
 
-      console.log(
-        `[fitness-consultant] Skipping ${modelName} (non-retryable but continuing fallback)`
-      );
+      if (isRetryableModelError(error)) {
+        continue;
+      }
     }
   }
 
   throw new Error(
-    `All compatible Gemini models failed (${failures.length}/${models.length}). Last errors: ${failures.slice(-3).join(' | ')}`
+    `All Gemini models failed (${failures.length}/${FALLBACK_MODELS.length}). ${failures.join(' | ')}`
   );
 }
 
@@ -275,18 +168,26 @@ export async function POST(req: Request) {
             `;
 
       console.log('--- Calling Gemini ---');
-      const result = await generateWithFallback(genAI, apiKey, prompt);
+      const result = await generateWithFallback(genAI, prompt);
       responseText = result.response.text();
       console.log('--- Gemini Success ---');
-    } catch (geminiError: any) {
+    } catch (geminiError: unknown) {
       console.error('Gemini Error:', geminiError);
-      return NextResponse.json(
-        { error: `AI Service Error: ${geminiError.message}` },
-        { status: 500 }
-      );
+      const message = getErrorMessage(geminiError);
+
+      if (isTlsCertError(geminiError)) {
+        return NextResponse.json(
+          {
+            error:
+              'AI Service Error: TLS certificate verification failed (UNABLE_TO_VERIFY_LEAF_SIGNATURE). Restart the Next server via npm run dev so Node uses --use-system-ca (Windows antivirus HTTPS scanning).',
+          },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({ error: `AI Service Error: ${message}` }, { status: 500 });
     }
 
-    // More robust JSON extraction
     let cleanContent = responseText;
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
@@ -296,7 +197,7 @@ export async function POST(req: Request) {
     try {
       const analysis = JSON.parse(cleanContent);
       return NextResponse.json({ data: analysis });
-    } catch (e) {
+    } catch {
       console.error('JSON Parse Error. Raw content:', responseText);
       return NextResponse.json(
         {
@@ -306,10 +207,10 @@ export async function POST(req: Request) {
         { status: 500 }
       );
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Fitness Consultant Error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to consult fitness coach', stack: error.stack },
+      { error: getErrorMessage(error) || 'Failed to consult fitness coach' },
       { status: 500 }
     );
   }
