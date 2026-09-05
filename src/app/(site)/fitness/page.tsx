@@ -5,7 +5,6 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import WeightProgressWidget from '@/features/fitnessProfile/components/WeightProgressWidget';
 import FitnessSetupWizard from '@/features/fitnessProfile/components/setup/FitnessSetupWizard';
 import { StatCard } from '@/components/dashboard/StatCard';
-import { getLocal, profileKey } from '@/lib/local-store';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import {
   SparklesIcon,
@@ -97,24 +96,6 @@ function CollapsibleSection({
       <div className={`${open ? 'block' : 'hidden'} lg:block p-4 lg:p-6 lg:pt-4`}>{children}</div>
     </section>
   );
-}
-
-interface ProfileData {
-  full_name: string | null;
-  avatar_url: string | null;
-  daily_calorie_target: number | null;
-  daily_protein_target: number | null;
-  daily_carbs_target: number | null;
-  daily_fats_target: number | null;
-  ai_coach_advice: string | null;
-  goal: string | null;
-  target_weight: number | null;
-  target_date: string | null;
-  weight: number | null;
-  height: number | null;
-  gender: string | null;
-  age: number | null;
-  activity_level: string | null;
 }
 
 export default function FitnessHub() {
