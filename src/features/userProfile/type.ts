@@ -20,6 +20,7 @@ export interface FitnessDetails {
   weight: number;
   activityLevel: string;
   targetWeightKg: number;
+  objective: string;
   targetDate: string;
   dailyCalorieTarget: number;
   dailyProteinTargetG: number;

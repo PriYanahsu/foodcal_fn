@@ -20,6 +20,8 @@ import {
   BoltIcon,
   HeartIcon,
 } from '@heroicons/react/24/outline';
+import axiosInstance from '@/lib/springboot/axios';
+import { FitnessDetails } from '@/features/userProfile';
 
 function calcBmi(weight: number | null, height: number | null): string {
   if (!weight || !height) return '--';
@@ -117,34 +119,34 @@ interface ProfileData {
 
 export default function FitnessHub() {
   const { user } = useAuth();
-  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [fitnessProfile, setFitnessProfile] = useState<FitnessDetails | null>(null);
   const [showWizard, setShowWizard] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  async function fetchProfile() {
+  async function fetchFitnessProfile() {
     if (!user) {
       setLoading(false);
       return;
     }
-    const data = getLocal<ProfileData>(profileKey(user.id));
+    const {data} = await axiosInstance.get<FitnessDetails>(`/v1/fitness/get`);
     if (data) {
-      setProfile(data);
+      setFitnessProfile(data);
       if (calculateProfileCompletion(data) < 100) setShowReminder(true);
     }
     setLoading(false);
   }
 
-  const completionPercentage = calculateProfileCompletion(profile);
+  const completionPercentage = calculateProfileCompletion(fitnessProfile);
   const [showReminder, setShowReminder] = useState(false);
-  const bmi = calcBmi(profile?.weight ?? null, profile?.height ?? null);
-  const daysLeft = daysUntilTarget(profile?.target_date ?? null);
+  const bmi = calcBmi(fitnessProfile?.weight ?? null, fitnessProfile?.height ?? null);
+  const daysLeft = daysUntilTarget(fitnessProfile?.targetDate ?? null);
   const weightDelta =
-    profile?.weight && profile?.target_weight
-      ? (profile.weight - profile.target_weight).toFixed(1)
+    fitnessProfile?.weight && fitnessProfile?.targetWeightKg
+      ? (fitnessProfile.weight - fitnessProfile.targetWeightKg).toFixed(1)
       : null;
 
   useEffect(() => {
-    fetchProfile();
+    fetchFitnessProfile();
   }, [user]);
 
   if (loading) {
@@ -211,8 +213,8 @@ export default function FitnessHub() {
                 <p className="text-sm text-[var(--text-muted)] leading-snug font-medium">
                   {showWizard
                     ? 'Updating your plan — current stats stay in view.'
-                    : profile?.goal
-                      ? `Optimizing for ${profile.goal.toLowerCase()} with AI precision.`
+                    : fitnessProfile?.objective
+                      ? `Optimizing for ${fitnessProfile.objective.toLowerCase()} with AI precision.`
                       : 'Build your expert coaching profile to begin.'}
                 </p>
               </div>
@@ -241,16 +243,16 @@ export default function FitnessHub() {
 
             <div className="grid grid-cols-3 gap-2">
               {[
-                { label: 'Weight', value: profile?.weight ? `${profile.weight} kg` : '--' },
-                { label: 'Target', value: profile?.target_weight ? `${profile.target_weight} kg` : '--' },
+                { label: 'Weight', value: fitnessProfile?.weight ? `${fitnessProfile.weight} kg` : '--' },
+                { label: 'Target', value: fitnessProfile?.targetWeightKg ? `${fitnessProfile.targetWeightKg} kg` : '--' },
                 { label: 'BMI', value: bmi },
-                { label: 'Height', value: profile?.height ? `${profile.height} cm` : '--' },
-                { label: 'Activity', value: profile?.activity_level?.replace('_', ' ') || '--' },
+                { label: 'Height', value: fitnessProfile?.height ? `${fitnessProfile.height} cm` : '--' },
+                { label: 'Activity', value: fitnessProfile?.activityLevel?.replace('_', ' ') || '--' },
                 {
-                  label: 'Age / Sex',
+                  label: 'Age',
                   value:
-                    profile?.age || profile?.gender
-                      ? `${profile?.age ?? '--'} · ${profile?.gender ?? '--'}`
+                    fitnessProfile?.age 
+                      ? `${fitnessProfile?.age ?? '--'}`
                       : '--',
                 },
               ].map((item) => (
@@ -270,10 +272,10 @@ export default function FitnessHub() {
 
             <div className="grid grid-cols-4 gap-1.5">
               {[
-                { label: 'Cal', value: profile?.daily_calorie_target, unit: 'kcal' },
-                { label: 'Protein', value: profile?.daily_protein_target, unit: 'g' },
-                { label: 'Carbs', value: profile?.daily_carbs_target, unit: 'g' },
-                { label: 'Fats', value: profile?.daily_fats_target, unit: 'g' },
+                { label: 'Cal', value: fitnessProfile?.dailyCalorieTarget, unit: 'kcal' },
+                { label: 'Protein', value: fitnessProfile?.dailyProteinTargetG, unit: 'g' },
+                { label: 'Carbs', value: fitnessProfile?.dailyCarbsTargetG, unit: 'g' },
+                { label: 'Fats', value: fitnessProfile?.dailyFatTargetG, unit: 'g' },
               ].map((m) => (
                 <div
                   key={m.label}
@@ -288,7 +290,7 @@ export default function FitnessHub() {
               ))}
             </div>
 
-            {profile?.goal ? (
+            {fitnessProfile?.objective ? (
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 border-t border-[var(--card-border)]">
                 {weightDelta && (
                   <span className="text-[10px] text-[var(--text-muted)]">
@@ -301,11 +303,11 @@ export default function FitnessHub() {
                     <span className="font-bold text-blue-400">{daysLeft > 0 ? daysLeft : 0} days</span> left
                   </span>
                 )}
-                {profile?.target_date && (
+                {fitnessProfile?.targetDate && (
                   <span className="text-[10px] text-[var(--text-muted)]">
                     Target:{' '}
                     <span className="font-bold text-[var(--foreground)]">
-                      {new Date(profile.target_date).toLocaleDateString('en-US', {
+                      {new Date(fitnessProfile.targetDate).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric',
@@ -353,7 +355,7 @@ export default function FitnessHub() {
               onCancel={() => setShowWizard(false)}
               onComplete={() => {
                 setShowWizard(false);
-                fetchProfile();
+                fetchFitnessProfile();
               }}
             />
           </aside>
@@ -378,7 +380,7 @@ export default function FitnessHub() {
                     </p>
                   </div>
                 </div>
-                {profile?.goal && (
+                {fitnessProfile?.objective && (
                   <button
                     onClick={() => setShowWizard(true)}
                     className="hidden lg:inline-flex items-center gap-1.5 btn-primary px-4 py-2 text-xs shadow-[0_0_18px_rgba(118,185,0,0.35)] hover:scale-[1.02] active:scale-[0.98] transition-transform"
@@ -391,7 +393,7 @@ export default function FitnessHub() {
 
               <div className="flex-1 bg-black/20 rounded-xl p-4 lg:p-5 border border-[var(--card-border)] flex flex-col justify-center min-h-[100px] lg:min-h-0">
                 <p className="text-[var(--foreground)] text-sm lg:text-base leading-relaxed font-medium italic opacity-90 line-clamp-4 lg:line-clamp-6">
-                  &ldquo;{profile?.ai_coach_advice || 'Log more data to unlock expert coaching strategies.'}&rdquo;
+                  &ldquo;{fitnessProfile?.aiCoachAdvice || 'Log more data to unlock expert coaching strategies.'}&rdquo;
                 </p>
               </div>
 
@@ -399,18 +401,18 @@ export default function FitnessHub() {
                 <div className="rounded-lg px-3 py-2 bg-[var(--surface)] border border-[var(--card-border)]">
                   <p className="text-[8px] text-[var(--text-muted)] font-bold uppercase">Focus</p>
                   <p className="text-xs font-bold text-[var(--foreground)] capitalize truncate">
-                    {profile?.goal?.toLowerCase() || 'Not set'}
+                    {fitnessProfile?.objective?.toLowerCase() || 'Not set'}
                   </p>
                 </div>
                 <div className="rounded-lg px-3 py-2 bg-[var(--surface)] border border-[var(--card-border)]">
                   <p className="text-[8px] text-[var(--text-muted)] font-bold uppercase">Coach Status</p>
                   <p className="text-xs font-bold text-[var(--primary)]">
-                    {profile?.ai_coach_advice ? 'Active' : 'Awaiting data'}
+                    {fitnessProfile?.aiCoachAdvice ? 'Active' : 'Awaiting data'}
                   </p>
                 </div>
               </div>
 
-              {profile?.goal && (
+              {fitnessProfile?.objective && (
                 <button
                   onClick={() => setShowWizard(true)}
                   className="lg:hidden w-full flex items-center justify-center gap-2 btn-primary py-3 text-sm shadow-[0_0_18px_rgba(118,185,0,0.35)] active:scale-[0.98] transition-transform"
@@ -429,13 +431,13 @@ export default function FitnessHub() {
         <>
           {/* Stats row — compact */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 lg:gap-3">
-            <StatCard label="Daily Calories" value={profile?.daily_calorie_target || '--'} unit="kcal" icon="🔥" color="var(--primary)" delay={0} />
-            <StatCard label="Protein Goal" value={profile?.daily_protein_target || '--'} unit="g" icon="🥩" color="#2196f3" delay={0.05} />
-            <StatCard label="Carbs Goal" value={profile?.daily_carbs_target || '--'} unit="g" icon="🍞" color="#ff9800" delay={0.1} />
-            <StatCard label="Fats Goal" value={profile?.daily_fats_target || '--'} unit="g" icon="🥑" color="#e91e63" delay={0.15} />
+            <StatCard label="Daily Calories" value={fitnessProfile?.dailyCalorieTarget || '--'} unit="kcal" icon="🔥" color="var(--primary)" delay={0} />
+            <StatCard label="Protein Goal" value={fitnessProfile?.dailyProteinTargetG || '--'} unit="g" icon="🥩" color="#2196f3" delay={0.05} />
+            <StatCard label="Carbs Goal" value={fitnessProfile?.dailyCarbsTargetG || '--'} unit="g" icon="🍞" color="#ff9800" delay={0.1} />
+            <StatCard label="Fats Goal" value={fitnessProfile?.dailyFatTargetG || '--'} unit="g" icon="🥑" color="#e91e63" delay={0.15} />
             <StatCard
               label="Target Weight"
-              value={profile?.target_weight || '--'}
+              value={fitnessProfile?.targetWeightKg || '--'}
               unit="kg"
               icon="🎯"
               color="#9c27b0"
@@ -456,9 +458,9 @@ export default function FitnessHub() {
                 {user && (
                   <WeightProgressWidget
                     userId={user.id}
-                    targetWeight={profile?.target_weight || null}
-                    initialWeight={profile?.weight || null}
-                    onLogSuccess={fetchProfile}
+                    targetWeight={fitnessProfile?.targetWeightKg || null}
+                    initialWeight={fitnessProfile?.weight || null}
+                    onLogSuccess={fetchFitnessProfile}
                     compact
                   />
                 )}
@@ -474,14 +476,14 @@ export default function FitnessHub() {
               >
                 <ul className="space-y-2">
                   {[
-                    { label: 'Current Weight', value: `${profile?.weight || '--'} kg`, icon: ScaleIcon },
-                    { label: 'Target Weight', value: `${profile?.target_weight || '--'} kg`, icon: TrophyIcon },
-                    { label: 'Height', value: `${profile?.height || '--'} cm`, icon: BoltIcon },
+                    { label: 'Current Weight', value: `${fitnessProfile?.weight || '--'} kg`, icon: ScaleIcon },
+                    { label: 'Target Weight', value: `${fitnessProfile?.targetWeightKg || '--'} kg`, icon: TrophyIcon },
+                    { label: 'Height', value: `${fitnessProfile?.height || '--'} cm`, icon: BoltIcon },
                     { label: 'BMI', value: bmi, icon: HeartIcon },
-                    { label: 'Objective', value: profile?.goal || 'Not Set', icon: SparklesIcon },
+                    { label: 'Objective', value: fitnessProfile?.objective || 'Not Set', icon: SparklesIcon },
                     {
                       label: 'Activity',
-                      value: profile?.activity_level?.replace('_', ' ') || 'Not Set',
+                      value: fitnessProfile?.activityLevel?.replace('_', ' ') || 'Not Set',
                       icon: FireIcon,
                     },
                   ].map((item, i) => (
@@ -516,8 +518,8 @@ export default function FitnessHub() {
                       Goal Completion
                     </p>
                     <p className="text-xl font-black text-[var(--foreground)] tabular-nums">
-                      {profile?.target_date
-                        ? new Date(profile.target_date).toLocaleDateString('en-US', {
+                      {fitnessProfile?.targetDate
+                        ? new Date(fitnessProfile.targetDate).toLocaleDateString('en-US', {
                             month: 'short',
                             day: 'numeric',
                             year: 'numeric',
