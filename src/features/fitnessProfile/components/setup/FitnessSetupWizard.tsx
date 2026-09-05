@@ -196,7 +196,7 @@ export default function FitnessSetupWizard({
   const handleSavePlan = async () => {
     setLoading(true);
     try {
-      const { data } = await axiosInstance.post<FitnessDetails>(`/v1/fitness/save`, {
+      const { data } = await axiosInstance.put<FitnessDetails>(`/v1/fitness/update`, {
         age: stats.age,
         height: stats.height,
         weight: stats.weight,
