@@ -3,9 +3,7 @@
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import ChoiceChips from './ChoiceChips';
 import ProfileField from './ProfileField';
-import { GENDERS } from '../utils/Constants';
 import { UserDetailFormProps } from '../type';
 
 export default function UserDetailForm({

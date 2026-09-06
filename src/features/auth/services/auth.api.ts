@@ -74,7 +74,8 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
 
 export const signup = async (credentials: SignupCredentials): Promise<AuthResponse> => {
   try {
-    const { userName, fullName, email, password, gender } = credentials;
+    const { fullName, email, password, gender } = credentials;
+    const userName = email.split('@')[0];
 
     const { data, status } = await axiosInstance.post('/v1/auth/signup', {
       userName,

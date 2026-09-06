@@ -64,10 +64,10 @@ export default function UserProfile() {
   const fillMissing = () => {
     const missing = getMissingFields(profile, fitness);
     const userMissing = missing.some((field) =>
-      ['Full name', 'Profile photo', 'Gender'].includes(field)
+      ['Full name', 'Profile photo'].includes(field)
     );
     const fitnessMissing = missing.some(
-      (field) => !['Full name', 'Profile photo', 'Gender'].includes(field)
+      (field) => !['Full name', 'Profile photo'].includes(field)
     );
     if (userMissing) startUserEdit();
     if (fitnessMissing) startFitnessEdit();

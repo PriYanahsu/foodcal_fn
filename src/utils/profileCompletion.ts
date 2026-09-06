@@ -1,4 +1,5 @@
 interface CompletionFields {
+  gender?: string | null;
   age?: number | null;
   height?: number | null;
   weight?: number | null;
@@ -28,7 +29,7 @@ export const calculateProfileCompletion = (profile: CompletionProfile | null | u
   const fields = [
     profile.full_name ?? profile.fullName,
     profile.avatar_url,
-    profile.gender,
+    profile.gender ?? fitness.gender,
     fitness.age,
     fitness.height,
     fitness.weight,

@@ -9,7 +9,7 @@ export function getMissingFields(profile: ProfileData, fitness: FitnessDetails):
   const checks: [string, unknown][] = [
     ['full_name', profile.fullName],
     ['avatar_url', profile.avatar_url],
-    ['gender', profile.gender],
+    ['gender', fitness.gender],
     ['age', fitness.age],
     ['height', fitness.height],
     ['weight', fitness.weight],
