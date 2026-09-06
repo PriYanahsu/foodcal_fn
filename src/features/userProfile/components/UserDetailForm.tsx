@@ -57,21 +57,11 @@ export default function UserDetailForm({
               />
             </div>
             <div className="col-span-2 sm:col-span-1">
-              <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)] mb-1 sm:mb-2">
-                Gender
-              </label>
-              <ChoiceChips
-                options={GENDERS}
-                value={profile.gender}
-                onChange={(gender) => onChange({ gender })}
-              />
-            </div>
-            <div className="col-span-2 sm:col-span-1">
               <Input label="Email" value={profile.email} disabled className="opacity-60" />
             </div>
           </div>
           <p className="text-[10px] sm:text-xs text-[var(--text-muted)]">
-            Username and email can&apos;t be changed here.
+            email can&apos;t be changed here.
           </p>
         </div>
       ) : (
@@ -81,7 +71,6 @@ export default function UserDetailForm({
             value={profile.fullName}
             className="col-span-2 sm:col-span-1"
           />
-          <ProfileField label="Gender" value={profile.gender} />
           <ProfileField
             label="Email"
             value={profile.email}

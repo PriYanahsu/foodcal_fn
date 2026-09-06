@@ -3,10 +3,11 @@
 import { Card } from '@/components/ui/Card';
 import { ScaleIcon, SparklesIcon } from '@heroicons/react/16/solid';
 import { Input } from '@/components/ui/Input';
+import { ThemeSelect } from '@/components/ui/ThemeSelect';
 import ProfileField from './ProfileField';
 import { Button } from '@/components/ui/Button';
 import ChoiceChips from './ChoiceChips';
-import { ACTIVITY_HINTS, ACTIVITY_LEVELS, GOALS, SELECT_CLASS } from '../utils/Constants';
+import { ACTIVITY_HINTS, ACTIVITY_LEVELS, GENDERS, GOALS, SELECT_CLASS } from '../utils/Constants';
 import { FitnessDetailFormProps } from '../type';
 import { parseOptionalNumber } from '../utils/parseOptionalNumber';
 import { deriveGoal } from '../utils/deriveGoal';
@@ -67,158 +68,152 @@ export default function FitnessDetailForm({
       </div>
 
       {isEditing ? (
-        <div className="space-y-3 sm:space-y-5">
-          <div className="grid grid-cols-3 gap-2 sm:gap-4">
-            <Input
-              label="Age"
-              type="number"
-              min={1}
-              max={120}
-              value={fitness.age || ''}
-              onChange={(e) => onChange({ age: parseOptionalNumber(e.target.value) || 0 })}
-              placeholder="e.g. 28"
-            />
-            <Input
-              label="Height (cm)"
-              type="number"
-              min={50}
-              max={300}
-              value={fitness.height || ''}
-              onChange={(e) => onChange({ height: parseOptionalNumber(e.target.value) || 0 })}
-              placeholder="e.g. 175"
-            />
-            <Input
-              label="Weight (kg)"
-              type="number"
-              min={20}
-              max={400}
-              step="0.1"
-              value={fitness.weight || ''}
-              onChange={(e) => {
-                const w = parseOptionalNumber(e.target.value);
-                onChange({ weight: w || 0 });
-              }}
-              placeholder="e.g. 70"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)] mb-1.5 sm:mb-2">
-              Activity Level
-            </label>
-            <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-              {ACTIVITY_LEVELS.map((level) => {
-                const selected = fitness.activityLevel === level;
-                return (
-                  <button
-                    key={level}
-                    type="button"
-                    onClick={() => onChange({ activityLevel: level })}
-                    className={`text-left px-2.5 py-2 sm:px-4 sm:py-3 rounded-lg sm:rounded-xl border sm:border-2 transition-all ${
-                      selected
-                        ? 'border-[var(--primary)] bg-[var(--primary)]/10'
-                        : 'border-[var(--card-border)] hover:border-white/30'
-                    }`}
-                  >
-                    <p
-                      className={`text-[11px] sm:text-sm font-semibold leading-tight ${
-                        selected ? 'text-white' : 'text-[var(--foreground)]'
-                      }`}
-                    >
-                      {level}
-                    </p>
-                    <p className="text-[9px] sm:text-xs text-[var(--text-muted)] mt-0.5 leading-tight">
-                      {ACTIVITY_HINTS[level]}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-2 sm:gap-4">
-          <ProfileField label="Age" value={fitness.age ? `${fitness.age} years` : ''} />
-          <ProfileField label="Height" value={fitness.height ? `${fitness.height} cm` : ''} />
-          <ProfileField label="Weight" value={fitness.weight ? `${fitness.weight} kg` : ''} />
-          <ProfileField
-            label="Activity Level"
-            value={fitness.activityLevel}
-            hint={
-              fitness.activityLevel
-                ? ACTIVITY_HINTS[fitness.activityLevel]
-                : 'Helps calculate calorie needs'
-            }
-          />
-        </div>
-      )}
-
-      {isEditing ? (
-        <div className="space-y-3 sm:space-y-5 mt-3 sm:mt-5">
-          <div>
-            <div className="flex items-center justify-between mb-1.5 sm:mb-2">
-              <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)]">
-                Objective
-              </label>
-              {goal && (
-                <span className="text-[9px] sm:text-[10px] text-[var(--primary)] font-semibold">
-                  Auto-set from weight vs target
-                </span>
-              )}
-            </div>
-            <ChoiceChips
-              options={GOALS}
-              value={goal ?? ''}
-              onChange={() => undefined}
-              accent="accent"
-            />
-            {goal && (
-              <p className="text-[10px] sm:text-xs text-[var(--text-muted)] mt-1 sm:mt-1.5">
-                Current <span className="text-white font-medium">{fitness.weight} kg</span> → Target{' '}
-                <span className="text-white font-medium">{fitness.targetWeightKg} kg</span> — goal
-                auto-corrected to{' '}
-                <span className="text-[var(--primary)] font-semibold">{goal}</span>
-              </p>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 sm:gap-4">
-            <Input
-              label="Target Weight (kg)"
-              type="number"
-              min={20}
-              max={400}
-              step="0.1"
-              value={fitness.targetWeightKg || ''}
-              onChange={(e) => {
-                const next = parseOptionalNumber(e.target.value);
-                onChange({ targetWeightKg: next || 0 });
-              }}
-              placeholder="e.g. 65"
-            />
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)] mb-0.5 sm:mb-1">
-                Target Date
-              </label>
-              <input
-                type="date"
-                value={fitness.targetDate}
-                onChange={(e) => onChange({ targetDate: e.target.value })}
-                className={SELECT_CLASS}
-                style={{ colorScheme: 'dark' }}
+        <>
+          <div className="space-y-3 sm:space-y-5">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4">
+              <ThemeSelect
+                label="Gender"
+                value={fitness.gender}
+                placeholder="Select gender"
+                options={GENDERS.map((gender) => ({ value: gender, label: gender }))}
+                onChange={(gender) => onChange({ gender })}
+              />
+              <Input
+                label="Age"
+                type="number"
+                min={1}
+                max={120}
+                value={fitness.age || ''}
+                onChange={(e) => onChange({ age: parseOptionalNumber(e.target.value) || 0 })}
+                placeholder="e.g. 28"
+              />
+              <Input
+                label="Height (cm)"
+                type="number"
+                min={50}
+                max={300}
+                value={fitness.height || ''}
+                onChange={(e) => onChange({ height: parseOptionalNumber(e.target.value) || 0 })}
+                placeholder="e.g. 175"
               />
             </div>
+
+            <div className='grid grid-cols-3 gap-2 sm:gap-4'>
+              <div className='col-span-1'>
+                <Input
+                  label="Weight (kg)"
+                  type="number"
+                  min={20}
+                  max={400}
+                  step="0.1"
+                  value={fitness.weight || ''}
+                  onChange={(e) => {
+                    const w = parseOptionalNumber(e.target.value);
+                    onChange({ weight: w || 0 });
+                  }}
+                  placeholder="e.g. 70"
+                />
+              </div>
+
+              <div className="col-span-2">
+                <ThemeSelect
+                  label="Activity Level"
+                  value={fitness.activityLevel}
+                  placeholder="Select activity level"
+                  options={ACTIVITY_LEVELS.map((level) => ({
+                    value: level,
+                    label: level,
+                    hint: ACTIVITY_HINTS[level],
+                  }))}
+                  onChange={(activityLevel) => onChange({ activityLevel })}
+                  hint={
+                    fitness.activityLevel ? ACTIVITY_HINTS[fitness.activityLevel] : undefined
+                  }
+                />
+              </div>
+            </div>
+
           </div>
-        </div>
+          <div className="space-y-3 sm:space-y-5 mt-3 sm:mt-5">
+            <div className="grid grid-cols-2 gap-2 sm:gap-4">
+              <Input
+                label="Target Weight (kg)"
+                type="number"
+                min={20}
+                max={400}
+                step="0.1"
+                value={fitness.targetWeightKg || ''}
+                onChange={(e) => {
+                  const next = parseOptionalNumber(e.target.value);
+                  onChange({ targetWeightKg: next || 0 });
+                }}
+                placeholder="e.g. 65"
+              />
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)] mb-0.5 sm:mb-1">
+                  Target Date
+                </label>
+                <input
+                  type="date"
+                  value={fitness.targetDate}
+                  onChange={(e) => onChange({ targetDate: e.target.value })}
+                  className={SELECT_CLASS}
+                  style={{ colorScheme: 'dark' }}
+                />
+              </div>
+              <div className='col-span-2'>
+                <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)]">
+                    Objective
+                  </label>
+                  {goal && (
+                    <span className="text-[9px] sm:text-[10px] text-[var(--primary)] font-semibold">
+                      Auto-set from weight vs target
+                    </span>
+                  )}
+                </div>
+                <ChoiceChips
+                  options={GOALS}
+                  value={goal ?? ''}
+                  onChange={() => undefined}
+                  accent="accent"
+                />
+                {goal && (
+                  <p className="text-[10px] sm:text-xs text-[var(--text-muted)] mt-1 sm:mt-1.5">
+                    Current <span className="text-white font-medium">{fitness.weight} kg</span> → Target{' '}
+                    <span className="text-white font-medium">{fitness.targetWeightKg} kg</span> — goal
+                    auto-corrected to{' '}
+                    <span className="text-[var(--primary)] font-semibold">{goal}</span>
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
       ) : (
-        <div className="grid grid-cols-2 gap-2 sm:gap-4 mt-2 sm:mt-4">
-          <ProfileField label="Objective" value={goal ?? ''} className="col-span-2 sm:col-span-1" />
-          <ProfileField
-            label="Target Weight"
-            value={fitness.targetWeightKg ? `${fitness.targetWeightKg} kg` : ''}
-          />
-          <ProfileField label="Target Date" value={formatDate(fitness.targetDate)} />
-        </div>
+        <>
+          <div className="grid grid-cols-2 gap-2 sm:gap-4">
+            <ProfileField label="Gender" value={fitness.gender} />
+            <ProfileField label="Age" value={fitness.age ? `${fitness.age} years` : ''} />
+            <ProfileField label="Height" value={fitness.height ? `${fitness.height} cm` : ''} />
+            <ProfileField label="Weight" value={fitness.weight ? `${fitness.weight} kg` : ''} />
+            <ProfileField
+              label="Activity Level"
+              value={fitness.activityLevel}
+              hint={
+                fitness.activityLevel
+                  ? ACTIVITY_HINTS[fitness.activityLevel]
+                  : 'Helps calculate calorie needs'
+              }
+            />
+            <ProfileField
+              label="Target Weight"
+              value={fitness.targetWeightKg ? `${fitness.targetWeightKg} kg` : ''}
+            />
+            <ProfileField label="Target Date" value={formatDate(fitness.targetDate)} />
+            <ProfileField label="Objective" value={goal ?? ''} className="col-span-2 sm:col-span-1" />
+          </div>
+        </>
       )}
 
       {showConsultCta && !isEditing && canConsult && (

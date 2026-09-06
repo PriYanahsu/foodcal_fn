@@ -9,12 +9,12 @@ export interface AvatarUploadProps {
 export interface ProfileData {
   fullName: string;
   email: string;
-  gender: string;
   avatar_url: string | null;
 }
 
 export interface FitnessDetails {
   id: string;
+  gender: string;
   age: number;
   height: number;
   weight: number;
@@ -52,7 +52,7 @@ export interface UserDetailFormProps {
   profile: ProfileData;
   isEditing: boolean;
   saving: boolean;
-  onChange: (patch: Partial<Pick<ProfileData, 'fullName' | 'gender'>>) => void;
+  onChange: (patch: Partial<Pick<ProfileData, 'fullName'>>) => void;
   onStartEdit: () => void;
   onCancel: () => void;
   onSave: () => void;

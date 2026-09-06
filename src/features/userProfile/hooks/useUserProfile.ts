@@ -15,7 +15,6 @@ function toProfile(
   return {
     fullName: (data.fullName as string) || '',
     email: (data.email as string) || emailFallback,
-    gender: (data.gender as string) || '',
     avatar_url: (data.avatar_url as string | null) ?? null,
   };
 }
@@ -69,7 +68,7 @@ export function useUserProfile(options?: { autoFetch?: boolean }) {
   }, [feedback]);
 
   const patchProfile = (
-    patch: Partial<Pick<ProfileData, 'fullName' | 'gender' | 'avatar_url'>>
+    patch: Partial<Pick<ProfileData, 'fullName' | 'avatar_url'>>
   ) => {
     setProfile((prev) => ({ ...prev, ...patch }));
   };
@@ -109,7 +108,6 @@ export function useUserProfile(options?: { autoFetch?: boolean }) {
       const { status } = await axiosInstance.put(`/v1/user/update`, {
         updated_at: new Date().toISOString(),
         fullName: profile.fullName.trim(),
-        gender: profile.gender || null,
         avatar_url: profile.avatar_url || null,
       });
 

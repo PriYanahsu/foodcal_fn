@@ -3,7 +3,6 @@ import type { FitnessDetails, ProfileData } from '../type';
 export const EMPTY_PROFILE: ProfileData = {
   fullName: '',
   email: '',
-  gender: '',
   avatar_url: null,
 };
 
@@ -43,11 +42,13 @@ export const SELECT_CLASS =
 
 export const EMPTY_FITNESS_DETAILS: FitnessDetails = {
   id: '',
+  gender: '',
   age: 0,
   height: 0,
   weight: 0,
   activityLevel: '',
   targetWeightKg: 0,
+  objective: '',
   targetDate: '',
   dailyCalorieTarget: 0,
   dailyProteinTargetG: 0,

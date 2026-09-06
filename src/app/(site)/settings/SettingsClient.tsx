@@ -19,6 +19,7 @@ import { Card } from '@/components/ui/Card';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { isFeatureEnabled } from '@/config/features';
 import { useTheme } from '@/features/theme/context/ThemeContext';
+import axiosInstance from '@/lib/springboot/axios';
 
 type SettingLink = {
   label: string;
@@ -31,7 +32,7 @@ type SettingLink = {
 export default function SettingsClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { logout } = useAuth();
+  const { user,logout } = useAuth();
   const { theme, setTheme } = useTheme();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [confirmText, setConfirmText] = useState('');
@@ -92,11 +93,10 @@ export default function SettingsClient() {
       setIsDeleting(true);
       setError(null);
 
-      const res = await fetch('/api/delete-account', { method: 'DELETE' });
-      const data = await res.json().catch(() => ({}));
+      const {data,status} = await axiosInstance.delete(`/v1/auth/${user?.id}`);
 
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to delete account');
+      if (status !== 200) {
+        throw new Error(data?.message || 'Failed to delete account');
       }
 
       await logout();
