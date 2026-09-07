@@ -97,7 +97,7 @@ export default function FitnessSetupWizard({
           else objective = 'Maintain Weight';
         }
         setStats({
-          gender: '',
+          gender: data.gender ?? '',
           age: data.age ?? '',
           height: data.height ?? '',
           weight,
