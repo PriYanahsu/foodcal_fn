@@ -77,7 +77,7 @@ export interface NutritionHeroProps {
   subtitle: string;
   selectedDate: string;
   isToday: boolean;
-  onAvatarUpload: (url: string) => void;
+  onAvatarUpload: (file: File) => Promise<void>;
   onDateChange: (days: number) => void;
   onDateSelect: (date: string) => void;
 }

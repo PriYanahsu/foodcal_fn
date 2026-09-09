@@ -11,40 +11,25 @@ export default function AvatarUpload({
   size = 150,
   isEditing,
 }: AvatarUploadProps) {
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(url);
   const [uploading, setUploading] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    setAvatarUrl(url);
+    setFailed(false);
   }, [url]);
 
-  const uploadAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    try {
-      setUploading(true);
-      const file = event.target.files?.[0];
-      if (!file) throw new Error('You must select an image to upload.');
-      const reader = new FileReader();
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        reader.onload = () => resolve(String(reader.result));
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-      setAvatarUrl(dataUrl);
-      onUpload(dataUrl);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setUploading(false);
-    }
-  };
+  const showImage = Boolean(url) && !failed;
 
   return (
     <div className="relative group">
-      {avatarUrl ? (
+      {showImage ? (
         /* eslint-disable-next-line @next/next/no-img-element */
         <img
-          src={avatarUrl}
+          src={url ?? undefined}
           alt="Avatar"
+          referrerPolicy="no-referrer"
+          onLoad={() => setFailed(false)}
+          onError={() => setFailed(true)}
           className={`${isEditing ? 'border-4 border-[var(--foreground)]' : 'border-[var(--card-border)]'} rounded-full object-cover shadow-lg`}
           style={{ height: size, width: size, maxWidth: '100%' }}
         />
@@ -77,7 +62,17 @@ export default function AvatarUpload({
           type="file"
           id={`avatar-${uid}`}
           accept="image/*"
-          onChange={uploadAvatar}
+          onChange={async (event) => {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            setUploading(true);
+            try {
+              await onUpload(file); // change prop to (file: File) => Promise<void>
+            } finally {
+              setUploading(false);
+              event.target.value = '';
+            }
+          }}
           disabled={uploading}
         />
       </div>

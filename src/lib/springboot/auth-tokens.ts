@@ -31,6 +31,20 @@ export const getAuthUser = (): AuthUser | null => {
   }
 };
 
+export const getUserId = (): string | null => {
+  const stored = getAuthUser()?.id;
+  if (stored) return stored;
+  const token = getAccessToken();
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    const id = payload.id ?? payload.sub;
+    return typeof id === 'string' && id ? id : null;
+  } catch {
+    return null;
+  }
+};
+
 export const setAuthUser = (user: AuthUser) => {
   localStorage.setItem(USER_KEY, JSON.stringify(user));
 };

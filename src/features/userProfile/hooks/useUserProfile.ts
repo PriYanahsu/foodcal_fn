@@ -2,22 +2,10 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import axiosInstance from '@/lib/springboot/axios';
-import { getLocal, profileKey, setLocal } from '@/lib/local-store';
-import { getAccessToken } from '@/lib/springboot/auth-tokens';
+import { getAccessToken, getUserId } from '@/lib/springboot/auth-tokens';
 import { ProfileData, ProfileFeedback } from '../type';
 import { EMPTY_PROFILE } from '../utils/Constants';
-
-function toProfile(
-  data: Partial<ProfileData> | Record<string, unknown>,
-  emailFallback = ''
-): ProfileData {
-  return {
-    fullName: (data.fullName as string) || '',
-    email: (data.email as string) || emailFallback,
-    avatar_url: (data.avatar_url as string | null) ?? null,
-  };
-}
+import { getUser, updateUser, uploadAvatar } from '../service/user.api';
 
 export function useUserProfile(options?: { autoFetch?: boolean }) {
   const autoFetch = options?.autoFetch ?? true;
@@ -29,32 +17,28 @@ export function useUserProfile(options?: { autoFetch?: boolean }) {
   const [profile, setProfile] = useState<ProfileData>(EMPTY_PROFILE);
   const [feedback, setFeedback] = useState<ProfileFeedback | null>(null);
 
-  const fetchProfile = useCallback(
-    async (silent = false) => {
-      if (!user?.id) {
-        setLoading(false);
-        return;
-      }
+  const fetchProfile = useCallback(async (silent = false) => {
+    const userId = getUserId();
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
 
-      try {
-        if (!silent) setLoading(true);
-        const { data } = await axiosInstance.get<ProfileData>(`/v1/user/${user.id}`);
-        const next = toProfile(data, user.email || '');
-        setProfile(next);
-        setSavedProfile(next);
-      } catch (error) {
-        console.error('Error loading user profile:', error);
-        setFeedback({ type: 'error', message: 'Failed to load profile. Please try again.' });
-      } finally {
-        setLoading(false);
-      }
-    },
-    [user]
-  );
+    try {
+      if (!silent) setLoading(true);
+      const next = await getUser(userId, user?.email || '');
+      setProfile(next);
+      setSavedProfile(next);
+    } catch {
+      setFeedback({ type: 'error', message: 'Failed to load profile. Please try again.' });
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.email]);
 
   useEffect(() => {
     if (!autoFetch) return;
-    if (user?.id) {
+    if (getUserId()) {
       void fetchProfile();
       return;
     }
@@ -84,15 +68,17 @@ export function useUserProfile(options?: { autoFetch?: boolean }) {
     setIsEditing(false);
   };
 
-  const handleAvatarUpload = (url: string) => {
-    const next = { ...profile, avatar_url: url };
-    setProfile(next);
-    setSavedProfile((prev) => (prev ? { ...prev, avatar_url: url } : next));
-    if (user?.id) {
-      const current = getLocal<Record<string, unknown>>(profileKey(user.id)) || {};
-      setLocal(profileKey(user.id), { ...current, avatar_url: url });
+  const handleAvatarUpload = async (file: File) => {
+    try {
+      const url = await uploadAvatar(file);
+      const next = { ...profile, avatar_url: url };
+      setProfile(next);
+      setSavedProfile(next);
+      await fetchProfile(true);
+      setFeedback({ type: 'success', message: 'Profile photo updated.' });
+    } catch {
+      setFeedback({ type: 'error', message: 'Failed to upload photo.' });
     }
-    setFeedback({ type: 'success', message: 'Profile photo updated.' });
   };
 
   const handleUpdate = async () => {
@@ -105,10 +91,9 @@ export function useUserProfile(options?: { autoFetch?: boolean }) {
       setSaving(true);
       setFeedback(null);
 
-      const { status } = await axiosInstance.put(`/v1/user/update`, {
-        updated_at: new Date().toISOString(),
+      const { status } = await updateUser({
         fullName: profile.fullName.trim(),
-        avatar_url: profile.avatar_url || null,
+        avatarUrl: profile.avatar_url || null,
       });
 
       if (status !== 200) {
@@ -120,8 +105,7 @@ export function useUserProfile(options?: { autoFetch?: boolean }) {
       setIsEditing(false);
       setFeedback({ type: 'success', message: 'Profile saved.' });
       return true;
-    } catch (error) {
-      console.error('Error updating user profile:', error);
+    } catch {
       setFeedback({ type: 'error', message: 'Failed to save profile. Please try again.' });
       return false;
     } finally {

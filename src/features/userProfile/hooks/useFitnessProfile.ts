@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import axiosInstance from '@/lib/springboot/axios';
 import { getAccessToken } from '@/lib/springboot/auth-tokens';
 import { FitnessDetails, ProfileFeedback } from '../type';
 import { EMPTY_FITNESS_DETAILS } from '../utils/Constants';
+import { getFitness, updateFitness } from '../service/fitness.api';
 
 export function useFitnessProfile(options?: { autoFetch?: boolean }) {
   const autoFetch = options?.autoFetch ?? true;
@@ -27,8 +27,7 @@ export function useFitnessProfile(options?: { autoFetch?: boolean }) {
 
       try {
         if (!silent) setLoading(true);
-        const { data } = await axiosInstance.get<FitnessDetails>(`/v1/fitness/get`);
-        const next = { ...EMPTY_FITNESS_DETAILS, ...data };
+        const next = await getFitness();
         setFitness(next);
         setSavedFitness(next);
       } catch (error) {
@@ -82,10 +81,7 @@ export function useFitnessProfile(options?: { autoFetch?: boolean }) {
       setSaving(true);
       setFeedback(null);
 
-      const { data, status } = await axiosInstance.put<FitnessDetails>(
-        `/v1/fitness/update`,
-        fitness
-      );
+      const { data, status } = await updateFitness(fitness);
 
       if (status !== 200) {
         setFeedback({
@@ -95,9 +91,8 @@ export function useFitnessProfile(options?: { autoFetch?: boolean }) {
         return false;
       }
 
-      const next = data ? { ...EMPTY_FITNESS_DETAILS, ...data } : { ...fitness };
-      setFitness(next);
-      setSavedFitness(next);
+      setFitness(data);
+      setSavedFitness(data);
       setIsEditing(false);
       setOfferConsult(true);
       setFeedback({

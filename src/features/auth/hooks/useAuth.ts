@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { login as loginApi, signup as signupApi, logout as logoutApi } from '../services/auth.api';
 import { AuthUser, LoginCredentials, SignupCredentials } from '../types';
-import { getAccessToken, getAuthUser } from '@/lib/springboot/auth-tokens';
+import { getAccessToken, getAuthUser, getUserId } from '@/lib/springboot/auth-tokens';
 
 export const useAuth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -11,7 +11,13 @@ export const useAuth = () => {
   const [user, setUser] = useState<AuthUser | null>(null);
 
   useEffect(() => {
-    if (getAccessToken()) setUser(getAuthUser());
+    const stored = getAuthUser();
+    if (stored?.id) {
+      setUser(stored);
+      return;
+    }
+    const id = getUserId();
+    if (id) setUser({ id, name: '', email: '' });
   }, []);
 
   const login = async (credentials: LoginCredentials) => {

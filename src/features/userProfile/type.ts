@@ -1,7 +1,7 @@
 export interface AvatarUploadProps {
   uid: string;
   url: string | null;
-  onUpload: (url: string) => void;
+  onUpload: (file: File) => Promise<void>;
   size?: number;
   isEditing: boolean;
 }

@@ -28,34 +28,26 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{
             __html: `
               if ('serviceWorker' in navigator) {
+                var local = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+                if (local) {
+                  navigator.serviceWorker.getRegistrations().then(function(rs) {
+                    rs.forEach(function(r) { r.unregister(); });
+                  });
+                  if (window.caches) {
+                    caches.keys().then(function(keys) {
+                      keys.forEach(function(k) { caches.delete(k); });
+                    });
+                  }
+                  return;
+                }
                 window.addEventListener('load', function() {
                   navigator.serviceWorker.register('/sw.js', { scope: '/' })
                     .then(function(registration) {
-                      console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                      // Update service worker if available
                       registration.update();
                     })
                     .catch(function(err) {
                       console.log('ServiceWorker registration failed: ', err);
                     });
-                  
-                  // Also try to register immediately (for faster mobile support)
-                  if (navigator.serviceWorker.controller) {
-                    console.log('ServiceWorker already active');
-                  }
-                });
-                
-                // Re-register on focus (helps with mobile browsers)
-                window.addEventListener('focus', function() {
-                  if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.getRegistration().then(function(registration) {
-                      if (registration) {
-                        registration.update();
-                      } else {
-                        navigator.serviceWorker.register('/sw.js', { scope: '/' });
-                      }
-                    });
-                  }
                 });
               }
             `,

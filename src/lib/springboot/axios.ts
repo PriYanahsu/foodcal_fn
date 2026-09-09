@@ -15,7 +15,8 @@ axiosInstance.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
   const method = (config.method || 'get').toLowerCase();
-  if (method === 'get' || method === 'head' || method === 'options') {
+  const isFormData = typeof FormData !== 'undefined' && config.data instanceof FormData;
+  if (isFormData || method === 'get' || method === 'head' || method === 'options') {
     if (config.headers) {
       delete config.headers['Content-Type'];
       delete config.headers['content-type'];
