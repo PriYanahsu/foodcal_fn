@@ -26,7 +26,7 @@ export function useUserProfile(options?: { autoFetch?: boolean }) {
 
     try {
       if (!silent) setLoading(true);
-      const next = await getUser(userId, user?.email || '');
+      const next = await getUser(userId);
       setProfile(next);
       setSavedProfile(next);
     } catch {

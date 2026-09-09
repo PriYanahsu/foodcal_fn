@@ -81,7 +81,7 @@ export default function UserProfile() {
 
   useEffect(() => {
     if (loading) return;
-    setShowReminder(calculateProfileCompletion({ ...profile, fitness_details: fitness }) < 100);
+    setShowReminder(calculateProfileCompletion(fitness, profile) < 100);
   }, [loading, profile, fitness]);
 
   if (loading) {
@@ -95,10 +95,7 @@ export default function UserProfile() {
     );
   }
 
-  const completionPercentage = calculateProfileCompletion({
-    ...profile,
-    fitness_details: fitness,
-  });
+  const completionPercentage = calculateProfileCompletion(fitness, profile);
   const missingFields = getMissingFields(profile, fitness);
   const goal = deriveGoal(fitness.weight, fitness.targetWeightKg);
 

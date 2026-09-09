@@ -25,42 +25,42 @@ axiosInstance.interceptors.request.use((config) => {
   return config;
 });
 
-// let refreshing: Promise<string | null > | null = null;
+let refreshing: Promise<string | null > | null = null;
 
-// axiosInstance.interceptors.response.use(
-//   (res) => res,
-//   async (error) => {
-//     const originalRequest = error.config;
-//     const status = error.response?.status;
+axiosInstance.interceptors.response.use(
+  (res) => res,
+  async (error) => {
+    const originalRequest = error.config;
+    const status = error.response?.status;
 
-//     if (status === 401 && !originalRequest._retry) {
-//       return Promise.reject(error);
-//     }
+    if (status === 401 && !originalRequest._retry) {
+      return Promise.reject(error);
+    }
 
-//     originalRequest._retry = true;
-//     if (!refreshing) {
-//       refreshing = (async () => {
-//         const refreshToken = getRefreshToken();
-//         if (!refreshToken) return null;
-//         const { data } = await axios.post(`${BACKEND_URL}/api/auth/refresh`, {
-//           refreshToken: refreshToken,
-//         });
-//         setAccessToken(data.accessToken, data.refreshToken);
-//         return data.accessToken as string;
-//       })().finally(() => {
-//         refreshing = null;
-//       });
-//     }
+    originalRequest._retry = true;
+    if (!refreshing) {
+      refreshing = (async () => {
+        const refreshToken = getRefreshToken();
+        if (!refreshToken) return null;
+        const { data } = await axios.post(`${BACKEND_URL}/api/v1/auth/refresh-token`, {
+          refreshToken: refreshToken,
+        });
+        setAccessToken(data.accessToken, data.refreshToken);
+        return data.accessToken as string;
+      })().finally(() => {
+        refreshing = null;
+      });
+    }
 
-//     const newToken = await refreshing;
-//     if (!newToken) {
-//       clearTokens();
-//       if (typeof window !== 'undefined') window.location.href = '/login';
-//       return Promise.reject(error);
-//     }
-//     originalRequest.headers.Authorization = `Bearer ${newToken}`;
-//     return axiosInstance(originalRequest);
-//   }
-// );
+    const newToken = await refreshing;
+    if (!newToken) {
+      clearTokens();
+      if (typeof window !== 'undefined') window.location.href = '/login';
+      return Promise.reject(error);
+    }
+    originalRequest.headers.Authorization = `Bearer ${newToken}`;
+    return axiosInstance(originalRequest);
+  }
+);
 
 export default axiosInstance;

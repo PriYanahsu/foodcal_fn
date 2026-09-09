@@ -20,7 +20,8 @@ import {
   HeartIcon,
 } from '@heroicons/react/24/outline';
 import axiosInstance from '@/lib/springboot/axios';
-import { FitnessDetails } from '@/features/userProfile';
+import { FitnessDetails, ProfileData } from '@/features/userProfile';
+import { getUser } from '@/features/userProfile/service/user.api';
 
 function calcBmi(weight: number | null, height: number | null): string {
   if (!weight || !height) return '--';
@@ -101,24 +102,30 @@ function CollapsibleSection({
 export default function FitnessHub() {
   const { user } = useAuth();
   const [fitnessProfile, setFitnessProfile] = useState<FitnessDetails | null>(null);
+  const [userProfile, setUserProfile] = useState<ProfileData | null>(null);
   const [showWizard, setShowWizard] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showReminder, setShowReminder] = useState(false);
 
   async function fetchFitnessProfile() {
-    if (!user) {
+    if (!user?.id) {
       setLoading(false);
       return;
     }
-    const {data} = await axiosInstance.get<FitnessDetails>(`/v1/fitness/get`);
+    const [{ data }, profile] = await Promise.all([
+      axiosInstance.get<FitnessDetails>(`/v1/fitness/get`),
+      getUser(user.id),
+    ]);
+    setUserProfile(profile);
     if (data) {
       setFitnessProfile(data);
-      if (calculateProfileCompletion(data) < 100) setShowReminder(true);
+      if (calculateProfileCompletion(data, profile) < 100) setShowReminder(true);
     }
     setLoading(false);
   }
 
-  const completionPercentage = calculateProfileCompletion(fitnessProfile);
-  const [showReminder, setShowReminder] = useState(false);
+
+  const completionPercentage = calculateProfileCompletion(fitnessProfile, userProfile);
   const bmi = calcBmi(fitnessProfile?.weight ?? null, fitnessProfile?.height ?? null);
   const daysLeft = daysUntilTarget(fitnessProfile?.targetDate ?? null);
   const weightDelta =

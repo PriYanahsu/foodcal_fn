@@ -9,19 +9,18 @@ function pickAvatarUrl(data: Record<string, unknown>): string | null {
 
 function toProfile(
   data: Partial<ProfileData> | Record<string, unknown>,
-  emailFallback = ''
 ): ProfileData {
   const raw = data as Record<string, unknown>;
   return {
     fullName: (raw.fullName as string) || '',
-    email: (raw.email as string) || emailFallback,
+    email: (raw.email as string) || '',
     avatar_url: pickAvatarUrl(raw),
   };
 }
 
-export const getUser = async (userId: string, emailFallback = ''): Promise<ProfileData> => {
+export const getUser = async (userId: string): Promise<ProfileData> => {
   const { data } = await axiosInstance.get<Record<string, unknown>>(`/v1/user/${userId}`);
-  return toProfile(data, emailFallback);
+  return toProfile(data);
 };
 
 export const updateUser = async (payload: {

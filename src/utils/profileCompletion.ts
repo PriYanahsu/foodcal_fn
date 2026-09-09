@@ -1,53 +1,38 @@
-interface CompletionFields {
-  gender?: string | null;
-  age?: number | null;
-  height?: number | null;
-  weight?: number | null;
-  activity_level?: string | null;
-  activityLevel?: string | null;
-  target_weight?: number | null;
-  target_weight_kg?: number | null;
-  targetWeightKg?: number | null;
-  target_date?: string | null;
-  targetDate?: string | null;
-}
+import { FitnessDetails, ProfileData } from "@/features/userProfile";
 
-interface CompletionProfile extends CompletionFields {
-  full_name?: string | null;
-  fullName?: string | null;
-  avatar_url?: string | null;
-  gender?: string | null;
-  goal?: string | null;
-  fitness_details?: CompletionFields;
-}
+export const calculateProfileCompletion = (
+  fitness: FitnessDetails | null ,
+  userProfile?: ProfileData | null
+) => {
+  if (!fitness && !userProfile) return 0;
 
-export const calculateProfileCompletion = (profile: CompletionProfile | null | undefined) => {
-  if (!profile) return 0;
-  const fitness = profile.fitness_details ?? profile;
+  // UserProfile page nests fitness under fitness_details; fitness page passes it flat
+  const fullName = userProfile?.fullName;
+  const avatar = userProfile?.avatar_url;
+  const targetWeight = fitness?.targetWeightKg;
+  const targetDate = fitness?.targetDate;
+  const goal =
+    (fitness?.weight && targetWeight
+      ? fitness.weight === targetWeight
+        ? 'Maintain Weight'
+        : fitness.weight > targetWeight
+          ? 'Lose Weight'
+          : 'Gain Muscle'
+      : null);
 
-  // Fields that contribute to completion
   const fields = [
-    profile.full_name ?? profile.fullName,
-    profile.avatar_url,
-    profile.gender ?? fitness.gender,
-    fitness.age,
-    fitness.height,
-    fitness.weight,
-    fitness.activity_level ?? fitness.activityLevel,
-    profile.goal ??
-      (fitness.weight && (fitness.target_weight_kg ?? fitness.targetWeightKg)
-        ? fitness.weight === (fitness.target_weight_kg ?? fitness.targetWeightKg)
-          ? 'Maintain Weight'
-          : fitness.weight > (fitness.target_weight_kg ?? fitness.targetWeightKg)!
-            ? 'Lose Weight'
-            : 'Gain Muscle'
-        : null),
-    fitness.target_weight_kg ?? fitness.targetWeightKg ?? profile.target_weight,
-    fitness.target_date ?? fitness.targetDate,
+    fullName,
+    avatar,
+    fitness?.gender,
+    fitness?.age,
+    fitness?.height,
+    fitness?.weight,
+    fitness?.activityLevel,
+    goal,
+    targetWeight,
+    targetDate,
   ];
 
-  // Filter out empty/null values
   const completedFields = fields.filter((val) => val !== null && val !== undefined && val !== '');
-
   return Math.round((completedFields.length / fields.length) * 100);
 };
