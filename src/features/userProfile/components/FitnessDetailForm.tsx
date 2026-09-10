@@ -9,9 +9,7 @@ import { Button } from '@/components/ui/Button';
 import ChoiceChips from './ChoiceChips';
 import { ACTIVITY_HINTS, ACTIVITY_LEVELS, GENDERS, GOALS, SELECT_CLASS } from '../utils/Constants';
 import { FitnessDetailFormProps } from '../type';
-import { parseOptionalNumber } from '../utils/parseOptionalNumber';
-import { deriveGoal } from '../utils/deriveGoal';
-import { formatDate } from '../utils/formatDate';
+import { parseOptionalNumber, deriveGoal, formatDate } from '../utils/helper';
 
 export default function FitnessDetailForm({
   fitness,

@@ -19,8 +19,7 @@ import FitnessDetailForm from './FitnessDetailForm';
 import ProfileStats from './ProfileStats';
 import { useUserProfile } from '../hooks/useUserProfile';
 import { useFitnessProfile } from '../hooks/useFitnessProfile';
-import { getMissingFields } from '../utils/getMissingFields';
-import { deriveGoal } from '../utils/deriveGoal';
+import { getMissingFields, deriveGoal } from '../utils/helper';
 
 export const dynamic = 'force-dynamic';
 
