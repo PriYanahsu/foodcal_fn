@@ -42,7 +42,6 @@ export const useFitnessHub = (user: AuthUser | null) => {
 
     return {
       fitnessProfile,
-      userProfile,
       showWizard,
       setShowWizard,
       loading,

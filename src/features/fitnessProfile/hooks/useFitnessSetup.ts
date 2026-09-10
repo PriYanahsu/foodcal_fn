@@ -5,7 +5,7 @@ import { EMPTY_GOALS, EMPTY_STATS } from "../utils/Constant";
 import { FitnessDetails } from "@/features/userProfile";
 import { getFitness, updateFitness } from "@/features/userProfile/service/fitness.api";
 import { useRouter } from "next/navigation";
-import { fitnessConsultantApi } from "../service/fitnessConsultant-api";
+import { fitnessConsultantApi } from "../service/fitnessConsultant.api";
 
 export const useFitnessSetup = (userId: string, onComplete: () => void) => {
     const router = useRouter();
@@ -116,14 +116,7 @@ export const useFitnessSetup = (userId: string, onComplete: () => void) => {
     const handleConsultAI = async () => {
         setLoading(true);
         try {
-            const res = await fitnessConsultantApi(stats, goals);
-
-            const result = await res.json();
-
-            if (!res.ok) {
-                throw new Error(result.error || 'Failed to consult AI coach');
-            }
-
+            const result = await fitnessConsultantApi(stats, goals);
             setAiResult(result.data);
             setStep(4);
         } catch (error: any) {

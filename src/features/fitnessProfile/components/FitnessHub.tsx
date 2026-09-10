@@ -23,7 +23,6 @@ export default function FitnessHub() {
   const { user } = useAuth();
   const {
     fitnessProfile,
-    userProfile,
     showWizard,
     setShowWizard,
     loading,
@@ -35,7 +34,6 @@ export default function FitnessHub() {
     weightDelta,
     fetchFitnessProfile,
   } = useFitnessHub(user);
-
 
   if (loading) {
     return (

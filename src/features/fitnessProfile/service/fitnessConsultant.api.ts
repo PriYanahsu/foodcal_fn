@@ -6,5 +6,9 @@ export const fitnessConsultantApi = async (stats: Stats, goals: Goals) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stats, goals }),
     });
-    return response.json();
+    const result = await response.json();
+    if (!response.ok) {
+        throw new Error(result.error || 'Failed to consult AI coach');
+    }
+    return result;
 };
