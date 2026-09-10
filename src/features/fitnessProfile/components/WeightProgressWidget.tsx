@@ -1,13 +1,8 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { ScaleIcon, PlusIcon, ChartBarIcon } from '@heroicons/react/24/outline';
+import { useEffect, useState } from 'react';
+import { ScaleIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { getLocal, setLocal } from '@/lib/local-store';
-
-interface WeightLog {
-  weight: number;
-  created_at: string;
-}
 
 export default function WeightProgressWidget({
   userId,
@@ -53,11 +48,6 @@ export default function WeightProgressWidget({
   };
 
   if (!targetWeight && !currentWeight) return null;
-
-  const progress =
-    currentWeight && targetWeight
-      ? Math.abs(currentWeight - targetWeight) // This is just a placeholder logic, simpler than real progress %
-      : 0;
 
   return (
     <div

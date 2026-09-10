@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import WeightProgressWidget from '@/features/fitnessProfile/components/WeightProgressWidget';
-import FitnessSetupWizard from '@/features/fitnessProfile/components/setup/FitnessSetupWizard';
+import FitnessSetupWizard from '@/features/fitnessProfile/components/FitnessSetupWizard';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import {

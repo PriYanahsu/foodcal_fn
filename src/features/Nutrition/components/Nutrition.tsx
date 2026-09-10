@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import FitnessSetupWizard from '@/features/fitnessProfile/components/setup/FitnessSetupWizard';
+import FitnessSetupWizard from '@/features/fitnessProfile/components/FitnessSetupWizard';
 import { StepTracker } from '@/features/activity/components/StepTracker';
 import { isFeatureEnabled } from '@/config/features';
 import { useNutrition } from '../hooks/useNutrition';

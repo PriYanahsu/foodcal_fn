@@ -13,7 +13,7 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
-import FitnessSetupWizard from '@/features/fitnessProfile/components/setup/FitnessSetupWizard';
+import FitnessSetupWizard from '@/features/fitnessProfile/components/FitnessSetupWizard';
 import UserDetailForm from './UserDetailForm';
 import FitnessDetailForm from './FitnessDetailForm';
 import ProfileStats from './ProfileStats';
