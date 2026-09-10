@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import WeightProgressWidget from '@/features/fitnessProfile/components/WeightProgressWidget';
 import FitnessSetupWizard from '@/features/fitnessProfile/components/FitnessSetupWizard';
 import { StatCard } from '@/components/dashboard/StatCard';
-import { calculateProfileCompletion } from '@/utils/profileCompletion';
+import CollapsibleSection from './CollapsibleSection';
 import {
   SparklesIcon,
   TrophyIcon,
@@ -14,128 +13,29 @@ import {
   CalendarIcon,
   UserCircleIcon,
   ChevronRightIcon,
-  ChevronDownIcon,
   XMarkIcon,
   BoltIcon,
   HeartIcon,
 } from '@heroicons/react/24/outline';
-import axiosInstance from '@/lib/springboot/axios';
-import { FitnessDetails, ProfileData } from '@/features/userProfile';
-import { getUser } from '@/features/userProfile/service/user.api';
-import { getFitness } from '@/features/userProfile/service/fitness.api';
-
-function calcBmi(weight: number | null, height: number | null): string {
-  if (!weight || !height) return '--';
-  return (weight / Math.pow(height / 100, 2)).toFixed(1);
-}
-
-function daysUntilTarget(date: string | null): number | null {
-  if (!date) return null;
-  return Math.ceil((new Date(date).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-}
-
-function CollapsibleSection({
-  title,
-  subtitle,
-  icon: Icon,
-  defaultOpen = false,
-  children,
-  className = '',
-  headerClassName = '',
-}: {
-  title: string;
-  subtitle?: string;
-  icon: React.ComponentType<{ className?: string }>;
-  defaultOpen?: boolean;
-  children: React.ReactNode;
-  className?: string;
-  headerClassName?: string;
-}) {
-  const [open, setOpen] = useState(defaultOpen);
-
-  return (
-    <section
-      className={`bg-[var(--card-bg)]/80 backdrop-blur-xl border border-[var(--card-border)] rounded-2xl lg:rounded-3xl shadow-lg overflow-hidden ${className}`}
-    >
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className={`lg:hidden w-full flex items-center justify-between gap-3 p-4 text-left ${headerClassName}`}
-        aria-expanded={open}
-      >
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="p-2 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 shrink-0">
-            <Icon className="w-5 h-5 text-[var(--primary)]" />
-          </div>
-          <div className="min-w-0">
-            <h3 className="font-bold text-[var(--foreground)] text-sm truncate">{title}</h3>
-            {subtitle && (
-              <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider truncate">
-                {subtitle}
-              </p>
-            )}
-          </div>
-        </div>
-        <ChevronDownIcon
-          className={`w-5 h-5 text-[var(--text-muted)] shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
-        />
-      </button>
-
-      <div className="hidden lg:flex items-center gap-3 p-5 lg:p-6 pb-0">
-        <div className="p-2 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20">
-          <Icon className="w-5 h-5 text-[var(--primary)]" />
-        </div>
-        <div>
-          <h3 className="font-bold text-[var(--foreground)]">{title}</h3>
-          {subtitle && (
-            <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider">
-              {subtitle}
-            </p>
-          )}
-        </div>
-      </div>
-
-      <div className={`${open ? 'block' : 'hidden'} lg:block p-4 lg:p-6 lg:pt-4`}>{children}</div>
-    </section>
-  );
-}
+import { useFitnessHub } from '../hooks/useFitnessHub';
 
 export default function FitnessHub() {
   const { user } = useAuth();
-  const [fitnessProfile, setFitnessProfile] = useState<FitnessDetails | null>(null);
-  const [userProfile, setUserProfile] = useState<ProfileData | null>(null);
-  const [showWizard, setShowWizard] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [showReminder, setShowReminder] = useState(false);
+  const {
+    fitnessProfile,
+    userProfile,
+    showWizard,
+    setShowWizard,
+    loading,
+    showReminder,
+    setShowReminder,
+    completionPercentage,
+    bmi,
+    daysLeft,
+    weightDelta,
+    fetchFitnessProfile,
+  } = useFitnessHub(user);
 
-  async function fetchFitnessProfile() {
-    if (!user?.id) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    const data: FitnessDetails = await getFitness();
-    const profile = await getUser(user.id);
-    setUserProfile(profile);
-    if (data) {
-      setFitnessProfile(data);
-      if (calculateProfileCompletion(data, profile) < 100) setShowReminder(true);
-    }
-    setLoading(false);
-  }
-
-
-  const completionPercentage = calculateProfileCompletion(fitnessProfile, userProfile);
-  const bmi = calcBmi(fitnessProfile?.weight ?? null, fitnessProfile?.height ?? null);
-  const daysLeft = daysUntilTarget(fitnessProfile?.targetDate ?? null);
-  const weightDelta =
-    fitnessProfile?.weight && fitnessProfile?.targetWeightKg
-      ? (fitnessProfile.weight - fitnessProfile.targetWeightKg).toFixed(1)
-      : null;
-
-  useEffect(() => {
-    fetchFitnessProfile();
-  }, [user]);
 
   if (loading) {
     return (
