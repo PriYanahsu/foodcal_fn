@@ -19,8 +19,8 @@ export const useFitnessSetup = (userId: string, onComplete: () => void) => {
         actionLabel?: string;
         actionHref?: string;
     } | null>(null);
+    
     const clearToast = useCallback(() => setToast(null), []);
-
     const [stats, setStats] = useState<Stats>(EMPTY_STATS);
     const [goals, setGoals] = useState<Goals>(EMPTY_GOALS);
 
