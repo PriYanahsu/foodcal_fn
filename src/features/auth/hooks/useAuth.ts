@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { login as loginApi, signup as signupApi, logout as logoutApi } from '../services/auth.api';
 import { AuthUser, LoginCredentials, SignupCredentials } from '../types';
-import { getAccessToken, getAuthUser, getUserId } from '@/lib/springboot/auth-tokens';
+import { getAuthUser, getUserId } from '@/lib/springboot/auth-tokens';
 
 export const useAuth = () => {
   const [isLoading, setIsLoading] = useState(false);
