@@ -1,111 +1,33 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowLeftIcon,
-  BellIcon,
   ChevronRightIcon,
-  DocumentTextIcon,
   MoonIcon,
-  ShieldCheckIcon,
   SunIcon,
   TrashIcon,
-  UserCircleIcon,
 } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { useAuth } from '@/features/auth/hooks/useAuth';
-import { isFeatureEnabled } from '@/config/features';
-import { useTheme } from '@/features/theme/context/ThemeContext';
-import axiosInstance from '@/lib/springboot/axios';
-
-type SettingLink = {
-  label: string;
-  description: string;
-  href: string;
-  icon: React.ComponentType<{ className?: string }>;
-  show?: boolean;
-};
+import { useSettings } from '../hooks/useSettings';
+import { SETTING_LINKS } from '../utils/constants';
 
 export default function SettingsClient() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { user,logout } = useAuth();
-  const { theme, setTheme } = useTheme();
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [confirmText, setConfirmText] = useState('');
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (searchParams.get('delete') === '1') {
-      setShowDeleteConfirm(true);
-    }
-  }, [searchParams]);
-
-  const closeDeleteConfirm = () => {
-    if (isDeleting) return;
-    setShowDeleteConfirm(false);
-    setConfirmText('');
-    setError(null);
-    if (searchParams.get('delete') === '1') {
-      router.replace('/settings');
-    }
-  };
-
-  const links: SettingLink[] = [
-    {
-      label: 'Edit Profile',
-      description: 'Name, goals, body metrics, and photo',
-      href: '/profile',
-      icon: UserCircleIcon,
-      show: isFeatureEnabled('profile'),
-    },
-    {
-      label: 'Notifications',
-      description: 'Reminders and push alerts',
-      href: '/notifications',
-      icon: BellIcon,
-      show: isFeatureEnabled('notifications'),
-    },
-    {
-      label: 'Privacy Policy',
-      description: 'How we handle your data',
-      href: '/privacy',
-      icon: ShieldCheckIcon,
-      show: true,
-    },
-    {
-      label: 'Terms of Service',
-      description: 'Rules for using FoodCal',
-      href: '/terms',
-      icon: DocumentTextIcon,
-      show: true,
-    },
-  ];
-
-  const handleDeleteAccount = async () => {
-    if (confirmText.trim().toUpperCase() !== 'DELETE') return;
-
-    try {
-      setIsDeleting(true);
-      setError(null);
-
-      const {data,status} = await axiosInstance.delete(`/v1/auth/${user?.id}`);
-
-      if (status !== 200) {
-        throw new Error(data?.message || 'Failed to delete account');
-      }
-
-      await logout();
-      window.location.href = '/login';
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to delete account');
-      setIsDeleting(false);
-    }
-  };
+  const {
+    router,
+    theme,
+    setTheme,
+    showDeleteConfirm,
+    confirmText,
+    setConfirmText,
+    isDeleting,
+    error,
+    canConfirmDelete,
+    openDeleteConfirm,
+    closeDeleteConfirm,
+    handleDeleteAccount,
+  } = useSettings();
 
   return (
     <div className="min-h-screen pt-6 md:pt-16 pb-16 px-4 md:px-6 max-w-2xl mx-auto">
@@ -176,7 +98,7 @@ export default function SettingsClient() {
       </section>
 
       <section className="space-y-2 mb-10">
-        {links
+        {SETTING_LINKS
           .filter((item) => item.show !== false)
           .map(({ label, description, href, icon: Icon }) => (
             <Link key={href} href={href} className="block group">
@@ -216,11 +138,7 @@ export default function SettingsClient() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  setShowDeleteConfirm(true);
-                  setConfirmText('');
-                  setError(null);
-                }}
+                onClick={openDeleteConfirm}
                 className="!bg-red-500 !text-white !border-red-500 hover:!bg-red-600 hover:!border-red-600 !shadow-none hover:!shadow-none hover:!scale-[1.02]"
               >
                 Delete account
@@ -265,7 +183,7 @@ export default function SettingsClient() {
               </Button>
               <Button
                 className="flex-1 !bg-red-500 !text-white hover:!bg-red-600 !shadow-none"
-                disabled={confirmText.trim().toUpperCase() !== 'DELETE' || isDeleting}
+                disabled={!canConfirmDelete || isDeleting}
                 isLoading={isDeleting}
                 onClick={handleDeleteAccount}
               >
