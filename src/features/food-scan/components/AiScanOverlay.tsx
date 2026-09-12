@@ -3,16 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { SparklesIcon } from '@heroicons/react/24/outline';
-
-const DEFAULT_CHIPS = ['Protein source', 'Carbs detected', 'Portion size', 'Fats estimate'];
-
-const ANALYSIS_STEPS = [
-  'Detecting food items…',
-  'Identifying ingredients…',
-  'Estimating portions…',
-  'Calculating macros…',
-  'Finalizing prediction…',
-] as const;
+import { DEFAULT_CHIPS, ANALYSIS_STEPS, CHIP_POSITIONS } from '../utils/constants';
 
 function chipsFromPrompt(prompt: string): string[] {
   const parts = prompt
@@ -24,13 +15,6 @@ function chipsFromPrompt(prompt: string): string[] {
   if (parts.length === 0) return DEFAULT_CHIPS;
   return parts.map((p) => p.replace(/^./, (c) => c.toUpperCase()));
 }
-
-const CHIP_POSITIONS = [
-  { top: '16%', left: '6%' },
-  { top: '26%', right: '5%' },
-  { bottom: '30%', left: '8%' },
-  { bottom: '20%', right: '7%' },
-] as const;
 
 interface AiScanOverlayProps {
   prompt?: string;

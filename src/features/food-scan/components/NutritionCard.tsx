@@ -1,19 +1,9 @@
 'use client';
 
 import React from 'react';
-import { NutritionData } from '../services/scan.api';
 import { SparklesIcon } from '@heroicons/react/24/outline';
-
-interface NutritionCardProps {
-  data: NutritionData;
-  compact?: boolean;
-}
-
-const MACROS = [
-  { key: 'proteinG' as const, label: 'Protein', unit: 'g', color: 'var(--primary)' },
-  { key: 'carbohydrateG' as const, label: 'Carbs', unit: 'g', color: '#f5c542' },
-  { key: 'fatG' as const, label: 'Fats', unit: 'g', color: '#ff6b8a' },
-];
+import { MACROS } from '../utils/constants';
+import { NutritionCardProps } from '../types';
 
 export const NutritionCard: React.FC<NutritionCardProps> = ({ data, compact = false }) => {
   const confidencePct = Math.round((data.aiConfidence ?? 0) * 100);

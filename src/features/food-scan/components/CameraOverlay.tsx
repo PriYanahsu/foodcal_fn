@@ -1,14 +1,6 @@
 import { XMarkIcon, ArrowsRightLeftIcon } from '@heroicons/react/24/outline';
-import { RefObject, useEffect } from 'react';
-
-interface CameraOverlayProps {
-  onCapture: () => void;
-  onClose: () => void;
-  onSwitchCamera: () => void;
-  videoRef: RefObject<HTMLVideoElement | null>;
-  canvasRef: RefObject<HTMLCanvasElement | null>;
-  error?: string | null;
-}
+import { useEffect } from 'react';
+import { CameraOverlayProps } from '../types';
 
 export const CameraOverlay = ({
   onCapture,

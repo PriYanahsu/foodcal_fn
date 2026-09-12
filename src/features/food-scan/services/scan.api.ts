@@ -1,19 +1,5 @@
 import axios from 'axios';
 
-export interface NutritionData {
-  foodName: string;
-  quantity: string;
-  calories: number;
-  proteinG: number;
-  fatG: number;
-  carbohydrateG: number;
-  aiConfidence: number;
-  analysisNotes: string;
-  imagePath?: string;
-  mealType: string;
-  isManual?: boolean;
-}
-
 export const analyzeFoodImage = async (
   imageFile: File,
   additionalPrompt?: string

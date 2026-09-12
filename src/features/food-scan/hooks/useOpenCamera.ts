@@ -14,7 +14,6 @@ export const useOpenCamera = () => {
         streamRef.current.getTracks().forEach((track) => track.stop());
       }
 
-      // Check if API is supported (fails on insecure HTTP)
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error(
           'Camera API not available. This usually happens on insecure (HTTP) connections. Please use HTTPS or localhost.'
@@ -31,7 +30,6 @@ export const useOpenCamera = () => {
         videoRef.current.srcObject = stream;
         videoRef.current.onloadedmetadata = () => {
           videoRef.current?.play().catch((e) => {
-            // Ignore AbortError which happens if the user switches camera quickly
             if (e.name !== 'AbortError') {
               console.error('Error playing video:', e);
             }
@@ -42,19 +40,16 @@ export const useOpenCamera = () => {
       setError(null);
     } catch (err: any) {
       console.error('Error accessing camera:', err);
-      // Determine user-friendly error message
       let msg = 'Could not access camera. Please ensure permissions are granted.';
       if (err instanceof Error) {
         msg = err.message;
       }
-      // Common permission/security errors
       if (err.name === 'NotAllowedError')
         msg = 'Camera permission denied. Please allow access in browser settings.';
       if (err.name === 'NotFoundError') msg = 'No camera device found.';
       if (err.name === 'NotReadableError') msg = 'Camera is currently in use by another app.';
 
       setError(msg);
-      // Keep isOpen true so the Overlay can display the error message
       setIsOpen(true);
     }
   }, []);
@@ -70,7 +65,6 @@ export const useOpenCamera = () => {
     await startStream(newMode);
   };
 
-  // Attach stream when video element becomes available or facingMode changes
   useEffect(() => {
     if (isOpen && videoRef.current && !videoRef.current.srcObject) {
       startStream(facingMode);
@@ -98,7 +92,6 @@ export const useOpenCamera = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
 
-    // Flip horizontally if using front camera for natural mirroring
     if (facingMode === 'user') {
       ctx.translate(canvas.width, 0);
       ctx.scale(-1, 1);

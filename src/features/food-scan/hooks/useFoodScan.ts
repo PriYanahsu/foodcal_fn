@@ -17,7 +17,6 @@ export const useFoodScan = () => {
     setNutritionData(null);
 
     try {
-      // 1. Analyze with OpenAI
       const data = await analyzeFoodImage(file, additionalPrompt);
       setNutritionData(data);
     } catch (err: any) {
