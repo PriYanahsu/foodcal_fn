@@ -42,12 +42,3 @@ export interface CameraInputProps {
   children?: (openCamera: () => void, openUpload: () => void) => React.ReactNode;
 }
 
-export const DEFAULT_CHIPS = ['Protein source', 'Carbs detected', 'Portion size', 'Fats estimate'];
-
-export const ANALYSIS_STEPS = [
-  'Detecting food items…',
-  'Identifying ingredients…',
-  'Estimating portions…',
-  'Calculating macros…',
-  'Finalizing prediction…',
-] as const;

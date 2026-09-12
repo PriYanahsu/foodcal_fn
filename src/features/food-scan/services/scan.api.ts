@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { NutritionData } from '../types';
 
 export const analyzeFoodImage = async (
   imageFile: File,

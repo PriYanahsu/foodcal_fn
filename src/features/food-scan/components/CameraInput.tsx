@@ -2,12 +2,7 @@ import React, { useRef } from 'react';
 import { PhotoIcon, CameraIcon } from '@heroicons/react/24/outline';
 import { useOpenCamera } from '../hooks/useOpenCamera';
 import { CameraOverlay } from './CameraOverlay';
-
-interface CameraInputProps {
-  onImageSelect: (file: File) => void;
-  isLoading?: boolean;
-  children?: (openCamera: () => void, openUpload: () => void) => React.ReactNode;
-}
+import { CameraInputProps } from '../types';
 
 export const CameraInput: React.FC<CameraInputProps> = ({
   onImageSelect,
