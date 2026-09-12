@@ -252,15 +252,14 @@ export async function POST(req: Request) {
     const prompt = `
         You are a professional nutritionist API. 
         Analyze the food in the image and return a JSON object with the following fields:
-        - food_name: string (concise name of the dish)
+        - foodName: string (concise name of the dish)
         - quantity: string (estimated serving size or weight, e.g. "1 bowl", "200g")
-        - health_info: string (20-30 words describing the health benefits of this food)
         - calories: number (estimated total calories)
-        - protein: number (grams)
-        - carbs: number (grams)
-        - fats: number (grams)
-        - confidence: number (0.0 to 1.0, how confident you are that this is food)
-        - analysis_notes: string (brief explanation of the estimate)
+        - proteinG: number (grams)
+        - carbohydrateG: number (grams)
+        - fatG: number (grams)
+        - aiConfidence: number (0.0 to 1.0, how confident you are that this is food)
+        - analysisNotes: string (brief explanation of the estimate)
         
         If the image is NOT food, set confidence to 0 and food_name to "Not Food".
         Return ONLY valid JSON. Do not include markdown formatting like \`\`\`json.

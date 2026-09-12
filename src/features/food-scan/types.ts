@@ -1,11 +1,17 @@
+export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+
 export interface NutritionData {
+  foodName: string;
+  quantity: string;
   calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-  food_name: string;
-  quantity?: string;
-  health_info?: string;
+  proteinG: number;
+  fatG: number;
+  carbohydrateG: number;
+  aiConfidence: number;
+  analysisNotes: string;
+  imagePath?: string;
+  mealType: MealType;
+  isManual?: boolean;
 }
 
 export interface FoodScanResponse {

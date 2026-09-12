@@ -281,7 +281,7 @@ export const FoodScanPage: React.FC = () => {
                       <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--card-bg)] border border-[var(--primary)]/40 backdrop-blur-md shadow-md">
                         <SparklesIcon className="w-3.5 h-3.5 text-[var(--primary)]" />
                         <span className="text-[10px] font-black uppercase tracking-widest text-[var(--foreground)]">
-                          {nutritionData.food_name}
+                          {nutritionData.foodName}
                         </span>
                       </div>
                     </div>
@@ -361,7 +361,7 @@ export const FoodScanPage: React.FC = () => {
                         <button
                           onClick={async () => {
                             if (selectedFile && nutritionData) {
-                              const foodName = nutritionData.food_name;
+                              const foodName = nutritionData.foodName;
                               const success = await saveFoodLog(selectedFile, nutritionData);
                               if (success) {
                                 setToast({
@@ -416,7 +416,7 @@ export const FoodScanPage: React.FC = () => {
                   <button
                     onClick={async () => {
                       if (selectedFile && nutritionData) {
-                        const foodName = nutritionData.food_name;
+                        const foodName = nutritionData.foodName;
                         const success = await saveFoodLog(selectedFile, nutritionData);
                         if (success) {
                           setToast({

@@ -1,7 +1,9 @@
 'use client';
 import { useState } from 'react';
-import { analyzeFoodImage, NutritionData } from '../services/scan.api';
+import { analyzeFoodImage } from '../services/scan.api';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { saveFoodLogAPI } from '../services/foodLogSave.api';
+import { NutritionData } from '../types';
 
 export const useFoodScan = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -27,11 +29,12 @@ export const useFoodScan = () => {
 
   const [isSaving, setIsSaving] = useState(false);
 
-  const saveFoodLog = async (_file: File, _data: NutritionData) => {
+  const saveFoodLog = async (imageFile: File, nutritionData: NutritionData) => {
     if (!user) return;
     setIsSaving(true);
     try {
-      return true;
+      const response = await saveFoodLogAPI(imageFile, nutritionData);
+      return response.success;
     } catch (err: any) {
       setError(err.message || 'Failed to save meal');
       return false;

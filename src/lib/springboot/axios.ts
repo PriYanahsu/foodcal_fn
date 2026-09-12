@@ -33,17 +33,18 @@ axiosInstance.interceptors.response.use(
     const originalRequest = error.config;
     const status = error.response?.status;
 
-    if (status === 401 && !originalRequest._retry) {
+    if (status !== 401 || originalRequest._retry) {
       return Promise.reject(error);
     }
 
     originalRequest._retry = true;
+
     if (!refreshing) {
       refreshing = (async () => {
         const refreshToken = getRefreshToken();
         if (!refreshToken) return null;
         const { data } = await axios.post(`${BACKEND_URL}/api/v1/auth/refresh-token`, {
-          refreshToken: refreshToken,
+          refreshToken,
         });
         setAccessToken(data.accessToken, data.refreshToken);
         return data.accessToken as string;

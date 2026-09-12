@@ -6,21 +6,20 @@ import { SparklesIcon } from '@heroicons/react/24/outline';
 
 interface NutritionCardProps {
   data: NutritionData;
-  /** Dense mobile layout for the 5:5 result panel (no page scroll) */
   compact?: boolean;
 }
 
 const MACROS = [
-  { key: 'protein' as const, label: 'Protein', unit: 'g', color: 'var(--primary)' },
-  { key: 'carbs' as const, label: 'Carbs', unit: 'g', color: '#f5c542' },
-  { key: 'fats' as const, label: 'Fats', unit: 'g', color: '#ff6b8a' },
+  { key: 'proteinG' as const, label: 'Protein', unit: 'g', color: 'var(--primary)' },
+  { key: 'carbohydrateG' as const, label: 'Carbs', unit: 'g', color: '#f5c542' },
+  { key: 'fatG' as const, label: 'Fats', unit: 'g', color: '#ff6b8a' },
 ];
 
 export const NutritionCard: React.FC<NutritionCardProps> = ({ data, compact = false }) => {
-  const confidencePct = Math.round((data.confidence ?? 0) * 100);
+  const confidencePct = Math.round((data.aiConfidence ?? 0) * 100);
 
   if (compact) {
-    const insight = data.health_info || data.analysis_notes;
+    const insight = data.analysisNotes;
 
     return (
       <div className="h-full min-h-0 flex flex-col gap-2 animate-fade-in">
@@ -35,7 +34,7 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({ data, compact = fa
                 AI Prediction
               </div>
               <h3 className="text-[15px] font-black tracking-tight text-[var(--foreground)] leading-snug line-clamp-2">
-                {data.food_name || 'Detected Meal'}
+                {data.foodName || 'Detected Meal'}
               </h3>
               {data.quantity && (
                 <p className="text-[11px] font-semibold text-[var(--text-muted)] mt-0.5 truncate">
@@ -139,7 +138,7 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({ data, compact = fa
               AI Prediction
             </div>
             <h3 className="text-base md:text-2xl font-black tracking-tight text-[var(--foreground)] leading-snug line-clamp-2">
-              {data.food_name || 'Detected Meal'}
+              {data.foodName || 'Detected Meal'}
             </h3>
             {data.quantity && (
               <p className="text-[11px] md:text-xs font-semibold text-[var(--text-muted)]">
@@ -216,13 +215,13 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({ data, compact = fa
         ))}
       </div>
 
-      {(data.health_info || data.analysis_notes) && (
+      {(data.analysisNotes) && (
         <div className="rounded-2xl border border-[var(--card-border)] bg-[var(--surface)] p-4">
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--primary)] mb-2">
             AI Insight
           </p>
           <p className="text-sm leading-relaxed text-[var(--foreground)]/75">
-            {data.health_info || data.analysis_notes}
+            {data.analysisNotes}
           </p>
         </div>
       )}
