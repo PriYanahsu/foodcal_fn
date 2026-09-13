@@ -4,15 +4,15 @@ export const DATE_LOCALE = 'en-CA';
 
 export const EMPTY_STATS: DailyStats = {
   calories: 0,
-  protein: 0,
-  carbs: 0,
+  proteins: 0,
+  carbohydrates: 0,
   fats: 0,
 };
 
 export const MACRO_CARDS: MacroCardConfig[] = [
   { key: 'calories', label: 'Calories', icon: '🔥', color: '#ff4757', unit: '', delay: 0.1 },
-  { key: 'protein', label: 'Protein', icon: '🥩', color: '#00ff88', unit: 'g', delay: 0.2 },
-  { key: 'carbs', label: 'Carbs', icon: '🍞', color: '#2f81f7', unit: 'g', delay: 0.3 },
+  { key: 'proteins', label: 'Proteins', icon: '🥩', color: '#00ff88', unit: 'g', delay: 0.2 },
+  { key: 'carbohydrates', label: 'Carbohydrates', icon: '🍞', color: '#2f81f7', unit: 'g', delay: 0.3 },
   { key: 'fats', label: 'Fats', icon: '🥑', color: '#bd34fe', unit: 'g', delay: 0.4 },
 ];
 

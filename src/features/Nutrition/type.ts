@@ -2,27 +2,27 @@ import type { ReactNode, RefObject } from 'react';
 
 export interface DailyStats {
   calories: number;
-  protein: number;
-  carbs: number;
+  proteins: number;
+  carbohydrates: number;
   fats: number;
 }
 
 export interface FoodLog {
   id: string;
-  food_name: string;
+  foodName: string;
   calories: number;
-  created_at: string;
-  meal_type: string;
-  image_path: string | null;
-  protein: number;
-  carbs: number;
-  fats: number;
+  mealType: string;
+  imagePath: string | null;
+  proteinG: number;
+  carbohydrateG: number;
+  fatG: number;
+  createdAt: string;
 }
 
 export interface NutritionGoals {
   calories: number | null;
-  protein: number | null;
-  carbs: number | null;
+  proteins: number | null;
+  carbohydrates: number | null;
   fats: number | null;
 }
 

@@ -4,8 +4,8 @@ import type { NutritionGoals } from '../type';
 export function deriveNutritionGoals(fitness: FitnessDetails): NutritionGoals {
   return {
     calories: fitness.dailyCalorieTarget || null,
-    protein: fitness.dailyProteinTargetG || null,
-    carbs: fitness.dailyCarbsTargetG || null,
+    proteins: fitness.dailyProteinTargetG || null,
+    carbohydrates: fitness.dailyCarbsTargetG || null,
     fats: fitness.dailyFatTargetG || null,
   };
 }

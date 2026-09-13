@@ -132,12 +132,18 @@ export default function DailyNutrition({
                             </div>
                             <div className="min-w-0 flex-1">
                               <h3 className="font-bold text-[13px] sm:text-lg leading-snug line-clamp-2 text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors">
-                                {log.food_name}
+                                {log.foodName}
                               </h3>
                               <p className="text-[10px] sm:text-xs font-medium text-[var(--text-muted)] flex items-center gap-1.5 sm:gap-2 mt-0.5">
-                                <span>{mounted ? formatLogTime(log.created_at) : ''}</span>
+                                <span>{mounted ? formatLogTime(log.createdAt) : ''}</span>
                                 <span className="w-1 h-1 rounded-full bg-[var(--text-muted)] shrink-0" />
-                                <span className="truncate">{Math.round(log.protein)}g Protein</span>
+                                <span className="truncate">{Math.round(log.proteinG)}g Protein</span>
+                                <span className="w-1 h-1 rounded-full bg-[var(--text-muted)] shrink-0" />
+                                <span className="truncate">{Math.round(log.carbohydrateG)}g Carbohydrates</span>
+                                <span className="w-1 h-1 rounded-full bg-[var(--text-muted)] shrink-0" />
+                                <span className="truncate">{Math.round(log.fatG)}g Fat</span>
+                                <span className="w-1 h-1 rounded-full bg-[var(--text-muted)] shrink-0" />
+                                <span className="truncate">{Math.round(log.calories)}kcal</span>
                               </p>
                             </div>
                           </div>
