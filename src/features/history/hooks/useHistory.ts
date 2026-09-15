@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { History } from '../type';
-import { getHistory } from '../service/history.api';
+import { getHistory } from '@/app/service';
 import { DEFAULT_CALORIE_TARGET } from '../utils/Constants';
 import { getHistoryOverview } from '../utils/helper';
 

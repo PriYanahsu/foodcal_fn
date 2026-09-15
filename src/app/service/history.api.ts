@@ -1,6 +1,6 @@
 import axiosInstance from '@/lib/springboot/axios';
-import type { History, HistoryStats } from '../type';
-import { toHistoryList } from '../utils/helper';
+import type { History, HistoryStats } from '@/features/history/type';
+import { toHistoryList } from '@/features/history/utils/helper';
 
 let inflight: Promise<History[]> | null = null;
 

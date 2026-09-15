@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { FoodLog } from '@/features/Nutrition';
-import { getRecentFoodLogs } from '@/features/Nutrition/service/recentFoodLog.api';
+import { getRecentFoodLogs } from '@/app/service';
 
 export function useMealDetail(date: string, mealId: string) {
   const [meal, setMeal] = useState<FoodLog | null>(null);

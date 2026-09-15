@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { login as loginApi, signup as signupApi, logout as logoutApi } from '../services/auth.api';
+import { login as loginApi, signup as signupApi, logout as logoutApi } from '@/app/service';
 import { AuthUser, LoginCredentials, SignupCredentials } from '../types';
 import { getAuthUser, getUserId } from '@/lib/springboot/auth-tokens';
 

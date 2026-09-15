@@ -1,5 +1,5 @@
 import axiosInstance from '@/lib/springboot/axios';
-import { LoginCredentials, SignupCredentials, AuthResponse } from '../types';
+import { LoginCredentials, SignupCredentials, AuthResponse } from '@/features/auth/types';
 import { clearTokens, setAccessToken } from '@/lib/springboot/auth-tokens';
 
 const extractTokens = (data: any) => {

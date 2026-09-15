@@ -5,7 +5,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { getAccessToken } from '@/lib/springboot/auth-tokens';
 import { FitnessDetails, ProfileFeedback } from '../type';
 import { EMPTY_FITNESS_DETAILS } from '../utils/Constants';
-import { getFitness, updateFitness } from '../service/fitness.api';
+import { getFitness, updateFitness } from '@/app/service';
 
 export function useFitnessProfile(options?: { autoFetch?: boolean }) {
   const autoFetch = options?.autoFetch ?? true;

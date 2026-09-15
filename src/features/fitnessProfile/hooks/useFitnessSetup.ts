@@ -3,9 +3,8 @@ import { useCallback, useEffect, useState } from "react";
 import { Goals, Stats } from "../type";
 import { EMPTY_GOALS, EMPTY_STATS } from "../utils/Constant";
 import { FitnessDetails } from "@/features/userProfile";
-import { getFitness, updateFitness } from "@/features/userProfile/service/fitness.api";
+import { getFitness, updateFitness, fitnessConsultantApi } from '@/app/service';
 import { useRouter } from "next/navigation";
-import { fitnessConsultantApi } from "../service/fitnessConsultant.api";
 
 export const useFitnessSetup = (userId: string, onComplete: () => void) => {
     const router = useRouter();

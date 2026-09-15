@@ -1,15 +1,13 @@
 import axiosInstance from '@/lib/springboot/axios';
 import { getUserId } from '@/lib/springboot/auth-tokens';
-import { ProfileData } from '../type';
+import { ProfileData } from '@/features/userProfile/type';
 
 function pickAvatarUrl(data: Record<string, unknown>): string | null {
   const url = data.avatarUrl ?? data.avatar_url;
   return typeof url === 'string' && url.trim() ? url : null;
 }
 
-function toProfile(
-  data: Partial<ProfileData> | Record<string, unknown>,
-): ProfileData {
+function toProfile(data: Partial<ProfileData> | Record<string, unknown>): ProfileData {
   const raw = data as Record<string, unknown>;
   return {
     fullName: (raw.fullName as string) || '',

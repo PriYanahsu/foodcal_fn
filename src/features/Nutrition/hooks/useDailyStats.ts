@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import type { DailyStats, FoodLog } from '../type';
 import { EMPTY_STATS } from '../utils/Constants';
-import { getDailyStats } from '../service/dailyStats.api';
-import { getRecentFoodLogs } from '../service/recentFoodLog.api';
+import { getDailyStats, getRecentFoodLogs } from '@/app/service';
 
 export const useDailyStats = (dateInput: string | Date) => {
   const { user } = useAuth();

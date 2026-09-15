@@ -1,12 +1,11 @@
 import axios from 'axios';
-import { NutritionData } from '../types';
+import { NutritionData } from '@/features/food-scan/types';
 
 export const analyzeFoodImage = async (
   imageFile: File,
   additionalPrompt?: string
 ): Promise<NutritionData> => {
   try {
-    // Convert file to base64
     const base64Image = await new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as string);

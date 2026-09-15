@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { FoodLog } from '@/features/Nutrition';
-import { getRecentFoodLogs } from '@/features/Nutrition/service/recentFoodLog.api';
+import { getRecentFoodLogs } from '@/app/service';
 import { formatDayLabelLong, sumMealStats } from '../utils/helper';
 import { EMPTY_HISTORY_STATS } from '../utils/Constants';
 

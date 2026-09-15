@@ -1,9 +1,0 @@
-import axiosInstance from "@/lib/springboot/axios";
-import type { FoodLog } from "../type";
-import { toApiDate } from "../utils/toLocalDate";
-
-export const getRecentFoodLogs = async (dateInput: string | Date): Promise<FoodLog[]> => {
-    const date = toApiDate(dateInput);
-    const response = await axiosInstance.get<FoodLog[]>(`/v1/food/logs/${date}`);
-    return response.data;
-};

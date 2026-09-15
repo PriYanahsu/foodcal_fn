@@ -1,10 +1,10 @@
 import axiosInstance from '@/lib/springboot/axios';
-import { FoodScanResponse, NutritionData } from '../types';
+import { FoodScanResponse, NutritionData } from '@/features/food-scan/types';
 import { getUserId } from '@/lib/springboot/auth-tokens';
 
 export const saveFoodLogAPI = async (
-  imageFile: File, 
-  nutritionData: NutritionData, 
+  imageFile: File,
+  nutritionData: NutritionData
 ): Promise<FoodScanResponse> => {
   const userId = getUserId();
   const formData = new FormData();
@@ -16,12 +16,9 @@ export const saveFoodLogAPI = async (
   );
 
   try {
-    const response = await axiosInstance.post<FoodScanResponse>(
-      `/v1/food/${userId}`,
-      formData
-    );
+    const response = await axiosInstance.post<FoodScanResponse>(`/v1/food/${userId}`, formData);
     return response.data;
-  } catch (error) {
+  } catch {
     return {
       success: false,
       error: 'Failed to save food log',

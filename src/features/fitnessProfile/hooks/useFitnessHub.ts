@@ -1,7 +1,6 @@
 import { AuthUser } from "@/features/auth";
 import { FitnessDetails, ProfileData } from "@/features/userProfile";
-import { getFitness } from "@/features/userProfile/service/fitness.api";
-import { getUser } from "@/features/userProfile/service/user.api";
+import { getFitness, getUser } from '@/app/service';
 import { calculateProfileCompletion } from "@/utils/profileCompletion";
 import { useCallback, useEffect, useState } from "react";
 

@@ -1,8 +1,7 @@
 'use client';
 import { useState } from 'react';
-import { analyzeFoodImage } from '../services/scan.api';
+import { analyzeFoodImage, saveFoodLogAPI } from '@/app/service';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { saveFoodLogAPI } from '../services/foodLogSave.api';
 import { NutritionData } from '../types';
 
 export const useFoodScan = () => {

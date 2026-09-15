@@ -5,7 +5,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { getAccessToken, getUserId } from '@/lib/springboot/auth-tokens';
 import { ProfileData, ProfileFeedback } from '../type';
 import { EMPTY_PROFILE } from '../utils/Constants';
-import { getUser, updateUser, uploadAvatar } from '../service/user.api';
+import { getUser, updateUser, uploadAvatar } from '@/app/service';
 
 export function useUserProfile(options?: { autoFetch?: boolean }) {
   const autoFetch = options?.autoFetch ?? true;
