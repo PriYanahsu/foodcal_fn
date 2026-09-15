@@ -12,6 +12,7 @@ import { StatCard } from '@/components/dashboard/StatCard';
 import type { FoodLog } from '@/features/Nutrition';
 import { getRecentFoodLogs } from '@/features/Nutrition/service/recentFoodLog.api';
 import { logDetailHref } from '@/features/Nutrition/utils/formatLogTime';
+import { toApiDate } from '@/features/Nutrition/utils/toLocalDate';
 
 interface DailyMealListProps {
   date: string;
@@ -56,7 +57,7 @@ export default function DailyMealList({ date }: DailyMealListProps) {
     [meals]
   );
 
-  const formattedDate = new Date(date + 'T12:00:00').toLocaleDateString(undefined, {
+  const formattedDate = new Date(`${toApiDate(date)}T12:00:00`).toLocaleDateString(undefined, {
     weekday: 'long',
     month: 'long',
     day: 'numeric',

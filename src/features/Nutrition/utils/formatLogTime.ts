@@ -1,5 +1,5 @@
 import type { FoodLog } from '../type';
-import { DATE_LOCALE } from './Constants';
+import { toApiDate } from './toLocalDate';
 
 export function formatLogTime(iso: string) {
   return new Date(iso).toLocaleTimeString([], {
@@ -9,5 +9,5 @@ export function formatLogTime(iso: string) {
 }
 
 export function logDetailHref(log: FoodLog) {
-  return `/history/${log.date}/${log.id}`;
+  return `/history/${toApiDate(log.date)}/${log.id}`;
 }

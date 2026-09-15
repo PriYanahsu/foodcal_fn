@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { DailySummary } from '../types';
 import Link from 'next/link';
+import type { FoodLog } from '@/features/Nutrition';
+import { getRecentFoodLogs } from '@/features/Nutrition/service/recentFoodLog.api';
+import { toLocalDate } from '@/features/Nutrition/utils/toLocalDate';
 import {
   CalendarIcon,
   ChevronRightIcon,
@@ -12,6 +15,17 @@ import {
   SparklesIcon,
 } from '@heroicons/react/24/outline';
 import { StatCard } from '@/components/dashboard/StatCard';
+
+function toDailySummary(date: string, logs: FoodLog[]): DailySummary {
+  return {
+    date,
+    totalCalories: Math.round(logs.reduce((sum, log) => sum + (log.calories || 0), 0)),
+    totalProtein: logs.reduce((sum, log) => sum + (log.proteinG || 0), 0),
+    totalCarbs: logs.reduce((sum, log) => sum + (log.carbohydrateG || 0), 0),
+    totalFats: logs.reduce((sum, log) => sum + (log.fatG || 0), 0),
+    mealCount: logs.length,
+  };
+}
 
 function isWithinLastDays(dateStr: string, days: number): boolean {
   const d = new Date(dateStr);
@@ -28,8 +42,37 @@ export default function HistoryDateList() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setHistory([]);
-    setLoading(false);
+    let cancelled = false;
+
+    const loadHistory = async () => {
+      setLoading(true);
+      try {
+        const days = 14;
+        const summaries = (
+          await Promise.all(
+            Array.from({ length: days }, async (_, i) => {
+              const d = new Date();
+              d.setDate(d.getDate() - i);
+              const date = toLocalDate(d);
+              const logs = await getRecentFoodLogs(date);
+              if (!logs.length) return null;
+              return toDailySummary(date, logs);
+            })
+          )
+        ).filter((day): day is DailySummary => day != null);
+
+        if (!cancelled) setHistory(summaries);
+      } catch {
+        if (!cancelled) setHistory([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    loadHistory();
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
   const stats = useMemo(() => {
