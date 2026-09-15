@@ -1,42 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { ArrowLeftIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
-import { getRecentFoodLogs } from '@/features/Nutrition/service/recentFoodLog.api';
-import { FoodLog } from '@/features/Nutrition';
-
-interface MealDetailViewProps {
-  date: string;
-  mealId: string;
-}
+import { useMealDetail } from '../hooks/useMealDetail';
+import { mealMacros } from '../utils/helper';
+import type { MealDetailViewProps } from '../type';
 
 export default function MealDetailView({ date, mealId }: MealDetailViewProps) {
   const router = useRouter();
-  const [meal, setMeal] = useState<FoodLog | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchMeal = async () => {
-      setLoading(true);
-      try {
-        const logs = await getRecentFoodLogs(date);
-        const found = logs.find((log) => String(log.id) === String(mealId)) ?? null;
-        if (!cancelled) setMeal(found);
-      } catch {
-        if (!cancelled) setMeal(null);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
-    fetchMeal();
-    return () => {
-      cancelled = true;
-    };
-  }, [date, mealId]);
+  const { meal, loading } = useMealDetail(date, mealId);
 
   if (loading) {
     return (
@@ -63,11 +35,11 @@ export default function MealDetailView({ date, mealId }: MealDetailViewProps) {
     );
   }
 
-  const macros = [
-    { label: 'Protein', value: meal.proteinG ?? 0, color: 'var(--accent)' },
-    { label: 'Carbs', value: meal.carbohydrateG ?? 0, color: '#d4a017' },
-    { label: 'Fats', value: meal.fatG ?? 0, color: '#e85d75' },
-  ];
+  const macros = mealMacros({
+    proteins: meal.proteinG ?? 0,
+    carbohydrates: meal.carbohydrateG ?? 0,
+    fats: meal.fatG ?? 0,
+  });
 
   return (
     <div className="max-w-md mx-auto space-y-5 pb-8">

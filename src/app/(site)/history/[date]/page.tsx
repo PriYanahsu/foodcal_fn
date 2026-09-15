@@ -1,4 +1,4 @@
-import DailyMealList from '@/features/history/components/DailyMealList';
+import { DailyMealList } from '@/features/history';
 
 export default async function DailyHistoryPage({ params }: { params: Promise<{ date: string }> }) {
   const { date } = await params;

@@ -1,4 +1,4 @@
-import HistoryDateList from '@/features/history/components/HistoryDateList';
+import { HistoryDateList } from '@/features/history';
 
 export default function HistoryPage() {
   return (

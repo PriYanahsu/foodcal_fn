@@ -1,92 +1,18 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { useAuth } from '@/features/auth/hooks/useAuth';
-import { DailySummary } from '../types';
 import Link from 'next/link';
-import type { FoodLog } from '@/features/Nutrition';
-import { getRecentFoodLogs } from '@/features/Nutrition/service/recentFoodLog.api';
-import { toLocalDate } from '@/features/Nutrition/utils/toLocalDate';
 import {
   CalendarIcon,
   ChevronRightIcon,
-  ClockIcon,
   ChartBarIcon,
   SparklesIcon,
 } from '@heroicons/react/24/outline';
 import { StatCard } from '@/components/dashboard/StatCard';
-
-function toDailySummary(date: string, logs: FoodLog[]): DailySummary {
-  return {
-    date,
-    totalCalories: Math.round(logs.reduce((sum, log) => sum + (log.calories || 0), 0)),
-    totalProtein: logs.reduce((sum, log) => sum + (log.proteinG || 0), 0),
-    totalCarbs: logs.reduce((sum, log) => sum + (log.carbohydrateG || 0), 0),
-    totalFats: logs.reduce((sum, log) => sum + (log.fatG || 0), 0),
-    mealCount: logs.length,
-  };
-}
-
-function isWithinLastDays(dateStr: string, days: number): boolean {
-  const d = new Date(dateStr);
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - days);
-  cutoff.setHours(0, 0, 0, 0);
-  return d >= cutoff;
-}
+import { useHistory } from '../hooks/useHistory';
+import { calorieProgress, formatDayLabel, isHistoryToday } from '../utils/helper';
 
 export default function HistoryDateList() {
-  const { user } = useAuth();
-  const [history, setHistory] = useState<DailySummary[]>([]);
-  const [calorieTarget] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadHistory = async () => {
-      setLoading(true);
-      try {
-        const days = 14;
-        const summaries = (
-          await Promise.all(
-            Array.from({ length: days }, async (_, i) => {
-              const d = new Date();
-              d.setDate(d.getDate() - i);
-              const date = toLocalDate(d);
-              const logs = await getRecentFoodLogs(date);
-              if (!logs.length) return null;
-              return toDailySummary(date, logs);
-            })
-          )
-        ).filter((day): day is DailySummary => day != null);
-
-        if (!cancelled) setHistory(summaries);
-      } catch {
-        if (!cancelled) setHistory([]);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
-    loadHistory();
-    return () => {
-      cancelled = true;
-    };
-  }, [user]);
-
-  const stats = useMemo(() => {
-    const totalMeals = history.reduce((s, d) => s + d.mealCount, 0);
-    const totalCalories = history.reduce((s, d) => s + d.totalCalories, 0);
-    const weekCalories = history
-      .filter((d) => isWithinLastDays(d.date, 7))
-      .reduce((s, d) => s + d.totalCalories, 0);
-    const avgCalories = history.length ? Math.round(totalCalories / history.length) : 0;
-
-    return { totalMeals, totalCalories, weekCalories, avgCalories };
-  }, [history]);
-
-  const target = calorieTarget || 2200;
+  const { history, loading, stats, target } = useHistory();
 
   if (loading) {
     return (
@@ -124,7 +50,6 @@ export default function HistoryDateList() {
 
   return (
     <div className="space-y-3 lg:space-y-4 lg:h-[calc(100dvh-5rem)] lg:flex lg:flex-col">
-      {/* Header */}
       <header className="relative py-4 px-5 lg:py-5 lg:px-6 rounded-2xl lg:rounded-3xl overflow-hidden bg-gradient-to-br from-[var(--primary)]/10 via-transparent to-transparent border border-[var(--card-border)] shadow-xl shrink-0">
         <div className="absolute top-0 right-0 p-4 opacity-[0.03] pointer-events-none">
           <ChartBarIcon className="w-28 h-28 text-[var(--primary)]" />
@@ -142,7 +67,7 @@ export default function HistoryDateList() {
               </span>
             </h1>
             <p className="text-sm text-[var(--text-muted)] mt-0.5">
-              {history.length} days tracked · {stats.totalMeals} meals logged
+              {history.length} days tracked
             </p>
           </div>
           <div className="hidden lg:flex flex-col items-end shrink-0">
@@ -150,14 +75,13 @@ export default function HistoryDateList() {
               All-time total
             </span>
             <span className="text-2xl font-black text-[var(--primary)] tabular-nums">
-              {stats.totalCalories.toLocaleString()}
+              {Math.round(stats.totalCalories).toLocaleString()}
               <span className="text-xs font-medium text-[var(--text-muted)] ml-1">kcal</span>
             </span>
           </div>
         </div>
       </header>
 
-      {/* Stats row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3 shrink-0">
         <StatCard
           label="Days Logged"
@@ -168,9 +92,9 @@ export default function HistoryDateList() {
           delay={0}
         />
         <StatCard
-          label="Total Meals"
-          value={stats.totalMeals}
-          unit="meals"
+          label="Total Calories"
+          value={Math.round(stats.totalCalories)}
+          unit="kcal"
           icon="🍽️"
           color="#2196f3"
           delay={0.05}
@@ -185,7 +109,7 @@ export default function HistoryDateList() {
         />
         <StatCard
           label="This Week"
-          value={stats.weekCalories}
+          value={Math.round(stats.weekCalories)}
           unit="kcal"
           icon="🔥"
           color="#e91e63"
@@ -193,12 +117,11 @@ export default function HistoryDateList() {
         />
       </div>
 
-      {/* Day list — scrollable on desktop, full scroll on mobile */}
       <div className="lg:flex-1 lg:min-h-0 lg:overflow-hidden">
         <div className="lg:h-full lg:overflow-y-auto lg:pr-1 space-y-2 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:content-start lg:pb-2">
           {history.map((day) => {
-            const progress = Math.min(100, Math.round((day.totalCalories / target) * 100));
-            const isToday = day.date === new Date().toLocaleDateString('en-CA');
+            const progress = calorieProgress(day.stats.calories, target);
+            const isToday = isHistoryToday(day.date);
 
             return (
               <Link
@@ -218,11 +141,7 @@ export default function HistoryDateList() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <h3 className="font-bold text-sm lg:text-base text-[var(--foreground)] truncate">
-                          {new Date(day.date + 'T12:00:00').toLocaleDateString(undefined, {
-                            weekday: 'short',
-                            month: 'short',
-                            day: 'numeric',
-                          })}
+                          {formatDayLabel(day.date)}
                         </h3>
                         {isToday && (
                           <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[var(--primary)]/20 text-[var(--primary)] shrink-0">
@@ -231,14 +150,9 @@ export default function HistoryDateList() {
                         )}
                       </div>
                       <p className="text-[10px] lg:text-xs text-[var(--text-muted)] flex items-center gap-2 mt-0.5">
-                        <span className="flex items-center gap-0.5">
-                          <ClockIcon className="w-3 h-3" />
-                          {day.mealCount} meal{day.mealCount !== 1 ? 's' : ''}
-                        </span>
-                        <span className="opacity-40">·</span>
-                        <span>P {Math.round(day.totalProtein)}g</span>
-                        <span>C {Math.round(day.totalCarbs)}g</span>
-                        <span>F {Math.round(day.totalFats)}g</span>
+                        <span>P {Math.round(day.stats.proteins)}g</span>
+                        <span>C {Math.round(day.stats.carbohydrates)}g</span>
+                        <span>F {Math.round(day.stats.fats)}g</span>
                       </p>
                     </div>
                   </div>
@@ -246,7 +160,7 @@ export default function HistoryDateList() {
                   <div className="flex items-center gap-2 shrink-0">
                     <div className="text-right">
                       <span className="block font-black text-[var(--primary)] text-base lg:text-lg tabular-nums leading-none">
-                        {day.totalCalories}
+                        {Math.round(day.stats.calories)}
                       </span>
                       <span className="text-[9px] text-[var(--text-muted)] font-bold uppercase">
                         kcal
@@ -256,7 +170,6 @@ export default function HistoryDateList() {
                   </div>
                 </div>
 
-                {/* Calorie progress bar */}
                 <div className="mt-2.5 space-y-1">
                   <div className="flex justify-between text-[9px] font-bold uppercase tracking-wider">
                     <span className="text-[var(--text-muted)]">Daily target</span>
@@ -278,5 +191,4 @@ export default function HistoryDateList() {
       </div>
     </div>
   );
-
 }

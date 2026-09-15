@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   ClockIcon,
@@ -9,59 +8,12 @@ import {
   ArrowLeftIcon,
 } from '@heroicons/react/24/outline';
 import { StatCard } from '@/components/dashboard/StatCard';
-import type { FoodLog } from '@/features/Nutrition';
-import { getRecentFoodLogs } from '@/features/Nutrition/service/recentFoodLog.api';
 import { logDetailHref } from '@/features/Nutrition/utils/formatLogTime';
-import { toApiDate } from '@/features/Nutrition/utils/toLocalDate';
-
-interface DailyMealListProps {
-  date: string;
-}
+import { useDailyMeals } from '../hooks/useDailyMeals';
+import type { DailyMealListProps } from '../type';
 
 export default function DailyMealList({ date }: DailyMealListProps) {
-  const [meals, setMeals] = useState<FoodLog[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchMeals = async () => {
-      setLoading(true);
-      try {
-        const logs = await getRecentFoodLogs(date);
-        if (!cancelled) setMeals(logs ?? []);
-      } catch {
-        if (!cancelled) setMeals([]);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
-    fetchMeals();
-    return () => {
-      cancelled = true;
-    };
-  }, [date]);
-
-  const totals = useMemo(
-    () =>
-      meals.reduce(
-        (acc, m) => ({
-          calories: acc.calories + (m.calories || 0),
-          protein: acc.protein + (m.proteinG || 0),
-          carbs: acc.carbs + (m.carbohydrateG || 0),
-          fats: acc.fats + (m.fatG || 0),
-        }),
-        { calories: 0, protein: 0, carbs: 0, fats: 0 }
-      ),
-    [meals]
-  );
-
-  const formattedDate = new Date(`${toApiDate(date)}T12:00:00`).toLocaleDateString(undefined, {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  });
+  const { meals, loading, totals, formattedDate } = useDailyMeals(date);
 
   if (loading) {
     return (
@@ -110,8 +62,8 @@ export default function DailyMealList({ date }: DailyMealListProps) {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3 shrink-0">
         <StatCard label="Calories" value={totals.calories} unit="kcal" icon="🔥" color="var(--primary)" delay={0} />
-        <StatCard label="Protein" value={Math.round(totals.protein)} unit="g" icon="🥩" color="#2196f3" delay={0.05} />
-        <StatCard label="Carbs" value={Math.round(totals.carbs)} unit="g" icon="🍞" color="#ff9800" delay={0.1} />
+        <StatCard label="Protein" value={Math.round(totals.proteins)} unit="g" icon="🥩" color="#2196f3" delay={0.05} />
+        <StatCard label="Carbs" value={Math.round(totals.carbohydrates)} unit="g" icon="🍞" color="#ff9800" delay={0.1} />
         <StatCard label="Fats" value={Math.round(totals.fats)} unit="g" icon="🥑" color="#e91e63" delay={0.15} />
       </div>
 
