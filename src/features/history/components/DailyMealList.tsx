@@ -1,8 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useAuth } from '@/features/auth/hooks/useAuth';
-import { MealLog } from '../types';
 import Link from 'next/link';
 import {
   ClockIcon,
@@ -11,29 +9,47 @@ import {
   ArrowLeftIcon,
 } from '@heroicons/react/24/outline';
 import { StatCard } from '@/components/dashboard/StatCard';
+import type { FoodLog } from '@/features/Nutrition';
+import { getRecentFoodLogs } from '@/features/Nutrition/service/recentFoodLog.api';
+import { logDetailHref } from '@/features/Nutrition/utils/formatLogTime';
 
 interface DailyMealListProps {
   date: string;
 }
 
 export default function DailyMealList({ date }: DailyMealListProps) {
-  const { user } = useAuth();
-  const [meals, setMeals] = useState<MealLog[]>([]);
+  const [meals, setMeals] = useState<FoodLog[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setMeals([]);
-    setLoading(false);
-  }, [user, date]);
+    let cancelled = false;
+
+    const fetchMeals = async () => {
+      setLoading(true);
+      try {
+        const logs = await getRecentFoodLogs(date);
+        if (!cancelled) setMeals(logs ?? []);
+      } catch {
+        if (!cancelled) setMeals([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    fetchMeals();
+    return () => {
+      cancelled = true;
+    };
+  }, [date]);
 
   const totals = useMemo(
     () =>
       meals.reduce(
         (acc, m) => ({
           calories: acc.calories + (m.calories || 0),
-          protein: acc.protein + (m.protein || 0),
-          carbs: acc.carbs + (m.carbs || 0),
-          fats: acc.fats + (m.fats || 0),
+          protein: acc.protein + (m.proteinG || 0),
+          carbs: acc.carbs + (m.carbohydrateG || 0),
+          fats: acc.fats + (m.fatG || 0),
         }),
         { calories: 0, protein: 0, carbs: 0, fats: 0 }
       ),
@@ -102,7 +118,7 @@ export default function DailyMealList({ date }: DailyMealListProps) {
         <div className="lg:h-full lg:overflow-y-auto lg:pr-1 space-y-2 lg:grid lg:grid-cols-2 lg:gap-3 lg:content-start">
           {meals.map((meal) => (
             <Link
-              href={`/history/${date}/${meal.id}`}
+              href={logDetailHref(meal)}
               key={meal.id}
               className="block bg-[var(--card-bg)]/80 backdrop-blur-xl p-3 lg:p-4 rounded-xl border border-[var(--card-border)] hover:border-[var(--primary)]/50 transition-all group"
             >
@@ -112,11 +128,11 @@ export default function DailyMealList({ date }: DailyMealListProps) {
                     <ClockIcon className="h-4 w-4 text-[var(--primary)]" />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="font-bold text-sm text-[var(--foreground)] truncate">{meal.food_name}</h3>
+                    <h3 className="font-bold text-sm text-[var(--foreground)] truncate">{meal.foodName}</h3>
                     <p className="text-[10px] text-[var(--text-muted)] capitalize flex items-center gap-2">
-                      {meal.meal_type}
+                      {meal.mealType}
                       <span className="opacity-40">·</span>
-                      {new Date(meal.created_at).toLocaleTimeString([], {
+                      {new Date(meal.createdAt).toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit',
                       })}
@@ -134,9 +150,9 @@ export default function DailyMealList({ date }: DailyMealListProps) {
               </div>
 
               <div className="mt-2 flex gap-3 text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
-                <span>P {Math.round(meal.protein || 0)}g</span>
-                <span>C {Math.round(meal.carbs || 0)}g</span>
-                <span>F {Math.round(meal.fats || 0)}g</span>
+                <span>P {Math.round(meal.proteinG || 0)}g</span>
+                <span>C {Math.round(meal.carbohydrateG || 0)}g</span>
+                <span>F {Math.round(meal.fatG || 0)}g</span>
               </div>
             </Link>
           ))}

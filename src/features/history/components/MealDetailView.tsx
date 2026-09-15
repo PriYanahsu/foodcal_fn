@@ -1,24 +1,42 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { MealLog } from '../types';
 import { ArrowLeftIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
+import { getRecentFoodLogs } from '@/features/Nutrition/service/recentFoodLog.api';
+import { FoodLog } from '@/features/Nutrition';
 
 interface MealDetailViewProps {
+  date: string;
   mealId: string;
 }
 
-export default function MealDetailView({ mealId }: MealDetailViewProps) {
+export default function MealDetailView({ date, mealId }: MealDetailViewProps) {
   const router = useRouter();
-  const [meal, setMeal] = useState<MealLog | null>(null);
-  const [imageUrl] = useState<string | null>(null);
+  const [meal, setMeal] = useState<FoodLog | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setMeal(null);
-    setLoading(false);
-  }, [mealId]);
+    let cancelled = false;
+
+    const fetchMeal = async () => {
+      setLoading(true);
+      try {
+        const logs = await getRecentFoodLogs(date);
+        const found = logs.find((log) => String(log.id) === String(mealId)) ?? null;
+        if (!cancelled) setMeal(found);
+      } catch {
+        if (!cancelled) setMeal(null);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    fetchMeal();
+    return () => {
+      cancelled = true;
+    };
+  }, [date, mealId]);
 
   if (loading) {
     return (
@@ -46,9 +64,9 @@ export default function MealDetailView({ mealId }: MealDetailViewProps) {
   }
 
   const macros = [
-    { label: 'Protein', value: meal.protein ?? 0, color: 'var(--accent)' },
-    { label: 'Carbs', value: meal.carbs ?? 0, color: '#d4a017' },
-    { label: 'Fats', value: meal.fats ?? 0, color: '#e85d75' },
+    { label: 'Protein', value: meal.proteinG ?? 0, color: 'var(--accent)' },
+    { label: 'Carbs', value: meal.carbohydrateG ?? 0, color: '#d4a017' },
+    { label: 'Fats', value: meal.fatG ?? 0, color: '#e85d75' },
   ];
 
   return (
@@ -62,25 +80,23 @@ export default function MealDetailView({ mealId }: MealDetailViewProps) {
         Back
       </button>
 
-      {/* Image */}
       <div className="w-full aspect-[4/3] bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl overflow-hidden flex items-center justify-center shadow-sm">
-        {imageUrl ? (
+        {meal.imagePath ? (
           /* eslint-disable-next-line @next/next/no-img-element */
-          <img src={imageUrl} alt={meal.food_name} className="w-full h-full object-cover" />
+          <img src={meal.imagePath} alt={meal.foodName} className="w-full h-full object-cover" />
         ) : (
           <span className="text-[var(--text-muted)] text-sm">No image available</span>
         )}
       </div>
 
-      {/* Header */}
       <div className="flex justify-between items-start gap-4">
         <div className="min-w-0">
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[var(--foreground)] leading-tight">
-            {meal.food_name}
+            {meal.foodName}
           </h1>
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider mt-2.5 bg-[var(--primary)]/15 text-[var(--primary)] border border-[var(--primary)]/25">
             <SparklesIcon className="w-3 h-3" />
-            AI Analysis
+            {meal.isManual ? 'Manual' : 'AI Analysis'}
           </span>
         </div>
         <div className="text-right shrink-0">
@@ -93,7 +109,6 @@ export default function MealDetailView({ mealId }: MealDetailViewProps) {
         </div>
       </div>
 
-      {/* Macros */}
       <div className="grid grid-cols-3 gap-3">
         {macros.map((m) => (
           <div
@@ -114,26 +129,25 @@ export default function MealDetailView({ mealId }: MealDetailViewProps) {
         ))}
       </div>
 
-      {/* Additional Info */}
       <div className="bg-[var(--card-bg)] p-4 rounded-2xl border border-[var(--card-border)] text-sm space-y-3 shadow-sm">
         <div className="flex justify-between gap-3">
           <span className="text-[var(--text-muted)]">Time</span>
           <span className="font-semibold text-[var(--foreground)] text-right">
-            {new Date(meal.created_at).toLocaleString()}
+            {new Date(meal.createdAt).toLocaleString()}
           </span>
         </div>
         <div className="h-px bg-[var(--card-border)]" />
         <div className="flex justify-between gap-3">
           <span className="text-[var(--text-muted)]">Meal Type</span>
-          <span className="font-semibold text-[var(--foreground)] capitalize">{meal.meal_type}</span>
+          <span className="font-semibold text-[var(--foreground)] capitalize">{meal.mealType}</span>
         </div>
-        {!meal.is_manual && (
+        {!meal.isManual && (
           <>
             <div className="h-px bg-[var(--card-border)]" />
             <div className="flex justify-between gap-3">
               <span className="text-[var(--text-muted)]">AI Confidence</span>
               <span className="font-bold text-[var(--primary)]">
-                {Math.round((meal.confidence || 0) * 100)}%
+                {Math.round((meal.confidenceLevel || 0) * 100)}%
               </span>
             </div>
           </>

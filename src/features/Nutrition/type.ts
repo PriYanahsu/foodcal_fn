@@ -9,6 +9,7 @@ export interface DailyStats {
 
 export interface FoodLog {
   id: string;
+  date: string;
   foodName: string;
   calories: number;
   mealType: string;
@@ -17,6 +18,8 @@ export interface FoodLog {
   carbohydrateG: number;
   fatG: number;
   createdAt: string;
+  isManual: boolean;
+  confidenceLevel: number;
 }
 
 export interface NutritionGoals {

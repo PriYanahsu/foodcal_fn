@@ -9,5 +9,5 @@ export function formatLogTime(iso: string) {
 }
 
 export function logDetailHref(log: FoodLog) {
-  return `/history/${new Date(log.created_at).toLocaleDateString(DATE_LOCALE)}/${log.id}`;
+  return `/history/${log.date}/${log.id}`;
 }
