@@ -3,10 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useBackendStatus } from './useBackendStatus';
-import { EXPECTED_WAKE_MS } from './config';
+import { EXPECTED_WAKE_MS, WAKE_NOTICE_AFTER_MS } from './config';
 
-/** A warm server answers in well under this, so the card never flashes for it. */
-const SHOW_AFTER_MS = 800;
 /** How long the "ready" confirmation stays up before dismissing itself. */
 const READY_VISIBLE_MS = 3_500;
 
@@ -20,13 +18,13 @@ export function WakeUpBanner() {
   const [dismissedFor, setDismissedFor] = useState(-1);
   const [now, setNow] = useState(0);
 
-  // A warm server answers well inside SHOW_AFTER_MS, so the card never flashes
+  // A warm server answers well inside WAKE_NOTICE_AFTER_MS, so the card never flashes
   // for it — and "ready" is only worth announcing if the user saw us waiting.
   const revealed = startedAt > 0 && revealedFor === startedAt;
 
   useEffect(() => {
     if (status !== 'waking') return;
-    const timer = setTimeout(() => setRevealedFor(startedAt), SHOW_AFTER_MS);
+    const timer = setTimeout(() => setRevealedFor(startedAt), WAKE_NOTICE_AFTER_MS);
     return () => clearTimeout(timer);
   }, [status, startedAt]);
 

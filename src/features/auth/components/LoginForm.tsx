@@ -12,7 +12,7 @@ export const LoginForm: React.FC = () => {
   const [password, setPassword] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
   const { login, isLoading, error } = useAuth();
-  const { status, retry } = useBackendStatus();
+  const { status, isWakingSlowly, retry } = useBackendStatus();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -39,7 +39,7 @@ export const LoginForm: React.FC = () => {
   };
 
   const buttonLabel = isLoading
-    ? status === 'waking'
+    ? isWakingSlowly
       ? 'Starting server…'
       : 'Signing in…'
     : 'Sign In';
@@ -56,7 +56,7 @@ export const LoginForm: React.FC = () => {
           <p className="text-sm text-red-400">{validationError}</p>
         </div>
       )}
-      {isLoading && status === 'waking' && (
+      {isLoading && isWakingSlowly && (
         <div className="p-3 bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-xl">
           <p className="text-sm text-[var(--foreground)]">
             Waking the server — you&apos;ll be signed in as soon as it answers.

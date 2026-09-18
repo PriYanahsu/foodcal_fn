@@ -29,7 +29,7 @@ const INITIAL_FORM: SignupCredentials & {
 export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
   const [form, setForm] = useState(INITIAL_FORM);
   const { signup, isLoading, error } = useAuth();
-  const { status, retry } = useBackendStatus();
+  const { status, isWakingSlowly, retry } = useBackendStatus();
 
   const submitSignup = async () => {
     const { fullName, email, password, gender } = form;
@@ -87,7 +87,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
   };
 
   const buttonLabel = isLoading
-    ? status === 'waking'
+    ? isWakingSlowly
       ? 'Starting server…'
       : 'Creating account…'
     : 'Create Account';
@@ -130,7 +130,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
           <p className="text-sm text-red-400">{form.validationError}</p>
         </div>
       )}
-      {isLoading && status === 'waking' && (
+      {isLoading && isWakingSlowly && (
         <div className="p-3 bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-xl">
           <p className="text-sm text-[var(--foreground)]">
             Waking the server — your account is created as soon as it answers.

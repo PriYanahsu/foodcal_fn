@@ -17,7 +17,7 @@ export const AuthPage: React.FC = () => {
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
-  const { status, isLocal } = useBackendStatus();
+  const { status, isWakingSlowly, isLocal } = useBackendStatus();
 
   // Replaces the section's subtitle while the server is cold, so the wait is
   // explained where the user is looking rather than only in the corner banner.
@@ -25,7 +25,9 @@ export const AuthPage: React.FC = () => {
     isLocal || status === 'ready'
       ? null
       : status === 'waking'
-        ? 'Server is starting up (about a minute) — you can fill this in meanwhile.'
+        ? isWakingSlowly
+          ? 'Server is starting up (about a minute) — you can fill this in meanwhile.'
+          : null
         : 'Server is still starting. Submit anyway and we’ll retry, or try again shortly.';
 
   useEffect(() => {

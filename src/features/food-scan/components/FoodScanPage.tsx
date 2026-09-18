@@ -7,6 +7,7 @@ import { CameraInput } from './CameraInput';
 import { NutritionCard } from './NutritionCard';
 import { AiScanOverlay } from './AiScanOverlay';
 import { SuccessToast } from '@/components/ui/SuccessToast';
+import { ROUTES } from '@/constants/routes';
 import {
   XMarkIcon,
   SparklesIcon,
@@ -46,6 +47,20 @@ export const FoodScanPage: React.FC = () => {
     setSelectedFile(null);
     setPrompt('');
     reset();
+  };
+
+  const handleLogMeal = async () => {
+    if (!selectedFile || !nutritionData) return;
+    const foodName = nutritionData.foodName;
+    const success = await saveFoodLog(selectedFile, nutritionData);
+    if (!success) return;
+    setToast({
+      message: 'Meal logged!',
+      detail: `${foodName || 'Your meal'} was moved to History. Tap to see it there.`,
+      actionLabel: 'View in History',
+      actionHref: ROUTES.HISTORY,
+    });
+    handleReset();
   };
 
   const handleScan = () => {
@@ -359,21 +374,7 @@ export const FoodScanPage: React.FC = () => {
                       {/* Desktop CTAs stay in panel; mobile CTAs are pinned below grid */}
                       <div className="hidden md:grid md:grid-cols-1 gap-3 shrink-0">
                         <button
-                          onClick={async () => {
-                            if (selectedFile && nutritionData) {
-                              const foodName = nutritionData.foodName;
-                              const success = await saveFoodLog(selectedFile, nutritionData);
-                              if (success) {
-                                setToast({
-                                  message: 'Meal logged & saved!',
-                                  detail: `${foodName || 'Your meal'} was added to History. Track calories on your dashboard.`,
-                                  actionLabel: 'View in History',
-                                  actionHref: '/history',
-                                });
-                                handleReset();
-                              }
-                            }
-                          }}
+                          onClick={handleLogMeal}
                           disabled={isSaving}
                           className="w-full py-4 btn-primary text-xs font-black uppercase tracking-widest rounded-2xl flex items-center justify-center gap-2 disabled:opacity-60"
                         >
@@ -414,21 +415,7 @@ export const FoodScanPage: React.FC = () => {
               {nutritionData && (
                 <div className="grid grid-cols-2 gap-2 shrink-0 md:hidden">
                   <button
-                    onClick={async () => {
-                      if (selectedFile && nutritionData) {
-                        const foodName = nutritionData.foodName;
-                        const success = await saveFoodLog(selectedFile, nutritionData);
-                        if (success) {
-                          setToast({
-                            message: 'Meal logged & saved!',
-                            detail: `${foodName || 'Your meal'} was added to History. Track calories on your dashboard.`,
-                            actionLabel: 'View in History',
-                            actionHref: '/history',
-                          });
-                          handleReset();
-                        }
-                      }
-                    }}
+                    onClick={handleLogMeal}
                     disabled={isSaving}
                     className="w-full py-3 rounded-2xl bg-[var(--btn-primary)] text-black text-sm font-black uppercase tracking-[0.18em] flex items-center justify-center gap-2 shadow-[0_0_32px_rgba(118,185,0,0.35)] hover:shadow-[0_0_48px_rgba(118,185,0,0.5)] transition-all disabled:opacity-60"
                   >

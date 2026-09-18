@@ -2,6 +2,7 @@
 
 import React, { useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircleIcon, XMarkIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 
@@ -22,6 +23,16 @@ export function SuccessToast({
   actionLabel,
   actionHref,
 }: SuccessToastProps) {
+  const router = useRouter();
+  const hasAction = Boolean(actionLabel && actionHref);
+
+  // With an action, the whole card is the tap target — not just the button.
+  const openAction = () => {
+    if (!actionHref) return;
+    onClose();
+    router.push(actionHref);
+  };
+
   useEffect(() => {
     if (!message) return;
     const t = setTimeout(onClose, durationMs);
@@ -53,7 +64,12 @@ export function SuccessToast({
           className="fixed bottom-24 md:bottom-8 left-4 right-4 md:left-auto md:right-8 z-[200] md:max-w-sm"
           role="status"
         >
-          <div className="rounded-2xl border border-[var(--primary)]/30 bg-[var(--background)] shadow-2xl p-4">
+          <div
+            onClick={hasAction ? openAction : undefined}
+            className={`rounded-2xl border border-[var(--primary)]/30 bg-[var(--background)] shadow-2xl p-4 ${
+              hasAction ? 'cursor-pointer transition-colors hover:border-[var(--primary)]/60' : ''
+            }`}
+          >
             <div className="flex gap-3 items-start">
               <div className="shrink-0 w-10 h-10 rounded-xl bg-[var(--primary)]/15 text-[var(--primary)] flex items-center justify-center">
                 <CheckCircleIcon className="w-6 h-6" />
@@ -66,7 +82,10 @@ export function SuccessToast({
               </div>
               <button
                 type="button"
-                onClick={onClose}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
                 className="shrink-0 p-1 rounded-lg text-[var(--text-muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-strong)] transition-colors"
                 aria-label="Dismiss"
               >
@@ -74,10 +93,13 @@ export function SuccessToast({
               </button>
             </div>
 
-            {actionLabel && actionHref && (
+            {hasAction && actionHref && (
               <Link
                 href={actionHref}
-                onClick={onClose}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
                 className="mt-3 w-full inline-flex items-center justify-center gap-1.5 btn-primary py-2.5 text-xs font-bold rounded-xl"
               >
                 {actionLabel}

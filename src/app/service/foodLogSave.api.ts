@@ -16,8 +16,10 @@ export const saveFoodLogAPI = async (
   );
 
   try {
-    const response = await axiosInstance.post<FoodScanResponse>(`/v1/food/${userId}`, formData);
-    return response.data;
+    // The backend answers with the saved FoodLog entity, not a { success } envelope,
+    // so a 2xx (axios throws otherwise) is what tells us the meal was stored.
+    await axiosInstance.post(`/v1/food/${userId}`, formData);
+    return { success: true };
   } catch {
     return {
       success: false,

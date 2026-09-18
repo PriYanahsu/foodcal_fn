@@ -29,6 +29,12 @@ export const WAKE_BUDGET_MS = 75_000;
 /** Typical cold start — drives the progress bar, not the giving-up decision. */
 export const EXPECTED_WAKE_MS = 50_000;
 
+/**
+ * A warm server answers well inside this, so "waking" UI (banner, button copy,
+ * subtitles) only appears once a ping has genuinely been slow — never as a flash.
+ */
+export const WAKE_NOTICE_AFTER_MS = 1_500;
+
 /** Returning to the tab after this long means the instance may have idled out. */
 export const REWAKE_AFTER_MS = 10 * 60_000;
 
