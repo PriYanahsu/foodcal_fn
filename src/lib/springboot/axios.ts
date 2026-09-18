@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { clearTokens, getAccessToken, getRefreshToken, setAccessToken } from './auth-tokens';
-import { waitForBackend } from '@/features/backendStatus/wakeService';
+import { markBackendAlive, waitForBackend } from '@/features/backendStatus/wakeService';
+import { COLD_START_STATUSES } from '@/features/backendStatus/config';
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL?.replace(/\/$/, '');
 
 const axiosInstance = axios.create({
@@ -32,10 +33,16 @@ axiosInstance.interceptors.request.use(async (config) => {
 let refreshing: Promise<string | null> | null = null;
 
 axiosInstance.interceptors.response.use(
-  (res) => res,
+  (res) => {
+    markBackendAlive();
+    return res;
+  },
   async (error) => {
     const originalRequest = error.config;
     const status = error.response?.status;
+
+    // A real error response (400, 401, 500…) still proves the JVM is serving.
+    if (status && !COLD_START_STATUSES.includes(status)) markBackendAlive();
 
     if (status !== 401 || originalRequest._retry) {
       return Promise.reject(error);

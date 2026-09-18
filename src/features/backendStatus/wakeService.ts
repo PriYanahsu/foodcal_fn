@@ -89,7 +89,56 @@ async function pingOnce(): Promise<boolean> {
 }
 
 let running = false;
-let readyAt = 0;
+
+/* ------------------------------------------------------- last seen alive --- */
+
+/**
+ * When the server last answered anything — a ping or a real API call. Persisted
+ * so a reload, the redirect after sign-in, or a second tab doesn't treat an
+ * instance that was serving seconds ago as cold and flash the waking UI.
+ */
+const ALIVE_KEY = 'foodcal:backend-alive-at';
+let aliveAt = readStoredAliveAt();
+
+function readStoredAliveAt(): number {
+  try {
+    return Number(localStorage.getItem(ALIVE_KEY)) || 0;
+  } catch {
+    return 0;
+  }
+}
+
+/** Called on every answered request, so active use keeps the "awake" window fresh. */
+export function markBackendAlive() {
+  aliveAt = Date.now();
+  try {
+    localStorage.setItem(ALIVE_KEY, String(aliveAt));
+  } catch {
+    // Storage blocked (private mode etc.) — the in-memory value still works.
+  }
+}
+
+function recentlyAlive() {
+  return aliveAt > 0 && Date.now() - aliveAt < REWAKE_AFTER_MS;
+}
+
+/**
+ * The server answered recently, so assume it is still up: open the gate and
+ * report ready straight away, then confirm with one silent ping. Only if that
+ * ping fails does the visible wake loop run.
+ */
+async function runQuietCheck() {
+  running = true;
+  openGate();
+  publish({ status: 'ready' });
+  const alive = await pingOnce();
+  running = false;
+  if (alive) {
+    markBackendAlive();
+    return;
+  }
+  void runWakeLoop();
+}
 
 async function runWakeLoop() {
   running = true;
@@ -99,7 +148,7 @@ async function runWakeLoop() {
   const deadline = Date.now() + WAKE_BUDGET_MS;
   while (Date.now() < deadline) {
     if (await pingOnce()) {
-      readyAt = Date.now();
+      markBackendAlive();
       openGate();
       publish({ status: 'ready' });
       running = false;
@@ -125,6 +174,10 @@ export function startWake() {
     publish({ status: 'failed' });
     return;
   }
+  if (recentlyAlive()) {
+    void runQuietCheck();
+    return;
+  }
   void runWakeLoop();
 }
 
@@ -147,7 +200,7 @@ function watchRefocus() {
 
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState !== 'visible') return;
-    if (readyAt === 0 || Date.now() - readyAt < REWAKE_AFTER_MS) return;
+    if (aliveAt === 0 || recentlyAlive()) return;
     retryWake();
   });
 }
