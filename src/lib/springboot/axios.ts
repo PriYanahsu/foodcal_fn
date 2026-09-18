@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { clearTokens, getAccessToken, getRefreshToken, setAccessToken } from './auth-tokens';
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const BACKEND_URL = process.env.NEXT_BACKEND_URL;
 
 const axiosInstance = axios.create({
   baseURL: `${BACKEND_URL}/api`,
