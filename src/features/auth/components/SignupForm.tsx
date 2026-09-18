@@ -125,7 +125,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
           <p className="text-sm text-red-400">{error}</p>
         </div>
       )}
-
       {form.validationError && (
         <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
           <p className="text-sm text-red-400">{form.validationError}</p>
@@ -139,7 +138,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
         </div>
       )}
       
-
       <Input
         type="text"
         name="fullName"
