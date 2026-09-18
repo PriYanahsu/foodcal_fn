@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { clearTokens, getAccessToken, getRefreshToken, setAccessToken } from './auth-tokens';
+import { waitForBackend } from '@/features/backendStatus/wakeService';
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL?.replace(/\/$/, '');
 
 const axiosInstance = axios.create({
@@ -9,7 +10,10 @@ const axiosInstance = axios.create({
   },
 });
 
-axiosInstance.interceptors.request.use((config) => {
+axiosInstance.interceptors.request.use(async (config) => {
+  // Holds the call while the free-tier instance cold starts, instead of
+  // firing it into a 502. Resolves immediately once the server is awake.
+  await waitForBackend();
   const accessToken = getAccessToken();
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
@@ -25,7 +29,7 @@ axiosInstance.interceptors.request.use((config) => {
   return config;
 });
 
-let refreshing: Promise<string | null > | null = null;
+let refreshing: Promise<string | null> | null = null;
 
 axiosInstance.interceptors.response.use(
   (res) => res,

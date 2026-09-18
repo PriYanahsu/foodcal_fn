@@ -10,12 +10,23 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BRAND_ASSETS } from '@/lib/brand-config';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '@/features/theme/context/ThemeContext';
+import { useBackendStatus } from '@/features/backendStatus';
 
 export const AuthPage: React.FC = () => {
   const [view, setView] = useState<'landing' | 'login' | 'signup'>('landing');
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
+  const { status, isLocal } = useBackendStatus();
+
+  // Replaces the section's subtitle while the server is cold, so the wait is
+  // explained where the user is looking rather than only in the corner banner.
+  const wakeCopy =
+    isLocal || status === 'ready'
+      ? null
+      : status === 'waking'
+        ? 'Server is starting up (about a minute) — you can fill this in meanwhile.'
+        : 'Server is still starting. Submit anyway and we’ll retry, or try again shortly.';
 
   useEffect(() => {
     if (user) {
@@ -210,7 +221,7 @@ export const AuthPage: React.FC = () => {
                     <div className="text-center">
                       <h2 className="text-2xl font-bold mb-2">Ready to start?</h2>
                       <p className="text-[var(--text-muted)] text-sm">
-                        Create an account or sign in to track macros
+                        {wakeCopy || 'Create an account or sign in to track macros'}
                       </p>
                     </div>
 
@@ -262,7 +273,9 @@ export const AuthPage: React.FC = () => {
                     <BackButton />
                     <div className="text-center mb-8">
                       <h2 className="text-3xl font-black mb-2 text-[var(--foreground)]">Welcome Back</h2>
-                      <p className="text-[var(--text-muted)] text-sm">Sign in to your intelligent coach</p>
+                      <p className="text-[var(--text-muted)] text-sm">
+                        {wakeCopy || 'Sign in to your intelligent coach'}
+                      </p>
                     </div>
                     <LoginForm />
                   </motion.div>
@@ -281,7 +294,9 @@ export const AuthPage: React.FC = () => {
                       <h2 className="text-3xl font-black mb-2 text-[var(--foreground)]">
                         Join {BRAND_ASSETS.name}
                       </h2>
-                      <p className="text-[var(--text-muted)] text-sm">Your transformation starts today</p>
+                      <p className="text-[var(--text-muted)] text-sm">
+                        {wakeCopy || 'Your transformation starts today'}
+                      </p>
                     </div>
                     <SignupForm onSuccess={() => setView('login')} />
                   </motion.div>

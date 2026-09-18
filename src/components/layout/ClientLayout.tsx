@@ -12,6 +12,7 @@ import { ThemeProvider } from '@/features/theme/context/ThemeContext';
 import { BRAND_ASSETS } from '@/lib/brand-config';
 import { isFeatureEnabled } from '@/config/features';
 import { InstallAppPrompt } from './InstallAppPrompt';
+import { WakeUpBanner } from '@/features/backendStatus';
 
 function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -54,14 +55,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
                   />
                 </svg>
               </button>
-              <img
-                src={BRAND_ASSETS.logo}
-                alt=""
-                className="w-7 h-7 rounded-lg object-contain"
-              />
-              <h1 className="text-lg font-black text-[var(--primary)]">
-                {BRAND_ASSETS.name}
-              </h1>
+              <img src={BRAND_ASSETS.logo} alt="" className="w-7 h-7 rounded-lg object-contain" />
+              <h1 className="text-lg font-black text-[var(--primary)]">{BRAND_ASSETS.name}</h1>
             </div>
             <div className="flex items-center gap-2">
               <NotificationBell />
@@ -91,12 +86,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   return (
     <ThemeProvider>
       <NotificationProvider>
-        {isFeatureEnabled('steps') ? (
-          <StepTrackerProvider>{shell}</StepTrackerProvider>
-        ) : (
-          shell
-        )}
+        {isFeatureEnabled('steps') ? <StepTrackerProvider>{shell}</StepTrackerProvider> : shell}
 
+        <WakeUpBanner />
         <InstallAppPrompt />
       </NotificationProvider>
     </ThemeProvider>

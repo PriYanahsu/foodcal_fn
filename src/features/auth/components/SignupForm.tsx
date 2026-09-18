@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { useAuth } from '../hooks/useAuth';
 import { ROUTES } from '@/constants/routes';
 import { SignupCredentials } from '../types';
+import { useBackendStatus } from '@/features/backendStatus';
 
 interface SignupFormProps {
   onSuccess: () => void;
@@ -28,6 +29,27 @@ const INITIAL_FORM: SignupCredentials & {
 export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
   const [form, setForm] = useState(INITIAL_FORM);
   const { signup, isLoading, error } = useAuth();
+  const { status, retry } = useBackendStatus();
+
+  const submitSignup = async () => {
+    const { fullName, email, password, gender } = form;
+    const result = await signup({ fullName, email, password, gender });
+
+    if (result.success) {
+      if (result.authenticated) {
+        window.location.assign(ROUTES.HOME);
+        return;
+      }
+      setForm((prev) => ({
+        ...prev,
+        success: true,
+        successMessage: result.message || 'Your account has been successfully created.',
+      }));
+      setTimeout(() => {
+        onSuccess();
+      }, 2000);
+    }
+  };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -37,7 +59,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    const { fullName, email, password, gender } = form;
+    const { fullName, email, password } = form;
 
     if (!fullName || !email || !password) {
       setForm((prev) => ({ ...prev, validationError: 'Please fill in all fields' }));
@@ -57,23 +79,18 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
       return;
     }
 
-    const result = await signup({ fullName, email, password, gender });
+    // A previous wake-up gave up, so start a fresh one — the request below
+    // queues behind it rather than failing on a server that is still booting.
+    if (status === 'failed') retry();
 
-    if (result.success) {
-      if (result.authenticated) {
-        window.location.assign(ROUTES.HOME);
-        return;
-      }
-      setForm((prev) => ({
-        ...prev,
-        success: true,
-        successMessage: result.message || 'Your account has been successfully created.',
-      }));
-      setTimeout(() => {
-        onSuccess();
-      }, 2000);
-    }
+    await submitSignup();
   };
+
+  const buttonLabel = isLoading
+    ? status === 'waking'
+      ? 'Starting server…'
+      : 'Creating account…'
+    : 'Create Account';
 
   if (form.success) {
     return (
@@ -113,6 +130,13 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
           <p className="text-sm text-red-400">{form.validationError}</p>
         </div>
       )}
+      {isLoading && status === 'waking' && (
+        <div className="p-3 bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-xl">
+          <p className="text-sm text-[var(--foreground)]">
+            Waking the server — your account is created as soon as it answers.
+          </p>
+        </div>
+      )}
 
       <Input
         type="text"
@@ -148,10 +172,10 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
         type="submit"
         variant="primary"
         size="lg"
-        isLoading={isLoading}
+        disabled={isLoading}
         className="w-full h-14 mt-2"
       >
-        Create Account
+        {buttonLabel}
       </Button>
     </form>
   );
