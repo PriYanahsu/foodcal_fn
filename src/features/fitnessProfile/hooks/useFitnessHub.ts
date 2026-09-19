@@ -1,57 +1,73 @@
-import { AuthUser } from "@/features/auth";
-import { FitnessDetails, ProfileData } from "@/features/userProfile";
-import { getFitness, getUser } from '@/app/service';
-import { calculateProfileCompletion } from "@/utils/profileCompletion";
-import { useCallback, useEffect, useState } from "react";
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { AuthUser } from '@/features/auth';
+import { FitnessDetails, ProfileData } from '@/features/userProfile';
+import { getFitness, getUser, queryKeys } from '@/app/service';
+import { calculateProfileCompletion } from '@/utils/profileCompletion';
 
 export const useFitnessHub = (user: AuthUser | null) => {
-    const [fitnessProfile, setFitnessProfile] = useState<FitnessDetails | null>(null);
-    const [userProfile, setUserProfile] = useState<ProfileData | null>(null);
-    const [showWizard, setShowWizard] = useState(false);
-    const [loading, setLoading] = useState(true);
-    const [showReminder, setShowReminder] = useState(false);
+  const userId = user?.id;
+  const [showWizard, setShowWizard] = useState(false);
+  const [showReminder, setShowReminder] = useState(false);
 
-    const fetchFitnessProfile = useCallback(async () => {
-      if (!user?.id) {
-        setLoading(false);
-        return;
-      }
-      setLoading(true);
-      const data: FitnessDetails = await getFitness();
-      const profile = await getUser(user.id);
-      setUserProfile(profile);
-      if (data) {
-        setFitnessProfile(data);
-        setShowReminder(calculateProfileCompletion(data, profile) < 100);
-      }
-      setLoading(false);
-    }, [user?.id]);
+  const fitnessQuery = useQuery({
+    queryKey: queryKeys.fitness(userId ?? ''),
+    queryFn: getFitness,
+    enabled: !!userId,
+  });
 
-    const completionPercentage = calculateProfileCompletion(fitnessProfile, userProfile);
-    const bmi = calcBmi(fitnessProfile?.weight ?? null, fitnessProfile?.height ?? null);
-    const daysLeft = daysUntilTarget(fitnessProfile?.targetDate ?? null);
-    const weightDelta =
-      fitnessProfile?.weight && fitnessProfile?.targetWeightKg
-        ? (fitnessProfile.weight - fitnessProfile.targetWeightKg).toFixed(1)
-        : null;
+  const userQuery = useQuery({
+    queryKey: queryKeys.user(userId ?? ''),
+    queryFn: () => getUser(userId!),
+    enabled: !!userId,
+  });
 
-    useEffect(() => {
-      fetchFitnessProfile();
-    }, [fetchFitnessProfile]);
+  const fitnessProfile: FitnessDetails | null = fitnessQuery.data ?? null;
+  const userProfile: ProfileData | null = userQuery.data ?? null;
+  const loading = !!userId && (fitnessQuery.isLoading || userQuery.isLoading);
 
-    return {
-      fitnessProfile,
-      showWizard,
-      setShowWizard,
-      loading,
-      showReminder,
-      setShowReminder,
-      completionPercentage,
-      bmi,
-      daysLeft,
-      weightDelta,
-      fetchFitnessProfile,
-    };
+  useEffect(() => {
+    if (fitnessQuery.isLoading || userQuery.isLoading) return;
+    if (!fitnessProfile || !userProfile) return;
+    setShowReminder(calculateProfileCompletion(fitnessProfile, userProfile) < 100);
+  }, [
+    fitnessQuery.dataUpdatedAt,
+    userQuery.dataUpdatedAt,
+    fitnessQuery.isLoading,
+    userQuery.isLoading,
+    fitnessProfile,
+    userProfile,
+  ]);
+
+  const fetchFitnessProfile = async () => {
+    if (!userId) return;
+    const [fitness, profile] = await Promise.all([fitnessQuery.refetch(), userQuery.refetch()]);
+    setShowReminder(calculateProfileCompletion(fitness.data ?? null, profile.data ?? null) < 100);
+  };
+
+  const completionPercentage = calculateProfileCompletion(fitnessProfile, userProfile);
+  const bmi = calcBmi(fitnessProfile?.weight ?? null, fitnessProfile?.height ?? null);
+  const daysLeft = daysUntilTarget(fitnessProfile?.targetDate ?? null);
+  const weightDelta =
+    fitnessProfile?.weight && fitnessProfile?.targetWeightKg
+      ? (fitnessProfile.weight - fitnessProfile.targetWeightKg).toFixed(1)
+      : null;
+
+  return {
+    fitnessProfile,
+    showWizard,
+    setShowWizard,
+    loading,
+    showReminder,
+    setShowReminder,
+    completionPercentage,
+    bmi,
+    daysLeft,
+    weightDelta,
+    fetchFitnessProfile,
+  };
 };
 
 function calcBmi(weight: number | null, height: number | null): string {

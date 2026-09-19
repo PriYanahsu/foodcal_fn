@@ -1,34 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { getRecentFoodLogs, queryKeys } from '@/app/service';
 import type { FoodLog } from '@/features/Nutrition';
-import { getRecentFoodLogs } from '@/app/service';
+import { toApiDate } from '@/features/Nutrition/utils/toLocalDate';
 
 export function useMealDetail(date: string, mealId: string) {
-  const [meal, setMeal] = useState<FoodLog | null>(null);
-  const [loading, setLoading] = useState(true);
+  const apiDate = toApiDate(date);
 
-  useEffect(() => {
-    let cancelled = false;
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.foodLogs(apiDate),
+    queryFn: () => getRecentFoodLogs(apiDate),
+  });
 
-    const fetchMeal = async () => {
-      setLoading(true);
-      try {
-        const logs = await getRecentFoodLogs(date);
-        const found = logs.find((log) => String(log.id) === String(mealId)) ?? null;
-        if (!cancelled) setMeal(found);
-      } catch {
-        if (!cancelled) setMeal(null);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
+  const meal: FoodLog | null = data?.find((log) => String(log.id) === String(mealId)) ?? null;
 
-    fetchMeal();
-    return () => {
-      cancelled = true;
-    };
-  }, [date, mealId]);
-
-  return { meal, loading };
+  return { meal, loading: isLoading };
 }

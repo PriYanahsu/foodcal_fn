@@ -1,49 +1,34 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { getAccessToken, getUserId } from '@/lib/springboot/auth-tokens';
+import { getUserId } from '@/lib/springboot/auth-tokens';
 import { ProfileData, ProfileFeedback } from '../type';
 import { EMPTY_PROFILE } from '../utils/Constants';
-import { getUser, updateUser, uploadAvatar } from '@/app/service';
+import { getUser, queryKeys, updateUser, uploadAvatar } from '@/app/service';
 
 export function useUserProfile(options?: { autoFetch?: boolean }) {
   const autoFetch = options?.autoFetch ?? true;
   const { user, logout } = useAuth();
-  const [loading, setLoading] = useState(autoFetch);
-  const [saving, setSaving] = useState(false);
+  const queryClient = useQueryClient();
+  const userId = user?.id || getUserId();
+
   const [isEditing, setIsEditing] = useState(false);
-  const [savedProfile, setSavedProfile] = useState<ProfileData | null>(null);
   const [profile, setProfile] = useState<ProfileData>(EMPTY_PROFILE);
   const [feedback, setFeedback] = useState<ProfileFeedback | null>(null);
 
-  const fetchProfile = useCallback(async (silent = false) => {
-    const userId = getUserId();
-    if (!userId) {
-      setLoading(false);
-      return;
-    }
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: queryKeys.user(userId ?? ''),
+    queryFn: () => getUser(userId!),
+    enabled: autoFetch && !!userId,
+  });
 
-    try {
-      if (!silent) setLoading(true);
-      const next = await getUser(userId);
-      setProfile(next);
-      setSavedProfile(next);
-    } catch {
-      setFeedback({ type: 'error', message: 'Failed to load profile. Please try again.' });
-    } finally {
-      setLoading(false);
-    }
-  }, [user?.email]);
+  const savedProfile = data ?? null;
 
   useEffect(() => {
-    if (!autoFetch) return;
-    if (getUserId()) {
-      void fetchProfile();
-      return;
-    }
-    if (!getAccessToken()) setLoading(false);
-  }, [autoFetch, fetchProfile, user?.id]);
+    if (data && !isEditing) setProfile(data);
+  }, [data, isEditing]);
 
   useEffect(() => {
     if (!feedback) return;
@@ -51,9 +36,12 @@ export function useUserProfile(options?: { autoFetch?: boolean }) {
     return () => clearTimeout(timer);
   }, [feedback]);
 
-  const patchProfile = (
-    patch: Partial<Pick<ProfileData, 'fullName' | 'avatar_url'>>
-  ) => {
+  const fetchProfile = async (_silent = false) => {
+    if (!userId) return;
+    await refetch();
+  };
+
+  const patchProfile = (patch: Partial<Pick<ProfileData, 'fullName' | 'avatar_url'>>) => {
     setProfile((prev) => ({ ...prev, ...patch }));
   };
 
@@ -68,16 +56,28 @@ export function useUserProfile(options?: { autoFetch?: boolean }) {
     setIsEditing(false);
   };
 
-  const handleAvatarUpload = async (file: File) => {
-    try {
-      const url = await uploadAvatar(file);
+  const uploadMutation = useMutation({
+    mutationFn: uploadAvatar,
+    onSuccess: (url) => {
       const next = { ...profile, avatar_url: url };
       setProfile(next);
-      setSavedProfile(next);
-      await fetchProfile(true);
+      if (userId) queryClient.setQueryData(queryKeys.user(userId), next);
       setFeedback({ type: 'success', message: 'Profile photo updated.' });
-    } catch {
+    },
+    onError: () => {
       setFeedback({ type: 'error', message: 'Failed to upload photo.' });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (payload: { fullName: string; avatarUrl: string | null }) => updateUser(payload),
+  });
+
+  const handleAvatarUpload = async (file: File) => {
+    try {
+      await uploadMutation.mutateAsync(file);
+    } catch {
+      // feedback already set
     }
   };
 
@@ -88,10 +88,8 @@ export function useUserProfile(options?: { autoFetch?: boolean }) {
     }
 
     try {
-      setSaving(true);
       setFeedback(null);
-
-      const { status } = await updateUser({
+      const { status } = await updateMutation.mutateAsync({
         fullName: profile.fullName.trim(),
         avatarUrl: profile.avatar_url || null,
       });
@@ -101,23 +99,21 @@ export function useUserProfile(options?: { autoFetch?: boolean }) {
         return false;
       }
 
-      setSavedProfile({ ...profile });
+      if (userId) queryClient.setQueryData(queryKeys.user(userId), { ...profile });
       setIsEditing(false);
       setFeedback({ type: 'success', message: 'Profile saved.' });
       return true;
     } catch {
       setFeedback({ type: 'error', message: 'Failed to save profile. Please try again.' });
       return false;
-    } finally {
-      setSaving(false);
     }
   };
 
   return {
     user,
     logout,
-    loading,
-    saving,
+    loading: isLoading,
+    saving: updateMutation.isPending,
     isEditing,
     profile,
     feedback,

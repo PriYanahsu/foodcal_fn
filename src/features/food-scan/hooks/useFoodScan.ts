@@ -1,58 +1,76 @@
 'use client';
-import { useState } from 'react';
-import { analyzeFoodImage, saveFoodLogAPI } from '@/app/service';
+
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { analyzeFoodImage, saveFoodLogAPI, queryKeys } from '@/app/service';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { NutritionData } from '../types';
 
 export const useFoodScan = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [nutritionData, setNutritionData] = useState<NutritionData | null>(null);
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  const scanMutation = useMutation({
+    mutationFn: ({ file, prompt }: { file: File; prompt?: string }) =>
+      analyzeFoodImage(file, prompt),
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: ({ file, nutritionData }: { file: File; nutritionData: NutritionData }) =>
+      saveFoodLogAPI(file, nutritionData),
+    onSuccess: async (response) => {
+      if (!response.success) return;
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.foodLogsRoot }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.dailyStatsRoot }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.history }),
+      ]);
+    },
+  });
 
   const scanImage = async (file: File, additionalPrompt?: string) => {
-    setIsLoading(true);
-    setError(null);
-    setNutritionData(null);
-
+    scanMutation.reset();
     try {
-      const data = await analyzeFoodImage(file, additionalPrompt);
-      setNutritionData(data);
-    } catch (err: any) {
-      setError(err.message || 'Something went wrong');
-    } finally {
-      setIsLoading(false);
+      await scanMutation.mutateAsync({ file, prompt: additionalPrompt });
+    } catch {
+      // error is on scanMutation.error
     }
   };
 
-  const [isSaving, setIsSaving] = useState(false);
-
   const saveFoodLog = async (imageFile: File, nutritionData: NutritionData) => {
     if (!user) return;
-    setIsSaving(true);
     try {
-      const response = await saveFoodLogAPI(imageFile, nutritionData);
+      const response = await saveMutation.mutateAsync({ file: imageFile, nutritionData });
       return response.success;
-    } catch (err: any) {
-      setError(err.message || 'Failed to save meal');
+    } catch {
       return false;
-    } finally {
-      setIsSaving(false);
     }
   };
 
   const reset = () => {
-    setNutritionData(null);
-    setError(null);
+    scanMutation.reset();
+    saveMutation.reset();
   };
+
+  const scanError =
+    scanMutation.error instanceof Error
+      ? scanMutation.error.message
+      : scanMutation.error
+        ? 'Something went wrong'
+        : null;
+  const saveError =
+    saveMutation.error instanceof Error
+      ? saveMutation.error.message
+      : saveMutation.error
+        ? 'Failed to save meal'
+        : null;
 
   return {
     scanImage,
     saveFoodLog,
-    isLoading,
-    isSaving,
-    nutritionData,
-    error,
+    isLoading: scanMutation.isPending,
+    isSaving: saveMutation.isPending,
+    nutritionData: scanMutation.data ?? null,
+    error: saveError || scanError,
     reset,
   };
 };

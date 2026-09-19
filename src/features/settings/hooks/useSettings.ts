@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useTheme } from '@/features/theme/context/ThemeContext';
 import axiosInstance from '@/lib/springboot/axios';
@@ -9,6 +10,7 @@ import axiosInstance from '@/lib/springboot/axios';
 export const useSettings = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const { user, logout } = useAuth();
   const { theme, setTheme } = useTheme();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -51,6 +53,7 @@ export const useSettings = () => {
         throw new Error(data?.message || 'Failed to delete account');
       }
 
+      queryClient.clear();
       await logout();
       window.location.href = '/login';
     } catch (err: unknown) {

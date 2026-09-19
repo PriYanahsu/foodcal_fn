@@ -1,42 +1,28 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { getRecentFoodLogs, queryKeys } from '@/app/service';
 import type { FoodLog } from '@/features/Nutrition';
-import { getRecentFoodLogs } from '@/app/service';
 import { formatDayLabelLong, sumMealStats } from '../utils/helper';
 import { EMPTY_HISTORY_STATS } from '../utils/Constants';
+import { toApiDate } from '@/features/Nutrition/utils/toLocalDate';
 
 export function useDailyMeals(date: string) {
-  const [meals, setMeals] = useState<FoodLog[]>([]);
-  const [loading, setLoading] = useState(true);
+  const apiDate = toApiDate(date);
 
-  useEffect(() => {
-    let cancelled = false;
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.foodLogs(apiDate),
+    queryFn: () => getRecentFoodLogs(apiDate),
+  });
 
-    const fetchMeals = async () => {
-      setLoading(true);
-      try {
-        const logs = await getRecentFoodLogs(date);
-        if (!cancelled) setMeals(logs ?? []);
-      } catch {
-        if (!cancelled) setMeals([]);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
-    fetchMeals();
-    return () => {
-      cancelled = true;
-    };
-  }, [date]);
-
+  const meals: FoodLog[] = data ?? [];
   const totals = useMemo(() => sumMealStats(meals), [meals]);
   const formattedDate = formatDayLabelLong(date);
 
   return {
     meals,
-    loading,
+    loading: isLoading,
     totals: meals.length ? totals : EMPTY_HISTORY_STATS,
     formattedDate,
   };

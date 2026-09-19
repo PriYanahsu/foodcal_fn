@@ -1,41 +1,24 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { getHistory, queryKeys } from '@/app/service';
 import type { History } from '../type';
-import { getHistory } from '@/app/service';
 import { DEFAULT_CALORIE_TARGET } from '../utils/Constants';
 import { getHistoryOverview } from '../utils/helper';
 
 export function useHistory() {
-  const [history, setHistory] = useState<History[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.history,
+    queryFn: getHistory,
+  });
 
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadHistory = async () => {
-      setLoading(true);
-      try {
-        const days = await getHistory();
-        if (!cancelled) setHistory(days);
-      } catch {
-        if (!cancelled) setHistory([]);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
-    loadHistory();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
+  const history: History[] = data ?? [];
   const stats = useMemo(() => getHistoryOverview(history), [history]);
 
   return {
     history,
-    loading,
+    loading: isLoading,
     stats,
     target: DEFAULT_CALORIE_TARGET,
   };

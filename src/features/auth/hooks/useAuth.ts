@@ -1,13 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { login as loginApi, signup as signupApi, logout as logoutApi } from '@/app/service';
 import { AuthUser, LoginCredentials, SignupCredentials } from '../types';
 import { getAuthUser, getUserId } from '@/lib/springboot/auth-tokens';
 
+const toError = (err: unknown, fallback: string) =>
+  err instanceof Error ? err.message : fallback;
+
 export const useAuth = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<AuthUser | null>(null);
 
   useEffect(() => {
@@ -20,63 +23,88 @@ export const useAuth = () => {
     if (id) setUser({ id, name: '', email: '' });
   }, []);
 
-  const login = async (credentials: LoginCredentials) => {
-    setIsLoading(true);
-    setError(null);
-    try {
+  const loginMutation = useMutation({
+    mutationFn: async (credentials: LoginCredentials) => {
       const response = await loginApi(credentials);
-      if (response.success && response.token) {
-        setUser(response.user ?? getAuthUser());
-        return { success: true };
+      if (!response.success || !response.token) {
+        throw new Error(response.error || 'Login failed');
       }
-      setError(response.error || 'Login failed');
-      return { success: false, error: response.error };
-    } catch {
-      setError('An unexpected error occurred');
-      return { success: false, error: 'An unexpected error occurred' };
-    } finally {
-      setIsLoading(false);
+      return response;
+    },
+    onSuccess: (response) => {
+      setUser(response.user ?? getAuthUser());
+    },
+  });
+
+  const signupMutation = useMutation({
+    mutationFn: async (credentials: SignupCredentials) => {
+      const response = await signupApi(credentials);
+      if (!response.success) {
+        throw new Error(response.error || 'Signup failed');
+      }
+      return response;
+    },
+    onSuccess: (response) => {
+      if (response.token) setUser(response.user ?? getAuthUser());
+    },
+  });
+
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      const response = await logoutApi();
+      if (!response.success) throw new Error(response.error || 'Logout failed');
+      return response;
+    },
+    onSuccess: () => {
+      setUser(null);
+      queryClient.clear();
+    },
+  });
+
+  const login = async (credentials: LoginCredentials) => {
+    signupMutation.reset();
+    try {
+      await loginMutation.mutateAsync(credentials);
+      return { success: true as const };
+    } catch (err) {
+      return { success: false as const, error: toError(err, 'An unexpected error occurred') };
     }
   };
 
   const signup = async (credentials: SignupCredentials) => {
-    setIsLoading(true);
-    setError(null);
+    loginMutation.reset();
     try {
-      const response = await signupApi(credentials);
-      if (response.success) {
-        if (response.token) {
-          setUser(response.user ?? getAuthUser());
-          return { success: true, authenticated: true };
-        }
-        return {
-          success: true,
-          authenticated: false,
-          message: response.error || 'Account created. Please sign in.',
-        };
+      const response = await signupMutation.mutateAsync(credentials);
+      if (response.token) {
+        return { success: true as const, authenticated: true as const };
       }
-      setError(response.error || 'Signup failed');
-      return { success: false, error: response.error };
-    } catch {
-      setError('An unexpected error occurred');
-      return { success: false, error: 'An unexpected error occurred' };
-    } finally {
-      setIsLoading(false);
+      return {
+        success: true as const,
+        authenticated: false as const,
+        message: response.error || 'Account created. Please sign in.',
+      };
+    } catch (err) {
+      return { success: false as const, error: toError(err, 'An unexpected error occurred') };
     }
   };
 
   const logout = async () => {
-    setIsLoading(true);
     try {
-      await logoutApi();
-      setUser(null);
-      return { success: true };
+      await logoutMutation.mutateAsync();
+      return { success: true as const };
     } catch {
-      return { success: false };
-    } finally {
-      setIsLoading(false);
+      return { success: false as const };
     }
   };
 
-  return { user, login, signup, logout, isLoading, error };
+  const mutationError = loginMutation.error ?? signupMutation.error;
+
+  return {
+    user,
+    login,
+    signup,
+    logout,
+    isLoading: loginMutation.isPending || signupMutation.isPending || logoutMutation.isPending,
+    error: mutationError ? toError(mutationError, 'An unexpected error occurred') : null,
+  };
 };

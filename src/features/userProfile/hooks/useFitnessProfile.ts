@@ -1,60 +1,45 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { getAccessToken } from '@/lib/springboot/auth-tokens';
 import { FitnessDetails, ProfileFeedback } from '../type';
 import { EMPTY_FITNESS_DETAILS } from '../utils/Constants';
-import { getFitness, updateFitness } from '@/app/service';
+import { getFitness, queryKeys, updateFitness } from '@/app/service';
 
 export function useFitnessProfile(options?: { autoFetch?: boolean }) {
   const autoFetch = options?.autoFetch ?? true;
   const { user } = useAuth();
-  const [loading, setLoading] = useState(autoFetch);
-  const [saving, setSaving] = useState(false);
+  const queryClient = useQueryClient();
+  const userId = user?.id;
+
   const [isEditing, setIsEditing] = useState(false);
-  const [savedFitness, setSavedFitness] = useState<FitnessDetails | null>(null);
   const [fitness, setFitness] = useState<FitnessDetails>(EMPTY_FITNESS_DETAILS);
   const [feedback, setFeedback] = useState<ProfileFeedback | null>(null);
   const [offerConsult, setOfferConsult] = useState(false);
 
-  const fetchFitness = useCallback(
-    async (silent = false) => {
-      if (!user?.id) {
-        setLoading(false);
-        return;
-      }
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: queryKeys.fitness(userId ?? ''),
+    queryFn: getFitness,
+    enabled: autoFetch && !!userId,
+  });
 
-      try {
-        if (!silent) setLoading(true);
-        const next = await getFitness();
-        setFitness(next);
-        setSavedFitness(next);
-      } catch (error) {
-        console.error('Error loading fitness profile:', error);
-        setFitness(EMPTY_FITNESS_DETAILS);
-        setSavedFitness(EMPTY_FITNESS_DETAILS);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [user]
-  );
+  const savedFitness = data ?? null;
 
   useEffect(() => {
-    if (!autoFetch) return;
-    if (user?.id) {
-      void fetchFitness();
-      return;
-    }
-    if (!getAccessToken()) setLoading(false);
-  }, [autoFetch, fetchFitness, user?.id]);
+    if (data && !isEditing) setFitness(data);
+  }, [data, isEditing]);
 
   useEffect(() => {
     if (!feedback) return;
     const timer = setTimeout(() => setFeedback(null), 3000);
     return () => clearTimeout(timer);
   }, [feedback]);
+
+  const fetchFitness = async (_silent = false) => {
+    if (!userId) return;
+    await refetch();
+  };
 
   const patchFitness = (patch: Partial<FitnessDetails>) => {
     setFitness((prev) => ({ ...prev, ...patch }));
@@ -71,17 +56,19 @@ export function useFitnessProfile(options?: { autoFetch?: boolean }) {
     setIsEditing(false);
   };
 
+  const updateMutation = useMutation({
+    mutationFn: (payload: FitnessDetails) => updateFitness(payload),
+  });
+
   const handleUpdate = async () => {
-    if (!user?.id) {
+    if (!userId) {
       setFeedback({ type: 'error', message: 'You need to be signed in to save fitness details.' });
       return false;
     }
 
     try {
-      setSaving(true);
       setFeedback(null);
-
-      const { data, status } = await updateFitness(fitness);
+      const { data: next, status } = await updateMutation.mutateAsync(fitness);
 
       if (status !== 200) {
         setFeedback({
@@ -91,8 +78,8 @@ export function useFitnessProfile(options?: { autoFetch?: boolean }) {
         return false;
       }
 
-      setFitness(data);
-      setSavedFitness(data);
+      setFitness(next);
+      queryClient.setQueryData(queryKeys.fitness(userId), next);
       setIsEditing(false);
       setOfferConsult(true);
       setFeedback({
@@ -104,15 +91,13 @@ export function useFitnessProfile(options?: { autoFetch?: boolean }) {
       console.error('Error updating fitness profile:', error);
       setFeedback({ type: 'error', message: 'Failed to save fitness details. Please try again.' });
       return false;
-    } finally {
-      setSaving(false);
     }
   };
 
   return {
     user,
-    loading,
-    saving,
+    loading: isLoading,
+    saving: updateMutation.isPending,
     isEditing,
     fitness,
     feedback,

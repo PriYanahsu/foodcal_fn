@@ -1,38 +1,27 @@
-import { useEffect, useState } from 'react';
-import { useAuth } from '@/features/auth/hooks/useAuth';
-import type { DailyStats, FoodLog } from '../type';
+'use client';
+
+import { useQuery } from '@tanstack/react-query';
+import { getDailyStats, getRecentFoodLogs, queryKeys } from '@/app/service';
+import { toApiDate } from '../utils/toLocalDate';
 import { EMPTY_STATS } from '../utils/Constants';
-import { getDailyStats, getRecentFoodLogs } from '@/app/service';
+import type { DailyStats, FoodLog } from '../type';
 
 export const useDailyStats = (dateInput: string | Date) => {
-  const { user } = useAuth();
-  const [stats, setStats] = useState<DailyStats>(EMPTY_STATS);
-  const [recentLogs, setRecentLogs] = useState<FoodLog[]>([]);
-  const [loading, setLoading] = useState(true);
+  const date = toApiDate(dateInput);
 
-  useEffect(() => {
-    fetchStats();
-    fetchRecentLogs();
-  }, [dateInput]);
+  const statsQuery = useQuery({
+    queryKey: queryKeys.dailyStats(date),
+    queryFn: () => getDailyStats(date),
+  });
 
-  const fetchStats = async () => {
-    setLoading(true);
-    const stats = await getDailyStats(dateInput);
-    setStats(stats);
-    setLoading(false);
+  const logsQuery = useQuery({
+    queryKey: queryKeys.foodLogs(date),
+    queryFn: () => getRecentFoodLogs(date),
+  });
+
+  return {
+    stats: (statsQuery.data as DailyStats | undefined) ?? EMPTY_STATS,
+    recentLogs: (logsQuery.data as FoodLog[] | undefined) ?? [],
+    loading: statsQuery.isLoading || logsQuery.isLoading,
   };
-
-  const fetchRecentLogs = async () => {
-    setLoading(true);
-    const recentLogs = await getRecentFoodLogs(dateInput);
-    setRecentLogs(recentLogs);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    setLoading(false);
-  }, [user]);
-
-  return { stats, recentLogs, loading };
 };
-
