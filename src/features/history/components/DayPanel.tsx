@@ -1,11 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { CameraIcon } from '@heroicons/react/24/outline';
 import { buttonClass } from '@/components/ui/fc';
 import { CalorieRing, MACRO_STYLES, type MacroKey } from '@/components/nutrition/macros';
-import { MealCard } from '@/components/nutrition/MealCard';
+import { MealCard, MealCardSkeleton } from '@/components/nutrition/MealCard';
 import MealDetail from '@/components/nutrition/MealDetail';
 import { MealDrillIn } from '@/components/nutrition/MealDrillIn';
 import { ROUTES } from '@/constants/routes';
@@ -20,6 +20,8 @@ interface DayPanelProps {
   isToday: boolean;
   meals: FoodLog[];
   totals: HistoryStats;
+  /** The day's totals from the calendar data — shown instantly while meals load. */
+  dayStats?: HistoryStats;
   loading: boolean;
   target: number;
   goals: NutritionGoals;
@@ -58,20 +60,30 @@ function MacroRow({ macro, value, goal }: { macro: MacroKey; value: number; goal
   );
 }
 
+/** Rough meal count from a day's calories (~550 kcal a meal), for the skeleton. */
+const estimateMealCount = (calories: number) =>
+  Math.min(4, Math.max(1, Math.round(calories / 550)));
+
 function DayOverview({
   date,
   isToday,
   meals,
   totals,
+  dayStats,
   loading,
   target,
   goals,
   onSelectMeal,
 }: Omit<DayPanelProps, 'openMeal' | 'mealPending'>) {
-  const calories = Math.round(totals.calories);
+  // The calendar already knows the day's totals, so the header and macros show real
+  // numbers at once; only the meal list waits for the network. Once meals are in,
+  // their own sums take over (they include anything logged since the calendar loaded).
+  const stats = !loading && meals.length ? totals : (dayStats ?? totals);
+  const calories = Math.round(stats.calories);
   const status = dayStatus(calories, target);
   const style = status === 'none' ? null : DAY_STATUS_STYLES[status];
   const diff = calories - target;
+  const hasLog = calories > 0 || meals.length > 0;
 
   return (
     <div className="flex flex-col gap-5">
@@ -101,76 +113,64 @@ function DayOverview({
         </div>
       </header>
 
-      {/* Skeleton → content cross-fades instead of popping in. */}
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={loading ? 'loading' : 'ready'}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.15 }}
-          className="flex flex-col gap-5"
-        >
-          {loading ? (
-            <div className="flex flex-col gap-3" aria-hidden="true">
-              {[0, 1, 2].map((i) => (
-                <div key={i} className="h-6 animate-pulse rounded-lg bg-surface-2" />
-              ))}
-              {[0, 1].map((i) => (
-                <div key={`m${i}`} className="h-16 animate-pulse rounded-2xl bg-surface-2" />
-              ))}
-            </div>
-          ) : meals.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-line-strong px-6 py-10 text-center">
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand/12 text-brand-ink">
-                <CameraIcon className="h-6 w-6" />
-              </span>
-              <p className="font-bold text-fg">
-                {isToday ? 'Nothing logged yet' : 'No meals this day'}
-              </p>
-              <p className="max-w-[240px] text-sm text-muted max-md:text-subhead">
-                {isToday
-                  ? 'Snap your first meal — it takes about 10 seconds.'
-                  : 'Days you log show up here with every meal and macro.'}
-              </p>
-              {isToday && (
-                <Link href={ROUTES.SCAN} className={buttonClass('primary', 'sm', 'mt-1')}>
-                  Scan a meal
-                </Link>
-              )}
-            </div>
-          ) : (
-            <>
-              <div className="flex flex-col gap-3.5">
-                <MacroRow
-                  macro="protein"
-                  value={Math.round(totals.proteins)}
-                  goal={goals.proteins}
-                />
-                <MacroRow
-                  macro="carbs"
-                  value={Math.round(totals.carbohydrates)}
-                  goal={goals.carbohydrates}
-                />
-                <MacroRow macro="fat" value={Math.round(totals.fats)} goal={goals.fats} />
-              </div>
-
-              <div className="flex flex-col gap-2.5">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-muted max-md:text-caption">
-                  {meals.length} meal{meals.length === 1 ? '' : 's'}
-                </p>
-                <ul className="flex flex-col gap-2.5">
-                  {meals.map((meal) => (
-                    <li key={meal.id}>
-                      <MealCard meal={meal} onOpen={() => onSelectMeal(String(meal.id))} />
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </>
+      {!hasLog ? (
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-line-strong px-6 py-10 text-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand/12 text-brand-ink">
+            <CameraIcon className="h-6 w-6" />
+          </span>
+          <p className="font-bold text-fg">
+            {isToday ? 'Nothing logged yet' : 'No meals this day'}
+          </p>
+          <p className="max-w-[240px] text-sm text-muted max-md:text-subhead">
+            {isToday
+              ? 'Snap your first meal — it takes about 10 seconds.'
+              : 'Days you log show up here with every meal and macro.'}
+          </p>
+          {isToday && (
+            <Link href={ROUTES.SCAN} className={buttonClass('primary', 'sm', 'mt-1')}>
+              Scan a meal
+            </Link>
           )}
-        </motion.div>
-      </AnimatePresence>
+        </div>
+      ) : (
+        <>
+          <div className="flex flex-col gap-3.5">
+            <MacroRow macro="protein" value={Math.round(stats.proteins)} goal={goals.proteins} />
+            <MacroRow
+              macro="carbs"
+              value={Math.round(stats.carbohydrates)}
+              goal={goals.carbohydrates}
+            />
+            <MacroRow macro="fat" value={Math.round(stats.fats)} goal={goals.fats} />
+          </div>
+
+          <div className="flex flex-col gap-2.5">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-muted max-md:text-caption">
+              {loading ? 'Meals' : `${meals.length} meal${meals.length === 1 ? '' : 's'}`}
+            </p>
+            {loading ? (
+              <div className="flex flex-col gap-2.5" aria-busy="true" aria-label="Loading meals">
+                {Array.from({ length: estimateMealCount(calories) }, (_, i) => (
+                  <MealCardSkeleton key={i} />
+                ))}
+              </div>
+            ) : (
+              <motion.ul
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.2 }}
+                className="flex flex-col gap-2.5"
+              >
+                {meals.map((meal) => (
+                  <li key={meal.id}>
+                    <MealCard meal={meal} onOpen={() => onSelectMeal(String(meal.id))} />
+                  </li>
+                ))}
+              </motion.ul>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }

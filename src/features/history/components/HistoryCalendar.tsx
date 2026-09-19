@@ -109,6 +109,7 @@ export default function HistoryCalendar(props: HistoryCalendarProps) {
       isToday={cal.selectedDate === cal.today}
       meals={cal.meals}
       totals={cal.totals}
+      dayStats={cal.byDate.get(cal.selectedDate)}
       loading={cal.mealsLoading}
       target={cal.target}
       goals={cal.goals}

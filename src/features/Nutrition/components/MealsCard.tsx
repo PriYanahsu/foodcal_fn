@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { CameraIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { buttonClass } from '@/components/ui/fc';
-import { MealCard } from '@/components/nutrition/MealCard';
+import { MealCard, MealCardSkeleton } from '@/components/nutrition/MealCard';
 import MealDetail from '@/components/nutrition/MealDetail';
 import { MealDrillIn } from '@/components/nutrition/MealDrillIn';
 import { ROUTES } from '@/constants/routes';
@@ -62,7 +62,7 @@ export default function MealsCard({ logs, loading, refreshing, isToday, target }
         {loading ? (
           <div className="mt-4 flex flex-col gap-2.5" aria-hidden="true">
             {[0, 1].map((i) => (
-              <div key={i} className="h-19.5 animate-pulse rounded-2xl bg-surface-2" />
+              <MealCardSkeleton key={i} />
             ))}
           </div>
         ) : meals.length === 0 ? (
