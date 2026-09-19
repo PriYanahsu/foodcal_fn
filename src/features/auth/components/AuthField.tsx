@@ -25,7 +25,9 @@ export function AuthField({
   ...inputProps
 }: AuthFieldProps) {
   const generatedId = useId();
-  const inputId = id ?? generatedId;
+  // Prefer an id derived from the field name: only one auth form is on screen at a
+  // time, and a name-based id can't differ between server and client render.
+  const inputId = id ?? (inputProps.name ? `auth-${inputProps.name}` : generatedId);
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === 'password';
   const messageId = `${inputId}-message`;

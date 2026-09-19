@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 
+/* `short:` — phones with little vertical room (e.g. iPhone SE, 667px): tighter one-screen layouts. */
+@custom-variant short (@media (max-height: 740px));
+
 :root,
 [data-theme='dark'] {
   /* Dark Theme — black surfaces, white text */
@@ -316,4 +319,28 @@ body {
   .page-container {
     @apply mx-auto px-4 pb-4 md:px-8 md:pb-8 lg:px-12 lg:pb-12 pt-2 md:pt-4 lg:pt-6 w-full;
   }
+}
+
+/* A page opts out of the visible window scrollbar (it still scrolls) by rendering
+   an element with `hide-page-scrollbar` — used by the Nutrition dashboard. */
+html:has(.hide-page-scrollbar) {
+  scrollbar-width: none;
+}
+html:has(.hide-page-scrollbar)::-webkit-scrollbar {
+  display: none;
+}
+
+/* Native-app feel on phones: no grey tap flash, no double-tap zoom delay,
+   no rubber-band pull on the page. */
+@media (max-width: 767px) {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    overscroll-behavior-y: none;
+  }
+}
+a,
+button {
+  touch-action: manipulation;
 }

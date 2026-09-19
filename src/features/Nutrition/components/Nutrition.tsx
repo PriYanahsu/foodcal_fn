@@ -1,104 +1,141 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, MotionConfig } from 'framer-motion';
 import FitnessSetupWizard from '@/features/fitnessProfile/components/FitnessSetupWizard';
 import { StepTracker } from '@/features/activity/components/StepTracker';
 import { isFeatureEnabled } from '@/config/features';
+import { Spinner } from '@/components/ui/fc';
 import { useNutrition } from '../hooks/useNutrition';
-import { CONTAINER_VARIANTS, ITEM_VARIANTS } from '../utils/Constants';
-import NutritionHero from './NutritionHero';
-import DailyNutrition from './DailyNutrition';
-import FitnessHub from './FitnessHub';
-import DailyHabits from './DailyHabits';
-import NoPlanModal from './NoPlanModal';
+import NutritionHeader from './NutritionHeader';
+import WeekStrip from './WeekStrip';
+import CaloriesCard from './CaloriesCard';
+import MealsCard from './MealsCard';
+import CoachCard from './CoachCard';
+import WaterCard from './WaterCard';
+import WeightCard from './WeightCard';
+import MobileDashboard from './MobileDashboard';
+
+/** Cards rise in one after another on first load. */
+const REVEAL = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const } },
+};
 
 export default function Nutrition() {
   const {
     user,
-    profile,
     fitness,
-    handleAvatarUpload,
     selectedDate,
     setSelectedDate,
-    mounted,
     showWizard,
     setShowWizard,
-    showNoPlanModal,
-    setShowNoPlanModal,
     stats,
     recentLogs,
     loading,
+    refreshing,
     hasPlan,
     goals,
     userName,
     initialReady,
-    dailyLogRef,
-    logScrollable,
     isToday,
-    handleDateChange,
-    handleStartConsultation,
   } = useNutrition();
 
   if (!initialReady) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)]" />
+      <div
+        className="flex min-h-[70vh] items-center justify-center bg-canvas text-brand"
+        role="status"
+      >
+        <Spinner className="h-10 w-10" />
+        <span className="sr-only">Loading your day…</span>
       </div>
     );
   }
 
-  const subtitle = loading
-    ? 'Crunching the numbers...'
-    : fitness.objective
-      ? `Target: ${fitness.objective}`
-      : "Let's hit your macro goals today.";
+  const openWizard = () => setShowWizard(true);
 
   return (
-    <motion.div
-      initial="hidden"
-      animate="show"
-      variants={CONTAINER_VARIANTS}
-      className="page-container max-w-7xl space-y-4 sm:space-y-6 lg:space-y-8 min-h-screen relative"
-    >
-      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-        <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-[var(--primary)]/5 blur-[100px]" />
-        <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-blue-500/5 blur-[100px]" />
+    // `hide-page-scrollbar`: this page hides the window scrollbar (still scrolls) — see globals.css.
+    <MotionConfig reducedMotion="user">
+      {/* Phones: one-screen tile dashboard. */}
+      <div className="hide-page-scrollbar bg-canvas md:hidden">
+        <MobileDashboard
+          userId={user?.id}
+          userName={userName}
+          fitness={fitness}
+          selectedDate={selectedDate}
+          onSelectDate={setSelectedDate}
+          stats={stats}
+          goals={goals}
+          hasPlan={hasPlan}
+          recentLogs={recentLogs}
+          loading={loading}
+          refreshing={refreshing}
+          isToday={isToday}
+          onSetUpPlan={openWizard}
+        />
       </div>
 
-      <NutritionHero
-        uid={user?.id || ''}
-        avatarUrl={profile.avatar_url}
-        userName={userName}
-        subtitle={subtitle}
-        selectedDate={selectedDate}
-        isToday={isToday}
-        onAvatarUpload={handleAvatarUpload}
-        onDateChange={handleDateChange}
-        onDateSelect={setSelectedDate}
-      />
-
-      <DailyNutrition
-        stats={stats}
-        goals={goals}
-        hasPlan={hasPlan}
-        recentLogs={recentLogs}
-        loading={loading}
-        mounted={mounted}
-        isToday={isToday}
-        dailyLogRef={dailyLogRef}
-        logScrollable={logScrollable}
-        onUnlock={() => setShowNoPlanModal(true)}
+      {/* Tablet and desktop: full cards. */}
+      <motion.div
+        initial="hidden"
+        animate="show"
+        transition={{ staggerChildren: 0.06 }}
+        className="hide-page-scrollbar mx-auto hidden min-h-screen w-full max-w-[1200px] flex-col gap-6 bg-canvas px-8 py-8 font-ui text-fg md:flex"
       >
-        <motion.div variants={ITEM_VARIANTS} className="space-y-4 sm:space-y-6">
-          <FitnessHub
-            hasPlan={hasPlan}
-            aiCoachAdvice={fitness.aiCoachAdvice}
-            targetWeightKg={fitness.targetWeightKg}
-          />
-          {isFeatureEnabled('steps') && <StepTracker />}
-          <DailyHabits />
+        <motion.div variants={REVEAL}>
+          <NutritionHeader userName={userName} selectedDate={selectedDate} />
         </motion.div>
-      </DailyNutrition>
+
+        <motion.div variants={REVEAL} className="relative z-20">
+          <WeekStrip selectedDate={selectedDate} onSelect={setSelectedDate} />
+        </motion.div>
+
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="flex min-w-0 flex-col gap-6">
+            <motion.div variants={REVEAL}>
+              <CaloriesCard
+                stats={stats}
+                goals={goals}
+                hasPlan={hasPlan}
+                refreshing={refreshing}
+                onSetUpPlan={openWizard}
+              />
+            </motion.div>
+            <motion.div variants={REVEAL}>
+              <MealsCard
+                logs={recentLogs}
+                loading={loading}
+                refreshing={refreshing}
+                isToday={isToday}
+              />
+            </motion.div>
+          </div>
+
+          <div className="flex flex-col gap-6">
+            <motion.div variants={REVEAL}>
+              <CoachCard
+                hasPlan={hasPlan}
+                objective={fitness.objective}
+                advice={fitness.aiCoachAdvice}
+                onSetUpPlan={openWizard}
+              />
+            </motion.div>
+            <motion.div variants={REVEAL}>
+              <WaterCard userId={user?.id} date={selectedDate} />
+            </motion.div>
+            <motion.div variants={REVEAL}>
+              <WeightCard
+                userId={user?.id}
+                profileWeight={fitness.weight}
+                targetWeight={fitness.targetWeightKg}
+                targetDate={fitness.targetDate}
+              />
+            </motion.div>
+            {isFeatureEnabled('steps') && <StepTracker />}
+          </div>
+        </div>
+      </motion.div>
 
       {showWizard && user && (
         <FitnessSetupWizard
@@ -110,12 +147,6 @@ export default function Nutrition() {
           }}
         />
       )}
-
-      <NoPlanModal
-        open={showNoPlanModal}
-        onClose={() => setShowNoPlanModal(false)}
-        onStart={handleStartConsultation}
-      />
-    </motion.div>
+    </MotionConfig>
   );
 }

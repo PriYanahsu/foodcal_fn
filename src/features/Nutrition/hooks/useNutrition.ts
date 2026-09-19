@@ -1,86 +1,53 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useFitnessProfile, useUserProfile } from '@/features/userProfile';
 import { useDailyStats } from './useDailyStats';
 import { deriveNutritionGoals, hasNutritionPlan } from '../utils/deriveNutritionGoals';
-import { isToday as isTodayDate, shiftDate, toLocalDate, toStatsDate } from '../utils/toLocalDate';
+import { isToday as isTodayDate, toLocalDate, toStatsDate } from '../utils/toLocalDate';
 
 export function useNutrition() {
   const { user } = useAuth();
-  const { profile, loading: profileLoading, handleAvatarUpload } = useUserProfile();
+  const { profile, loading: profileLoading } = useUserProfile();
   const { fitness, loading: fitnessLoading } = useFitnessProfile();
 
   const [selectedDate, setSelectedDate] = useState(toLocalDate());
-  const [mounted, setMounted] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
-  const [showNoPlanModal, setShowNoPlanModal] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const { stats, recentLogs, loading: statsLoading } = useDailyStats(toStatsDate(selectedDate));
-
-  const hasPlan = hasNutritionPlan(fitness);
-  const goals = deriveNutritionGoals(fitness);
-  const userName = profile.fullName || user?.name || user?.email?.split('@')[0] || 'User';
-
-  const [initialReady, setInitialReady] = useState(false);
-  useEffect(() => {
-    if (!profileLoading && !fitnessLoading && !statsLoading) setInitialReady(true);
-  }, [profileLoading, fitnessLoading, statsLoading]);
-
-  const dailyLogRef = useRef<HTMLDivElement>(null);
-  const [logScrollable, setLogScrollable] = useState(false);
-
-  useLayoutEffect(() => {
-    const el = dailyLogRef.current;
-    if (!el) return;
-
-    const update = () => {
-      setLogScrollable(el.scrollHeight > el.clientHeight + 1);
-    };
-
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [recentLogs, statsLoading, selectedDate, initialReady]);
-
-  const handleDateChange = (days: number) => {
-    setSelectedDate((prev) => shiftDate(prev, days));
-  };
-
-  const handleStartConsultation = () => {
-    setShowNoPlanModal(false);
-    setShowWizard(true);
-  };
-
-  return {
-    user,
-    profile,
-    fitness,
-    handleAvatarUpload,
-    selectedDate,
-    setSelectedDate,
-    mounted,
-    showWizard,
-    setShowWizard,
-    showNoPlanModal,
-    setShowNoPlanModal,
+  const {
     stats,
     recentLogs,
     loading: statsLoading,
+    refreshing,
+  } = useDailyStats(toStatsDate(selectedDate));
+
+  const hasPlan = hasNutritionPlan(fitness);
+  const goals = deriveNutritionGoals(fitness);
+  const userName = profile.fullName || user?.name || user?.email?.split('@')[0] || 'there';
+
+  // Only the first load shows the full-page spinner; changing day keeps the layout.
+  // Latched during render (not in an effect) so it flips without an extra render pass.
+  const [initialReady, setInitialReady] = useState(false);
+  if (!initialReady && !profileLoading && !fitnessLoading && !statsLoading) {
+    setInitialReady(true);
+  }
+
+  return {
+    user,
+    fitness,
+    selectedDate,
+    setSelectedDate,
+    showWizard,
+    setShowWizard,
+    stats,
+    recentLogs,
+    loading: statsLoading,
+    refreshing,
     hasPlan,
     goals,
     userName,
     initialReady,
-    dailyLogRef,
-    logScrollable,
     isToday: isTodayDate(selectedDate),
-    handleDateChange,
-    handleStartConsultation,
   };
 }
