@@ -10,23 +10,30 @@ export interface History {
   stats: HistoryStats;
 }
 
-export interface HistoryOverviewStats {
-  totalCalories: number;
-  weekCalories: number;
+/** Month shown in the calendar; `month` is 0-based like `Date`. */
+export interface MonthView {
+  year: number;
+  month: number;
+}
+
+export interface CalendarCell {
+  date: string;
+  inMonth: boolean;
+}
+
+/** `on` = within 10% of the calorie target. */
+export type DayStatus = 'on' | 'over' | 'under' | 'none';
+
+export interface MonthSummary {
+  elapsedDays: number;
+  loggedDays: number;
   avgCalories: number;
+  onTargetDays: number;
 }
 
-export interface DailyMealListProps {
-  date: string;
-}
-
-export interface MealDetailViewProps {
-  date: string;
-  mealId: string;
-}
-
-export interface MealMacro {
-  label: string;
-  value: number;
-  color: string;
+export interface HistoryCalendarProps {
+  /** `YYYY-MM-DD` from `?date=` — the day to open on. */
+  initialDate?: string;
+  /** Meal id from `?meal=` — opened in the day panel. */
+  initialMealId?: string;
 }

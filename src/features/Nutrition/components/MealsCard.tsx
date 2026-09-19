@@ -1,31 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import type { ComponentType, SVGProps } from 'react';
-import {
-  CakeIcon,
-  CameraIcon,
-  FireIcon,
-  MoonIcon,
-  PlusIcon,
-  SunIcon,
-} from '@heroicons/react/24/outline';
+import { CameraIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { buttonClass } from '@/components/ui/fc';
 import { MACRO_STYLES } from '@/components/nutrition/macros';
+import { MealThumb } from '@/components/nutrition/MealThumb';
 import { ROUTES } from '@/constants/routes';
 import type { FoodLog } from '../type';
 import { MAIN_MEALS } from '../utils/Constants';
-import { formatLogTime, logDetailHref } from '../utils/formatLogTime';
-
-type Icon = ComponentType<SVGProps<SVGSVGElement>>;
-
-/** Tile colour + icon per meal type, used when a meal has no photo. */
-const MEAL_STYLES: Record<string, { tile: string; icon: Icon }> = {
-  breakfast: { tile: 'bg-carbs/15 text-carbs', icon: SunIcon },
-  lunch: { tile: 'bg-protein/15 text-protein', icon: FireIcon },
-  dinner: { tile: 'bg-fat/15 text-fat', icon: MoonIcon },
-  snack: { tile: 'bg-brand/15 text-brand-ink', icon: CakeIcon },
-};
+import { byLogTime, logDetailHref, mealTypeAndTime } from '../utils/formatLogTime';
 
 interface MealsCardProps {
   logs: FoodLog[];
@@ -35,33 +18,8 @@ interface MealsCardProps {
   isToday: boolean;
 }
 
-const capitalize = (text: string) => (text ? text[0].toUpperCase() + text.slice(1) : text);
-
-function MealThumb({ log }: { log: FoodLog }) {
-  if (log.imagePath) {
-    return (
-      /* eslint-disable-next-line @next/next/no-img-element -- user photos come from storage URLs */
-      <img
-        src={log.imagePath}
-        alt=""
-        loading="lazy"
-        className="h-12 w-12 shrink-0 rounded-xl object-cover"
-      />
-    );
-  }
-  const style = MEAL_STYLES[log.mealType?.toLowerCase()] ?? MEAL_STYLES.snack;
-  const Icon = style.icon;
-  return (
-    <span
-      className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${style.tile}`}
-    >
-      <Icon className="h-6 w-6" />
-    </span>
-  );
-}
-
 export default function MealsCard({ logs, loading, refreshing, isToday }: MealsCardProps) {
-  const meals = [...logs].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  const meals = [...logs].sort(byLogTime);
   const loggedTypes = new Set(meals.map((meal) => meal.mealType?.toLowerCase()));
   // Offer the next main meal not yet logged, plus a snack.
   const nextMeal = MAIN_MEALS.find((type) => !loggedTypes.has(type));
@@ -121,7 +79,7 @@ export default function MealsCard({ logs, loading, refreshing, isToday }: MealsC
                 <MealThumb log={meal} />
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span className="text-[13px] text-muted">
-                    {capitalize(meal.mealType)} · {formatLogTime(meal.createdAt)}
+                    {mealTypeAndTime(meal)}
                   </span>
                   <span className="line-clamp-2 text-base font-semibold leading-snug text-fg">
                     {meal.foodName}

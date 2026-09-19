@@ -1,10 +1,13 @@
-import { MealDetailView } from '@/features/history';
+import { redirect } from 'next/navigation';
+import { historyHref } from '@/features/Nutrition/utils/formatLogTime';
+import { toApiDate } from '@/features/Nutrition/utils/toLocalDate';
 
-export default async function MealDetailPage({ params }: { params: Promise<{ date: string; mealId: string }> }) {
+/** Old meal URL — the meal now opens inside the history calendar's day panel. */
+export default async function MealDetailPage({
+  params,
+}: {
+  params: Promise<{ date: string; mealId: string }>;
+}) {
   const { date, mealId } = await params;
-  return (
-    <div className="container mx-auto px-4 py-6">
-      <MealDetailView date={date} mealId={mealId} />
-    </div>
-  );
+  redirect(historyHref(toApiDate(date), mealId));
 }

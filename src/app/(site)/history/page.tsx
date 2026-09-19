@@ -1,9 +1,10 @@
-import { HistoryDateList } from '@/features/history';
+import { HistoryCalendar } from '@/features/history';
 
-export default function HistoryPage() {
-  return (
-    <div className="page-container max-w-7xl pb-24 lg:pb-6">
-      <HistoryDateList />
-    </div>
-  );
+export default async function HistoryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string; meal?: string }>;
+}) {
+  const { date, meal } = await searchParams;
+  return <HistoryCalendar initialDate={date} initialMealId={meal} />;
 }

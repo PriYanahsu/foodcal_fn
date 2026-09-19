@@ -19,6 +19,7 @@ import { useWaterIntake } from '../hooks/useWaterIntake';
 import { useWeightTrend } from '../hooks/useWeightTrend';
 import { WATER_GLASS_ML } from '../utils/Constants';
 import { formatLongDate, greetingFor } from '../utils/toLocalDate';
+import { byLogTime } from '../utils/formatLogTime';
 import WeekStrip from './WeekStrip';
 import CalendarPopover from './CalendarPopover';
 import CaloriesCard from './CaloriesCard';
@@ -156,7 +157,7 @@ export default function MobileDashboard({
   const eaten = Math.round(stats.calories);
   const goal = hasPlan ? goals.calories : null;
   const left = goal ? goal - eaten : null;
-  const meals = [...recentLogs].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  const meals = [...recentLogs].sort(byLogTime);
   const lastMeal = meals[meals.length - 1];
   const glasses = water.goalMl / WATER_GLASS_ML;
   const filledGlasses = Math.min(Math.round(water.ml / WATER_GLASS_ML), glasses);

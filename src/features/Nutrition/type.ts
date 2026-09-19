@@ -15,7 +15,8 @@ export interface FoodLog {
   proteinG: number;
   carbohydrateG: number;
   fatG: number;
-  createdAt: string;
+  /** Can be null on older logs. */
+  createdAt: string | null;
   isManual: boolean;
   confidenceLevel: number;
 }

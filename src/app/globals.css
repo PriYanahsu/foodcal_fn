@@ -158,6 +158,25 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+/* Tailwind v4 dropped the hand cursor on buttons — bring it back app-wide. */
+@layer base {
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']) {
+    cursor: pointer;
+  }
+
+  /* No blinking text caret on plain text (e.g. with caret browsing on) — only where you can type. */
+  body {
+    caret-color: transparent;
+  }
+  input,
+  textarea,
+  select,
+  [contenteditable]:not([contenteditable='false']) {
+    caret-color: auto;
+  }
+}
+
 @layer components {
   .btn-primary {
     @apply bg-[var(--btn-primary)] text-black font-bold py-3 px-6 rounded-xl hover:bg-[var(--btn-primary-hover)] transition-all duration-300 transform hover:scale-[1.02] shadow-[0_0_15px_#76b9004d];
