@@ -36,6 +36,28 @@
 
   --input-bg: #111111;
   --input-border: #2a2a2a;
+
+  /* FoodCal v2 tokens (redesign) — exposed as Tailwind colours via @theme below */
+  --fc-bg: #0b0d0a;
+  --fc-bg-2: #10130e;
+  --fc-surface-1: #161a13;
+  --fc-surface-2: #1d2219;
+  --fc-surface-3: #262c21;
+  --fc-line: #2a3024;
+  --fc-line-strong: #3a4232;
+  --fc-fg: #f3f5ef;
+  --fc-fg-2: #c9d0c0;
+  --fc-muted: #98a18e;
+  --fc-brand: #76b900;
+  --fc-brand-hover: #86cc0a;
+  --fc-brand-ink: #93d42a;
+  --fc-on-brand: #0b0d0a;
+  --fc-protein: #ff8a70;
+  --fc-carbs: #f2b94b;
+  --fc-fat: #8aa8ff;
+  --fc-danger: #ff6b6b;
+  --fc-warn: #f2b94b;
+  --fc-info: #7fb2ff;
 }
 
 [data-theme='light'] {
@@ -72,6 +94,54 @@
 
   --input-bg: #ffffff;
   --input-border: #d4d4d4;
+
+  /* FoodCal v2 tokens (redesign) */
+  --fc-bg: #f5f6f0;
+  --fc-bg-2: #eef0e8;
+  --fc-surface-1: #ffffff;
+  --fc-surface-2: #f3f4ee;
+  --fc-surface-3: #e7eadf;
+  --fc-line: #e0e3d8;
+  --fc-line-strong: #c9cebe;
+  --fc-fg: #141711;
+  --fc-fg-2: #3e4537;
+  --fc-muted: #5d6554;
+  --fc-brand: #76b900;
+  --fc-brand-hover: #6aa700;
+  --fc-brand-ink: #3d6d00;
+  --fc-on-brand: #0b0d0a;
+  --fc-protein: #d9543a;
+  --fc-carbs: #b27a00;
+  --fc-fat: #4a6fe0;
+  --fc-danger: #d23b3b;
+  --fc-warn: #9a6a00;
+  --fc-info: #2f64d6;
+}
+
+/* v2 tokens as Tailwind utilities: bg-surface-1, text-brand-ink, border-line, font-display … */
+@theme inline {
+  --color-canvas: var(--fc-bg);
+  --color-canvas-2: var(--fc-bg-2);
+  --color-surface-1: var(--fc-surface-1);
+  --color-surface-2: var(--fc-surface-2);
+  --color-surface-3: var(--fc-surface-3);
+  --color-line: var(--fc-line);
+  --color-line-strong: var(--fc-line-strong);
+  --color-fg: var(--fc-fg);
+  --color-fg-2: var(--fc-fg-2);
+  --color-muted: var(--fc-muted);
+  --color-brand: var(--fc-brand);
+  --color-brand-hover: var(--fc-brand-hover);
+  --color-brand-ink: var(--fc-brand-ink);
+  --color-on-brand: var(--fc-on-brand);
+  --color-protein: var(--fc-protein);
+  --color-carbs: var(--fc-carbs);
+  --color-fat: var(--fc-fat);
+  --color-danger: var(--fc-danger);
+  --color-warn: var(--fc-warn);
+  --color-info: var(--fc-info);
+  --font-display: var(--font-bricolage), 'Avenir Next', 'Segoe UI', sans-serif;
+  --font-ui: var(--font-figtree), 'Avenir Next', 'Segoe UI', sans-serif;
 }
 
 html,

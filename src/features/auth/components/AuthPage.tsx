@@ -1,34 +1,33 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { MotionConfig } from 'framer-motion';
+import { AUTH_PANEL_ID, LandingPage } from '@/features/landing/components/LandingPage';
+import { useAuth } from '../hooks/useAuth';
+import { AUTH_VIEW_PARAM, parseAuthView, type AuthView, type LinkableAuthView } from '../authView';
+import { AuthPanel } from './AuthPanel';
 import { LoginForm } from './LoginForm';
 import { SignupForm } from './SignupForm';
-import { Card } from '@/components/ui/Card';
-import { AppDemo, getActiveDemoSteps } from '@/features/landing/components/AppDemo';
-import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { BRAND_ASSETS } from '@/lib/brand-config';
-import { useAuth } from '../hooks/useAuth';
-import { useTheme } from '@/features/theme/context/ThemeContext';
-import { useBackendStatus } from '@/features/backendStatus';
+import { AccountCreated } from './AccountCreated';
 
-export const AuthPage: React.FC = () => {
-  const [view, setView] = useState<'landing' | 'login' | 'signup'>('landing');
+/** Height of the landing page's sticky nav on phones. */
+const NAV_HEIGHT = 64;
+
+interface AuthPageProps {
+  initialView?: LinkableAuthView;
+}
+
+/**
+ * The landing page. Sign in / sign up open as a card in the hero, in place of
+ * the product visual — no separate screen. Each view still gets its own URL
+ * (`?view=signup`) so it can be linked to and Back closes it.
+ */
+export const AuthPage: React.FC<AuthPageProps> = ({ initialView = 'landing' }) => {
+  const [view, setView] = useState<AuthView>(initialView);
+  const [createdEmail, setCreatedEmail] = useState('');
   const router = useRouter();
-  const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
-  const { status, isWakingSlowly, isLocal } = useBackendStatus();
-
-  // Replaces the section's subtitle while the server is cold, so the wait is
-  // explained where the user is looking rather than only in the corner banner.
-  const wakeCopy =
-    isLocal || status === 'ready'
-      ? null
-      : status === 'waking'
-        ? isWakingSlowly
-          ? 'Server is starting up (about a minute) — you can fill this in meanwhile.'
-          : null
-        : 'Server is still starting. Submit anyway and we’ll retry, or try again shortly.';
 
   useEffect(() => {
     if (user) {
@@ -36,335 +35,68 @@ export const AuthPage: React.FC = () => {
     }
   }, [user, router]);
 
-  const BackButton = () => (
-    <motion.button
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -10 }}
-      whileHover={{ scale: 1.05, x: -2 }}
-      whileTap={{ scale: 0.95 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-      onClick={() => setView('landing')}
-      className="mb-6 text-[var(--text-muted)] hover:text-[var(--foreground)] flex items-center gap-2 transition-colors group text-sm font-semibold py-2 px-3 rounded-xl bg-[var(--surface)] hover:bg-[var(--surface-strong)] border border-[var(--card-border)] backdrop-blur-md w-fit"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="group-hover:-translate-x-1 transition-transform"
-      >
-        <path d="M19 12H5" />
-        <path d="m12 19l-7-7 7-7" />
-      </svg>
-      Back
-    </motion.button>
-  );
+  useEffect(() => {
+    const onPopState = () =>
+      setView(parseAuthView(new URLSearchParams(window.location.search).get(AUTH_VIEW_PARAM)));
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  const navigate = useCallback((next: LinkableAuthView, { replace = false } = {}) => {
+    const url = new URL(window.location.href);
+    if (next === 'landing') url.searchParams.delete(AUTH_VIEW_PARAM);
+    else url.searchParams.set(AUTH_VIEW_PARAM, next);
+    window.history[replace ? 'replaceState' : 'pushState'](null, '', url);
+    setView(next);
+
+    if (next === 'landing') return;
+
+    // Bring the card into view when it was opened from further down the page.
+    // Desktop: the card sits in the first screen, so go to the top.
+    if (window.matchMedia('(min-width: 1024px)').matches) {
+      if (window.scrollY > 0) window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    // Phones/tablets: the card sits below the hero text. Wait for it to replace the
+    // visual (exit 150ms) so we measure the card, not the shorter visual.
+    window.setTimeout(() => {
+      const panel = document.getElementById(AUTH_PANEL_ID);
+      if (!panel) return;
+      const { top, bottom } = panel.getBoundingClientRect();
+      if (top < NAV_HEIGHT || bottom > window.innerHeight) {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 200);
+  }, []);
+
+  const goToLogin = useCallback(() => navigate('login'), [navigate]);
+  const goToSignup = useCallback(() => navigate('signup'), [navigate]);
+  const close = useCallback(() => navigate('landing'), [navigate]);
+  // The "created" card stands in for sign-up, so replace that history entry.
+  const continueToLogin = useCallback(() => navigate('login', { replace: true }), [navigate]);
+
+  const authPanel =
+    view === 'landing' ? null : (
+      <AuthPanel view={view} onClose={close}>
+        {view === 'login' && <LoginForm initialEmail={createdEmail} onCreateAccount={goToSignup} />}
+        {view === 'signup' && (
+          <SignupForm
+            onSignIn={goToLogin}
+            onCreated={(email) => {
+              setCreatedEmail(email);
+              setView('created');
+            }}
+          />
+        )}
+        {view === 'created' && <AccountCreated email={createdEmail} onContinue={continueToLogin} />}
+      </AuthPanel>
+    );
 
   return (
-    <div className="min-h-screen w-full bg-[var(--background)] text-[var(--foreground)] flex flex-col overflow-x-hidden selection:bg-[var(--primary)] selection:text-black">
-      <button
-        type="button"
-        onClick={toggleTheme}
-        aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-        className="fixed top-4 right-4 z-[90] inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] text-sm font-semibold text-[var(--foreground)] hover:border-[var(--primary)]/40 shadow-lg backdrop-blur-md transition-colors"
-      >
-        {theme === 'dark' ? (
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-[var(--primary)]">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
-          </svg>
-        ) : (
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-[var(--primary)]">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
-          </svg>
-        )}
-        <span className="hidden sm:inline">{theme === 'dark' ? 'Light' : 'Dark'}</span>
-      </button>
-
-      {/* Desktop Side-by-Side Context */}
-      <main className="flex-1 flex flex-col lg:flex-row lg:min-h-screen relative">
-        {/* Left Side: Branding & Premium Demo Context (Hidden on Mobile) */}
-        <div className="hidden lg:flex lg:w-1/2 flex-col justify-center p-16 relative overflow-hidden bg-[radial-gradient(circle_at_top_left,_var(--primary)_0%,_transparent_25%),_radial-gradient(circle_at_bottom_right,_var(--secondary)_0%,_transparent_25%)]">
-          <div className="absolute inset-0 bg-[var(--background)]/50 backdrop-blur-[2px]" />
-
-          <div className="relative z-10 space-y-10">
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-4"
-            >
-              <img
-                src={BRAND_ASSETS.logo}
-                className="w-12 h-12 object-contain rounded-xl shadow-xl"
-                alt=""
-              />
-              <h2 className="text-3xl font-black tracking-tighter text-[var(--foreground)]">
-                {BRAND_ASSETS.name}
-              </h2>
-            </motion.div>
-
-            <div className="space-y-4">
-              <motion.h1
-                initial={{ opacity: 0, x: -30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-                className="text-4xl xl:text-5xl font-black leading-tight tracking-tight"
-              >
-                Your Personal <br />
-                <span className="text-[var(--primary)]">
-                  AI Health Coach
-                </span>
-              </motion.h1>
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4 }}
-                className="text-lg text-[var(--text-muted)] max-w-md leading-relaxed"
-              >
-                {BRAND_ASSETS.tagline}. Optimized for your body, powered by intelligence.
-              </motion.p>
-            </div>
-
-            {/* Feature Preview Grid */}
-            <div className="grid grid-cols-2 gap-4 max-w-xl">
-              {getActiveDemoSteps().slice(0, 4).map((step, i) => {
-                const Icon = step.icon;
-                return (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 + i * 0.1 }}
-                    className="p-4 rounded-2xl bg-[var(--surface)] border border-[var(--card-border)] backdrop-blur-sm group hover:border-[var(--primary)]/30 transition-all"
-                  >
-                    <div
-                      className={`w-10 h-10 rounded-lg bg-gradient-to-br ${step.color} p-2 mb-3 shadow-lg flex items-center justify-center text-[var(--foreground)]`}
-                    >
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <h4 className="font-bold text-sm mb-1">{step.title}</h4>
-                    <p className="text-xs text-[var(--text-muted)] line-clamp-2">{step.description}</p>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Decorative Elements */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] opacity-20 pointer-events-none">
-            <div className="absolute inset-0 rounded-full border border-[var(--primary)]/20 animate-[pulse_8s_infinite]" />
-            <div className="absolute inset-[100px] rounded-full border border-[var(--card-border)] animate-[pulse_12s_infinite]" />
-          </div>
-        </div>
-
-        {/* Right Side: Auth Forms */}
-        <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-6 sm:p-12 lg:min-h-screen relative z-10 bg-[var(--background)]">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-[440px] space-y-8"
-          >
-            {/* Mobile Branding Header */}
-            <div className="lg:hidden flex flex-col items-center text-center space-y-4 mb-2 w-full relative">
-              <img
-                src={BRAND_ASSETS.logo}
-                className="w-16 h-16 object-contain rounded-2xl shadow-2xl"
-                alt=""
-              />
-              <h1 className="text-4xl font-black text-[var(--primary)]">
-                {BRAND_ASSETS.name}
-              </h1>
-              <p className="text-[var(--text-muted)] text-sm max-w-xs">{BRAND_ASSETS.tagline}</p>
-
-              {/* Mobile Quick Feature Preview */}
-              {view === 'landing' && (
-                <div className="grid grid-cols-2 gap-3 w-full px-4 mt-8 mb-4">
-                  {getActiveDemoSteps().slice(0, 4).map((step, i) => {
-                    const Icon = step.icon;
-                    return (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 + i * 0.1 }}
-                        className="p-3 rounded-2xl bg-[var(--surface)] border border-[var(--card-border)] backdrop-blur-md flex flex-col items-center text-center group"
-                      >
-                        <div
-                          className={`w-8 h-8 rounded-lg bg-gradient-to-br ${step.color} p-1.5 mb-2 shadow-lg flex items-center justify-center text-[var(--foreground)]`}
-                        >
-                          <Icon className="w-4 h-4" />
-                        </div>
-                        <h4 className="font-bold text-[9px] uppercase tracking-widest text-[var(--text-muted)]">
-                          {step.title}
-                        </h4>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            <Card className="p-8 sm:p-10 bg-[var(--card-bg)] backdrop-blur-2xl border border-[var(--card-border)] shadow-xl rounded-3xl relative overflow-visible ring-1 ring-[var(--card-border)] w-full">
-              <AnimatePresence mode="wait" initial={false}>
-                {view === 'landing' && (
-                  <motion.div
-                    key="landing"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-                    className="space-y-8"
-                  >
-                    <div className="text-center">
-                      <h2 className="text-2xl font-bold mb-2">Ready to start?</h2>
-                      <p className="text-[var(--text-muted)] text-sm">
-                        {wakeCopy || 'Create an account or sign in to track macros'}
-                      </p>
-                    </div>
-
-                    <div className="space-y-3">
-                      <motion.button
-                        onClick={() => setView('login')}
-                        whileHover={{ scale: 1.02, y: -2 }}
-                        whileTap={{ scale: 0.98 }}
-                        transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                        className="w-full py-4 px-6 bg-[var(--btn-primary)] hover:bg-[var(--btn-primary-hover)] text-black font-black text-lg rounded-2xl shadow-[0_10px_30px_-10px_#76b90066] hover:shadow-[0_20px_40px_-10px_#76b900aa] transition-all flex items-center justify-center gap-2"
-                      >
-                        Sign In
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M5 12h14" />
-                          <path d="m12 5 7 7-7 7" />
-                        </svg>
-                      </motion.button>
-                      <motion.button
-                        onClick={() => setView('signup')}
-                        whileHover={{ scale: 1.02, y: -2 }}
-                        whileTap={{ scale: 0.98 }}
-                        transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                        className="w-full py-4 px-6 bg-[var(--btn-primary)] hover:bg-[var(--btn-primary-hover)] text-black font-bold text-lg rounded-2xl transition-all"
-                      >
-                        Create Free Account
-                      </motion.button>
-                    </div>
-                  </motion.div>
-                )}
-
-                {view === 'login' && (
-                  <motion.div
-                    key="login"
-                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                    transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-                  >
-                    <BackButton />
-                    <div className="text-center mb-8">
-                      <h2 className="text-3xl font-black mb-2 text-[var(--foreground)]">Welcome Back</h2>
-                      <p className="text-[var(--text-muted)] text-sm">
-                        {wakeCopy || 'Sign in to your intelligent coach'}
-                      </p>
-                    </div>
-                    <LoginForm />
-                  </motion.div>
-                )}
-
-                {view === 'signup' && (
-                  <motion.div
-                    key="signup"
-                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                    transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-                  >
-                    <BackButton />
-                    <div className="text-center mb-8">
-                      <h2 className="text-3xl font-black mb-2 text-[var(--foreground)]">
-                        Join {BRAND_ASSETS.name}
-                      </h2>
-                      <p className="text-[var(--text-muted)] text-sm">
-                        {wakeCopy || 'Your transformation starts today'}
-                      </p>
-                    </div>
-                    <SignupForm onSuccess={() => setView('login')} />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </Card>
-
-            {/* Mobile Scroll Indicator */}
-            {view === 'landing' && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1, duration: 1 }}
-                className="lg:hidden mt-12 flex flex-col items-center gap-3 text-[var(--text-muted)] cursor-pointer group"
-                onClick={() => {
-                  document
-                    .getElementById('mobile-demo-anchor')
-                    ?.scrollIntoView({ behavior: 'smooth' });
-                }}
-              >
-                <span className="text-[10px] uppercase tracking-[0.4em] font-black group-hover:text-[var(--primary)] transition-colors">
-                  Learn More
-                </span>
-                <motion.div
-                  animate={{ y: [0, 8, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="opacity-40 group-hover:text-[var(--primary)] group-hover:opacity-100 transition-all"
-                  >
-                    <path d="m6 9 6 6 6-6" />
-                  </svg>
-                </motion.div>
-              </motion.div>
-            )}
-          </motion.div>
-
-          {/* Backdrop for the whole right side on mobile */}
-          <div className="lg:hidden absolute top-0 left-0 right-0 h-[1000px] bg-gradient-to-b from-[var(--primary)]/10 via-[var(--secondary)]/5 to-transparent -z-10 blur-[120px]" />
-        </div>
-      </main>
-
-      {/* Mobile/Full Demo Section */}
-      <div
-        id="app-demo"
-        className="w-full bg-[var(--background)] border-t border-[var(--card-border)] relative z-20 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]"
-      >
-        <div id="mobile-demo-anchor" className="absolute -top-20" />
-        <AppDemo />
+    <MotionConfig reducedMotion="user">
+      <div className="min-h-screen w-full overflow-x-hidden bg-canvas font-ui text-fg antialiased selection:bg-brand selection:text-on-brand">
+        <LandingPage onSignIn={goToLogin} onGetStarted={goToSignup} authPanel={authPanel} />
       </div>
-
-      {/* Footer */}
-      <footer className="py-12 px-6 border-t border-[var(--card-border)] bg-[var(--card-bg)] text-center">
-        <p className="text-[var(--text-muted)] text-xs font-mono uppercase tracking-widest">
-          © 2026 {BRAND_ASSETS.name} • Precision AI Nutrition
-        </p>
-      </footer>
-    </div>
+    </MotionConfig>
   );
 };

@@ -1,182 +1,169 @@
 'use client';
 
 import React, { useState, FormEvent, ChangeEvent } from 'react';
-import { Input } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
+import Link from 'next/link';
 import { useAuth } from '../hooks/useAuth';
 import { ROUTES } from '@/constants/routes';
 import { SignupCredentials } from '../types';
 import { useBackendStatus } from '@/features/backendStatus';
+import { buttonClass, Spinner } from '@/components/ui/fc';
+import { AuthField, Notice, ServerWakeNotice, passwordStrength } from './AuthField';
 
 interface SignupFormProps {
-  onSuccess: () => void;
+  /** Called when the account exists but the user still has to sign in. */
+  onCreated: (email: string) => void;
+  onSignIn: () => void;
 }
 
-const INITIAL_FORM: SignupCredentials & {
-  validationError: string | null;
-  success: boolean;
-  successMessage: string | null;
-} = {
+type FieldName = 'fullName' | 'email' | 'password';
+type FieldErrors = Partial<Record<FieldName, string>>;
+
+const INITIAL_FORM: SignupCredentials = {
   fullName: '',
   email: '',
   password: '',
+  // Gender is asked in the plan wizard; the signup API still expects a value.
   gender: 'Other',
-  validationError: null,
-  success: false,
-  successMessage: null,
 };
 
-export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
+const STRENGTH_COLOURS = { danger: 'bg-danger', warn: 'bg-warn', brand: 'bg-brand' };
+const STRENGTH_TEXT = { danger: 'text-danger', warn: 'text-warn', brand: 'text-brand-ink' };
+
+function PasswordHint({ password }: { password: string }) {
+  if (!password) return <p className="text-[13px] text-muted">At least 8 characters</p>;
+
+  const { score, label, tone } = passwordStrength(password);
+  return (
+    <div className="flex items-center gap-3">
+      <div className="flex flex-1 gap-1" aria-hidden="true">
+        {[1, 2, 3, 4].map((segment) => (
+          <span
+            key={segment}
+            className={`h-1 flex-1 rounded-full ${segment <= score ? STRENGTH_COLOURS[tone] : 'bg-surface-3'}`}
+          />
+        ))}
+      </div>
+      <p className="shrink-0 text-[13px] text-muted">
+        <span className={`font-bold ${STRENGTH_TEXT[tone]}`}>{label}</span> · At least 8 characters
+      </p>
+    </div>
+  );
+}
+
+export const SignupForm: React.FC<SignupFormProps> = ({ onCreated, onSignIn }) => {
   const [form, setForm] = useState(INITIAL_FORM);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const { signup, isLoading, error } = useAuth();
   const { status, isWakingSlowly, retry } = useBackendStatus();
 
-  const submitSignup = async () => {
-    const { fullName, email, password, gender } = form;
-    const result = await signup({ fullName, email, password, gender });
-
-    if (result.success) {
-      if (result.authenticated) {
-        window.location.assign(ROUTES.HOME);
-        return;
-      }
-      setForm((prev) => ({
-        ...prev,
-        success: true,
-        successMessage: result.message || 'Your account has been successfully created.',
-      }));
-      setTimeout(() => {
-        onSuccess();
-      }, 2000);
-    }
-  };
-
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value, validationError: null }));
+    setForm((prev) => ({ ...prev, [name]: value }));
+    setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     const { fullName, email, password } = form;
-
-    if (!fullName || !email || !password) {
-      setForm((prev) => ({ ...prev, validationError: 'Please fill in all fields' }));
-      return;
-    }
-
-    if (!email.includes('@')) {
-      setForm((prev) => ({ ...prev, validationError: 'Please enter a valid email address' }));
-      return;
-    }
-
-    if (password.length < 8) {
-      setForm((prev) => ({
-        ...prev,
-        validationError: 'Password must be at least 8 characters long',
-      }));
-      return;
-    }
+    const errors: FieldErrors = {};
+    if (!fullName.trim()) errors.fullName = 'Enter your full name';
+    if (!email) errors.email = 'Enter your email address';
+    else if (!email.includes('@')) errors.email = 'Enter a valid email address';
+    if (password.length < 8) errors.password = 'Use at least 8 characters';
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
 
     // A previous wake-up gave up, so start a fresh one — the request below
     // queues behind it rather than failing on a server that is still booting.
     if (status === 'failed') retry();
 
-    await submitSignup();
+    const result = await signup(form);
+    if (!result.success) return;
+
+    if (result.authenticated) {
+      window.location.assign(ROUTES.HOME);
+      return;
+    }
+    onCreated(email);
   };
 
   const buttonLabel = isLoading
     ? isWakingSlowly
       ? 'Starting server…'
       : 'Creating account…'
-    : 'Create Account';
-
-  if (form.success) {
-    return (
-      <div className="text-center py-8">
-        <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg
-            className="w-8 h-8 text-green-500"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
-        <h3 className="text-xl font-bold text-[var(--foreground)] mb-2">Account Created!</h3>
-        <p className="text-[var(--text-muted)] mb-6">
-          {form.successMessage || 'Your account has been successfully created.'}
-          <br />
-          Redirecting to login...
-        </p>
-        <Button onClick={onSuccess} variant="primary" className="w-full">
-          Sign In Now
-        </Button>
-      </div>
-    );
-  }
+    : 'Create account';
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
-      {error && (
-        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
-          <p className="text-sm text-red-400">{error}</p>
-        </div>
-      )}
-      {form.validationError && (
-        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
-          <p className="text-sm text-red-400">{form.validationError}</p>
-        </div>
-      )}
-      {isLoading && isWakingSlowly && (
-        <div className="p-3 bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-xl">
-          <p className="text-sm text-[var(--foreground)]">
-            Waking the server — your account is created as soon as it answers.
-          </p>
-        </div>
-      )}
-      
-      <Input
-        type="text"
-        name="fullName"
-        label="Full Name"
-        value={form.fullName}
-        onChange={handleChange}
-        placeholder="Enter your full name"
-        required
-      />
+    <div className="flex flex-col gap-6">
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+        {error && <Notice tone="danger" title={error} />}
 
-      <Input
-        type="email"
-        name="email"
-        label="Email Address"
-        value={form.email}
-        onChange={handleChange}
-        placeholder="Enter your email"
-        required
-      />
+        <AuthField
+          type="text"
+          name="fullName"
+          label="Full name"
+          autoComplete="name"
+          value={form.fullName}
+          onChange={handleChange}
+          placeholder="Your name"
+          error={fieldErrors.fullName}
+        />
 
-      <Input
-        type="password"
-        name="password"
-        label="Password"
-        value={form.password}
-        onChange={handleChange}
-        placeholder="Create a password (min. 8 chars)"
-        required
-      />
+        <AuthField
+          type="email"
+          name="email"
+          label="Email"
+          autoComplete="email"
+          value={form.email}
+          onChange={handleChange}
+          placeholder="you@example.com"
+          error={fieldErrors.email}
+        />
 
-      <Button
-        type="submit"
-        variant="primary"
-        size="lg"
-        disabled={isLoading}
-        className="w-full h-14 mt-2"
-      >
-        {buttonLabel}
-      </Button>
-    </form>
+        <AuthField
+          type="password"
+          name="password"
+          label="Password"
+          autoComplete="new-password"
+          value={form.password}
+          onChange={handleChange}
+          placeholder="Create a password"
+          error={fieldErrors.password}
+          hint={<PasswordHint password={form.password} />}
+        />
+
+        <ServerWakeNotice action="create your account" />
+
+        <button
+          type="submit"
+          disabled={isLoading}
+          aria-busy={isLoading}
+          className={buttonClass('primary', 'lg', 'w-full')}
+        >
+          {isLoading && <Spinner />}
+          {buttonLabel}
+        </button>
+
+        <p className="text-center text-[13px] leading-relaxed text-muted">
+          By continuing you agree to the{' '}
+          <Link href="/terms" className="underline underline-offset-2 hover:text-fg">
+            Terms of service
+          </Link>{' '}
+          and{' '}
+          <Link href="/privacy" className="underline underline-offset-2 hover:text-fg">
+            Privacy policy
+          </Link>
+          .
+        </p>
+      </form>
+
+      <div className="border-t border-line pt-5 text-center text-[15px] text-muted">
+        Already have an account?{' '}
+        <button type="button" onClick={onSignIn} className="font-bold text-fg-2 hover:text-fg">
+          Sign in
+        </button>
+      </div>
+    </div>
   );
 };

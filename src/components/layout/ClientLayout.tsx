@@ -15,10 +15,13 @@ import { isFeatureEnabled } from '@/config/features';
 import { InstallAppPrompt } from './InstallAppPrompt';
 import { WakeUpBanner } from '@/features/backendStatus';
 
+/** Pages with their own public header/footer — no app sidebar, bell or push prompt. */
+const PUBLIC_PAGES = ['/login', '/signup', '/privacy', '/terms'];
+
 function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const isAuthPage = pathname === '/login' || pathname === '/signup';
+  const isAuthPage = PUBLIC_PAGES.includes(pathname);
 
   // Always open sections from the top — shared layout otherwise keeps scroll position
   useEffect(() => {

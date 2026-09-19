@@ -1,32 +1,36 @@
 'use client';
 
 import React, { useState, FormEvent } from 'react';
-import { Input } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
 import { useAuth } from '../hooks/useAuth';
 import { ROUTES } from '@/constants/routes';
 import { useBackendStatus } from '@/features/backendStatus';
+import { buttonClass, Spinner } from '@/components/ui/fc';
+import { AuthField, Notice, ServerWakeNotice } from './AuthField';
 
-export const LoginForm: React.FC = () => {
-  const [email, setEmail] = useState('');
+interface LoginFormProps {
+  /** Pre-fills the email, e.g. right after sign-up. */
+  initialEmail?: string;
+  onCreateAccount: () => void;
+}
+
+type FieldErrors = { email?: string; password?: string };
+
+export const LoginForm: React.FC<LoginFormProps> = ({ initialEmail = '', onCreateAccount }) => {
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState('');
-  const [validationError, setValidationError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const { login, isLoading, error } = useAuth();
   const { status, isWakingSlowly, retry } = useBackendStatus();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setValidationError(null);
 
-    if (!email || !password) {
-      setValidationError('Please fill in all fields');
-      return;
-    }
-
-    if (!email.includes('@')) {
-      setValidationError('Please enter a valid email address');
-      return;
-    }
+    const errors: FieldErrors = {};
+    if (!email) errors.email = 'Enter your email address';
+    else if (!email.includes('@')) errors.email = 'Enter a valid email address';
+    if (!password) errors.password = 'Enter your password';
+    setFieldErrors(errors);
+    if (errors.email || errors.password) return;
 
     // A previous wake-up gave up, so start a fresh one — the request below
     // queues behind it rather than failing on a server that is still booting.
@@ -38,59 +42,67 @@ export const LoginForm: React.FC = () => {
     }
   };
 
-  const buttonLabel = isLoading
-    ? isWakingSlowly
-      ? 'Starting server…'
-      : 'Signing in…'
-    : 'Sign In';
+  const buttonLabel = isLoading ? (isWakingSlowly ? 'Starting server…' : 'Signing in…') : 'Sign in';
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {error && (
-        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
-          <p className="text-sm text-red-400">{error}</p>
-        </div>
-      )}
-      {validationError && (
-        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
-          <p className="text-sm text-red-400">{validationError}</p>
-        </div>
-      )}
-      {isLoading && isWakingSlowly && (
-        <div className="p-3 bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-xl">
-          <p className="text-sm text-[var(--foreground)]">
-            Waking the server — you&apos;ll be signed in as soon as it answers.
-          </p>
-        </div>
-      )}
+    <div className="flex flex-col gap-6">
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+        {error && <Notice tone="danger" title={error} />}
 
-      <Input
-        type="email"
-        label="Email Address"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Enter your email"
-        required
-      />
+        <AuthField
+          type="email"
+          label="Email"
+          name="email"
+          autoComplete="email"
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            setFieldErrors((prev) => ({ ...prev, email: undefined }));
+          }}
+          placeholder="you@example.com"
+          error={fieldErrors.email}
+        />
 
-      <Input
-        type="password"
-        label="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Enter your password"
-        required
-      />
+        <AuthField
+          type="password"
+          label="Password"
+          name="password"
+          autoComplete="current-password"
+          value={password}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            setFieldErrors((prev) => ({ ...prev, password: undefined }));
+          }}
+          placeholder="Your password"
+          error={fieldErrors.password}
+        />
 
-      <Button
-        type="submit"
-        variant="primary"
-        size="lg"
-        disabled={isLoading}
-        className="w-full h-14"
+        <ServerWakeNotice action="sign you in" />
+
+        <button
+          type="submit"
+          disabled={isLoading}
+          aria-busy={isLoading}
+          className={buttonClass('primary', 'lg', 'w-full')}
+        >
+          {isLoading && <Spinner />}
+          {buttonLabel}
+        </button>
+      </form>
+
+      <div className="flex items-center gap-4 text-sm text-muted">
+        <span className="h-px flex-1 bg-line" />
+        New to FoodCal?
+        <span className="h-px flex-1 bg-line" />
+      </div>
+
+      <button
+        type="button"
+        onClick={onCreateAccount}
+        className={buttonClass('secondary', 'lg', 'w-full')}
       >
-        {buttonLabel}
-      </Button>
-    </form>
+        Create an account
+      </button>
+    </div>
   );
 };

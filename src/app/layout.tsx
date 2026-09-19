@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import ClientLayout from '@/components/layout/ClientLayout';
 import { BRAND_ASSETS } from '@/lib/brand-config';
+import { displayFont, uiFont } from '@/lib/fonts';
 
 export const metadata: Metadata = {
   title: 'FoodCal - AI Nutrition Tracker',
@@ -10,7 +11,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme="dark" suppressHydrationWarning>
+    <html
+      lang="en"
+      data-theme="dark"
+      className={`${displayFont.variable} ${uiFont.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href={BRAND_ASSETS.favicon} />
