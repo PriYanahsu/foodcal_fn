@@ -31,6 +31,19 @@ export function AuthField({
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === 'password';
   const messageId = `${inputId}-message`;
+  // Native keyboard behaviour on phones: email keyboard, no auto-capitalising or
+  // autocorrect on emails and passwords. Callers can still override any of these.
+  const keyboardHints =
+    type === 'email'
+      ? {
+          inputMode: 'email' as const,
+          autoCapitalize: 'none',
+          autoCorrect: 'off',
+          spellCheck: false,
+        }
+      : type === 'password'
+        ? { autoCapitalize: 'none', autoCorrect: 'off', spellCheck: false }
+        : {};
 
   const stateClass = error
     ? 'border-danger ring-4 ring-danger/15 focus:border-danger'
@@ -38,7 +51,7 @@ export function AuthField({
 
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor={inputId} className="text-sm font-semibold text-fg-2">
+      <label htmlFor={inputId} className="text-sm font-semibold text-fg-2 max-md:text-subhead">
         {label}
       </label>
       <div className="relative">
@@ -47,6 +60,7 @@ export function AuthField({
           type={isPassword && showPassword ? 'text' : type}
           aria-invalid={error ? true : undefined}
           aria-describedby={error || hint ? messageId : undefined}
+          {...keyboardHints}
           className={`h-[52px] w-full rounded-xl border bg-surface-2 px-4 text-base text-fg outline-none transition placeholder:text-muted ${
             isPassword ? 'pr-14' : ''
           } ${stateClass}`}

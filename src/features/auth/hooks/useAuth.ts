@@ -6,8 +6,7 @@ import { login as loginApi, signup as signupApi, logout as logoutApi } from '@/a
 import { AuthUser, LoginCredentials, SignupCredentials } from '../types';
 import { getAuthUser, getUserId } from '@/lib/springboot/auth-tokens';
 
-const toError = (err: unknown, fallback: string) =>
-  err instanceof Error ? err.message : fallback;
+const toError = (err: unknown, fallback: string) => (err instanceof Error ? err.message : fallback);
 
 export const useAuth = () => {
   const queryClient = useQueryClient();

@@ -15,26 +15,35 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 interface AuthPanelProps {
   view: AuthView;
   onClose: () => void;
+  /** `card`: the hero card (tablet/desktop). `screen`: inside the phone's full-screen view, which has its own close. */
+  variant?: 'card' | 'screen';
   children: ReactNode;
 }
 
 /** The sign-in / sign-up card that takes the hero visual's place on the landing page. */
-export function AuthPanel({ view, onClose, children }: AuthPanelProps) {
+export function AuthPanel({ view, onClose, variant = 'card', children }: AuthPanelProps) {
   const heading = HEADINGS[view];
+  const isCard = variant === 'card';
 
   return (
     <section
       aria-label={heading?.title ?? 'Account created'}
-      className="relative mx-auto w-full max-w-[440px] rounded-[28px] border border-line bg-surface-1 p-6 shadow-[0_24px_64px_rgba(0,0,0,0.4)] sm:p-8"
+      className={
+        isCard
+          ? 'relative mx-auto w-full max-w-[440px] rounded-[28px] border border-line bg-surface-1 p-6 shadow-[0_24px_64px_rgba(0,0,0,0.4)] sm:p-8'
+          : 'relative w-full'
+      }
     >
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label="Close"
-        className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-xl text-muted transition-colors hover:bg-surface-2 hover:text-fg"
-      >
-        <XMarkIcon className="h-5 w-5" />
-      </button>
+      {isCard && (
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-xl text-muted transition-colors hover:bg-surface-2 hover:text-fg"
+        >
+          <XMarkIcon className="h-5 w-5" />
+        </button>
+      )}
 
       {/* Sign in ↔ sign up swap inside the card: heading and form slide together. */}
       <AnimatePresence mode="wait" initial={false}>
@@ -45,11 +54,11 @@ export function AuthPanel({ view, onClose, children }: AuthPanelProps) {
           exit={{ opacity: 0, x: -20, transition: { duration: 0.15 } }}
         >
           {heading && (
-            <div className="mb-7 flex flex-col gap-1.5 pr-10">
-              <h2 className="font-display text-[28px] font-bold leading-tight tracking-[-0.02em] text-fg">
+            <div className={`mb-7 flex flex-col gap-1.5 ${isCard ? 'pr-10' : ''}`}>
+              <h2 className="font-display text-[28px] font-bold leading-tight tracking-[-0.02em] text-fg max-md:text-large-title">
                 {heading.title}
               </h2>
-              <p className="text-base text-muted">{heading.subtitle}</p>
+              <p className="text-base text-muted max-md:text-subhead">{heading.subtitle}</p>
             </div>
           )}
           {children}

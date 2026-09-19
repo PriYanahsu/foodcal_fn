@@ -12,34 +12,34 @@ import { MACRO_STYLES, type MacroKey } from '@/components/nutrition/macros';
 import { MealThumb } from '@/components/nutrition/MealThumb';
 import type { FoodLog } from '@/features/Nutrition/type';
 import { formatLogTime, mealTypeAndTime } from '@/features/Nutrition/utils/formatLogTime';
-import { formatPanelDate } from '../utils/calendar';
+import { formatLongDate, toApiDate } from '@/features/Nutrition/utils/toLocalDate';
 
 interface MealDetailProps {
   /** Null while the meal from the URL is still loading. */
   meal: FoodLog | null;
   /** The day's meals in time order — drives the previous/next arrows. */
   meals: FoodLog[];
-  date: string;
-  target: number;
+  /** Daily calorie target; null (no plan yet) hides the "% of target" figure. */
+  target: number | null;
   onSelectMeal: (id: string | null) => void;
 }
 
 const KCAL_PER_GRAM: Record<MacroKey, number> = { protein: 4, carbs: 4, fat: 9 };
 
 const ICON_BUTTON =
-  'flex h-9 w-9 items-center justify-center rounded-xl border border-line text-fg-2 transition-colors hover:bg-surface-2 hover:text-fg disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent';
+  'flex h-9 w-9 max-md:h-11 max-md:w-11 items-center justify-center rounded-xl border border-line text-fg-2 transition-colors hover:bg-surface-2 hover:text-fg disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent';
 
 function DetailRow({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-3 text-sm">
+    <div className="flex items-center justify-between gap-4 py-3 text-sm max-md:text-subhead">
       <span className="text-muted">{label}</span>
       <span className="text-right font-semibold text-fg">{children}</span>
     </div>
   );
 }
 
-/** A meal opened inside the day panel — replaces the old `/history/[date]/[mealId]` page. */
-export default function MealDetail({ meal, meals, date, target, onSelectMeal }: MealDetailProps) {
+/** A meal opened in place — in History's day panel and the dashboard's Meals card alike. */
+export default function MealDetail({ meal, meals, target, onSelectMeal }: MealDetailProps) {
   const index = meal ? meals.findIndex((m) => m.id === meal.id) : -1;
   const prev = index > 0 ? meals[index - 1] : null;
   const next = index >= 0 && index < meals.length - 1 ? meals[index + 1] : null;
@@ -49,7 +49,7 @@ export default function MealDetail({ meal, meals, date, target, onSelectMeal }: 
       <button
         type="button"
         onClick={() => onSelectMeal(null)}
-        className="-ml-2 inline-flex h-9 items-center gap-1.5 rounded-xl px-2 text-sm font-semibold text-fg-2 transition-colors hover:bg-surface-2 hover:text-fg"
+        className="-ml-2 inline-flex h-9 items-center gap-1.5 rounded-xl px-2 text-sm font-semibold max-md:h-11 max-md:text-subhead text-fg-2 transition-colors hover:bg-surface-2 hover:text-fg"
       >
         <ArrowLeftIcon className="h-4 w-4" />
         All meals
@@ -106,7 +106,7 @@ export default function MealDetail({ meal, meals, date, target, onSelectMeal }: 
     kcal: Math.round((grams ?? 0) * KCAL_PER_GRAM[key]),
   }));
   const macroKcal = macros.reduce((sum, m) => sum + m.kcal, 0);
-  const shareOfTarget = Math.round((calories / target) * 100);
+  const shareOfTarget = target ? Math.round((calories / target) * 100) : null;
   const confidence = meal.confidenceLevel ? Math.round(meal.confidenceLevel * 100) : null;
 
   return (
@@ -135,10 +135,10 @@ export default function MealDetail({ meal, meals, date, target, onSelectMeal }: 
       )}
 
       <div>
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted max-md:text-caption">
           {mealTypeAndTime(meal)}
         </p>
-        <h2 className="mt-1 font-display text-2xl font-bold leading-tight text-fg">
+        <h2 className="mt-1 font-display text-2xl font-bold leading-tight text-fg max-md:text-title">
           {meal.foodName}
         </h2>
       </div>
@@ -150,16 +150,20 @@ export default function MealDetail({ meal, meals, date, target, onSelectMeal }: 
           </span>
           <span className="ml-1.5 text-sm font-semibold text-muted">kcal</span>
         </p>
-        <p className="text-right text-xs text-muted">
-          <span className="block font-display text-lg font-bold tabular-nums text-fg">
-            {shareOfTarget}%
-          </span>
-          of your daily target
-        </p>
+        {shareOfTarget !== null && (
+          <p className="text-right text-xs text-muted">
+            <span className="block font-display text-lg font-bold tabular-nums text-fg">
+              {shareOfTarget}%
+            </span>
+            of your daily target
+          </p>
+        )}
       </div>
 
       <div className="flex flex-col gap-3">
-        <p className="text-[11px] font-bold uppercase tracking-wider text-muted">Macros</p>
+        <p className="text-[11px] font-bold uppercase tracking-wider text-muted max-md:text-caption">
+          Macros
+        </p>
         {/* Where the calories come from — one bar split by macro. */}
         {macroKcal > 0 && (
           <div className="flex h-2.5 gap-0.5 overflow-hidden rounded-full" aria-hidden="true">
@@ -176,7 +180,7 @@ export default function MealDetail({ meal, meals, date, target, onSelectMeal }: 
         )}
         <ul className="flex flex-col divide-y divide-line">
           {macros.map((m) => (
-            <li key={m.key} className="flex items-center gap-3 py-2.5 text-sm">
+            <li key={m.key} className="flex items-center gap-3 py-2.5 text-sm max-md:text-subhead">
               <span className={`h-2.5 w-2.5 shrink-0 rounded-[3px] ${MACRO_STYLES[m.key].dot}`} />
               <span className="flex-1 font-semibold text-fg">{MACRO_STYLES[m.key].label}</span>
               <span className="w-16 text-right tabular-nums text-muted">{m.kcal} kcal</span>
@@ -190,10 +194,12 @@ export default function MealDetail({ meal, meals, date, target, onSelectMeal }: 
       </div>
 
       <div className="flex flex-col">
-        <p className="text-[11px] font-bold uppercase tracking-wider text-muted">Details</p>
+        <p className="text-[11px] font-bold uppercase tracking-wider text-muted max-md:text-caption">
+          Details
+        </p>
         <div className="flex flex-col divide-y divide-line">
           <DetailRow label="Logged">
-            {formatPanelDate(date)}
+            {formatLongDate(toApiDate(meal.date))}
             {meal.createdAt && ` · ${formatLogTime(meal.createdAt)}`}
           </DetailRow>
           <DetailRow label="Meal">

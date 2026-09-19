@@ -1,5 +1,4 @@
 import type { FoodLog } from '../type';
-import { toApiDate } from './toLocalDate';
 
 export function formatLogTime(iso: string | null) {
   if (!iso) return '';
@@ -20,11 +19,6 @@ export function mealTypeAndTime(log: FoodLog) {
 export function byLogTime(a: FoodLog, b: FoodLog) {
   if (!a.createdAt || !b.createdAt) return a.createdAt ? -1 : b.createdAt ? 1 : 0;
   return a.createdAt.localeCompare(b.createdAt);
-}
-
-/** Opens the history calendar on the meal's day, with the meal expanded. */
-export function logDetailHref(log: FoodLog) {
-  return historyHref(toApiDate(log.date), log.id);
 }
 
 export function historyHref(date: string, mealId?: string) {

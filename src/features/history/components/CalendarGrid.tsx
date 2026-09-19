@@ -68,7 +68,7 @@ export default function CalendarGrid({
         {WEEKDAY_LABELS.map((day) => (
           <span
             key={day}
-            className="text-center text-[11px] font-bold uppercase tracking-wider text-muted md:px-2 md:text-left"
+            className="text-center text-caption font-bold uppercase tracking-wider text-muted md:px-2 md:text-left md:text-[11px]"
           >
             <span className="md:hidden">{day.slice(0, 2)}</span>
             <span className="hidden md:inline">{day}</span>
@@ -152,7 +152,7 @@ export default function CalendarGrid({
                 >
                   <span className="flex w-full items-center justify-center gap-1 md:justify-between">
                     <span
-                      className={`text-[13px] font-bold tabular-nums ${
+                      className={`text-[13px] font-bold tabular-nums max-md:text-subhead ${
                         isToday
                           ? 'flex h-6 min-w-6 items-center justify-center rounded-full bg-brand px-1 text-on-brand'
                           : isFuture
@@ -176,7 +176,7 @@ export default function CalendarGrid({
                       {loading ? (
                         <span className="mx-auto h-3 w-3/4 animate-pulse rounded bg-surface-3 md:mx-0" />
                       ) : style ? (
-                        <span className="text-center text-[11px] font-semibold tabular-nums text-fg-2 md:text-left md:text-[13px]">
+                        <span className="text-center text-caption font-semibold tabular-nums text-fg-2 md:text-left md:text-[13px]">
                           <span className="md:hidden">{compactKcal(calories)}</span>
                           <span className="hidden md:inline">
                             {calories.toLocaleString()}

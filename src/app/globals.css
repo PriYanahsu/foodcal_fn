@@ -147,6 +147,26 @@
   --font-ui: var(--font-figtree), 'Avenir Next', 'Segoe UI', sans-serif;
 }
 
+/* Phone type scale (iOS system sizes) — `text-caption` … `text-large-title`. Used with
+   `max-md:` so phones get native-feeling sizes while larger screens keep theirs.
+   Nothing on a phone goes below `caption` (12px). */
+@theme {
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+  --text-footnote: 0.8125rem;
+  --text-footnote--line-height: 1.125rem;
+  --text-subhead: 0.9375rem;
+  --text-subhead--line-height: 1.25rem;
+  --text-body: 1rem;
+  --text-body--line-height: 1.375rem;
+  --text-headline: 1.0625rem;
+  --text-headline--line-height: 1.375rem;
+  --text-title: 1.375rem;
+  --text-title--line-height: 1.75rem;
+  --text-large-title: 1.75rem;
+  --text-large-title--line-height: 2.125rem;
+}
+
 html,
 body {
   scroll-behavior: smooth;

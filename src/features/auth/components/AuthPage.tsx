@@ -4,12 +4,14 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { MotionConfig } from 'framer-motion';
 import { AUTH_PANEL_ID, LandingPage } from '@/features/landing/components/LandingPage';
+import { PHONE_QUERY, useMediaQuery } from '@/hooks/useMediaQuery';
 import { useAuth } from '../hooks/useAuth';
 import { AUTH_VIEW_PARAM, parseAuthView, type AuthView, type LinkableAuthView } from '../authView';
 import { AuthPanel } from './AuthPanel';
 import { LoginForm } from './LoginForm';
 import { SignupForm } from './SignupForm';
 import { AccountCreated } from './AccountCreated';
+import { MobileAuthScreen } from './MobileAuthScreen';
 
 /** Height of the landing page's sticky nav on phones. */
 const NAV_HEIGHT = 64;
@@ -28,6 +30,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialView = 'landing' }) =
   const [createdEmail, setCreatedEmail] = useState('');
   const router = useRouter();
   const { user } = useAuth();
+  // Phones get a full-screen sign-in view; larger screens keep the card in the hero.
+  const isPhone = useMediaQuery(PHONE_QUERY);
 
   useEffect(() => {
     if (user) {
@@ -49,7 +53,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialView = 'landing' }) =
     window.history[replace ? 'replaceState' : 'pushState'](null, '', url);
     setView(next);
 
-    if (next === 'landing') return;
+    // Phones show the form full screen, so there is nothing to scroll to.
+    if (next === 'landing' || window.matchMedia(PHONE_QUERY).matches) return;
 
     // Bring the card into view when it was opened from further down the page.
     // Desktop: the card sits in the first screen, so go to the top.
@@ -77,7 +82,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialView = 'landing' }) =
 
   const authPanel =
     view === 'landing' ? null : (
-      <AuthPanel view={view} onClose={close}>
+      <AuthPanel view={view} onClose={close} variant={isPhone ? 'screen' : 'card'}>
         {view === 'login' && <LoginForm initialEmail={createdEmail} onCreateAccount={goToSignup} />}
         {view === 'signup' && (
           <SignupForm
@@ -95,7 +100,20 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialView = 'landing' }) =
   return (
     <MotionConfig reducedMotion="user">
       <div className="min-h-screen w-full overflow-x-hidden bg-canvas font-ui text-fg antialiased selection:bg-brand selection:text-on-brand">
-        <LandingPage onSignIn={goToLogin} onGetStarted={goToSignup} authPanel={authPanel} />
+        <LandingPage
+          onSignIn={goToLogin}
+          onGetStarted={goToSignup}
+          authPanel={isPhone ? null : authPanel}
+        />
+        {isPhone && (
+          <MobileAuthScreen
+            open={view !== 'landing'}
+            onClose={close}
+            label={view === 'signup' ? 'Create your account' : 'Sign in'}
+          >
+            {authPanel}
+          </MobileAuthScreen>
+        )}
       </div>
     </MotionConfig>
   );

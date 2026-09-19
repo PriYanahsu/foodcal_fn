@@ -110,7 +110,7 @@ export default function WeightCard({
       </div>
 
       {current === null ? (
-        <p className="text-sm text-muted">
+        <p className="text-sm text-muted max-md:text-subhead">
           Add your weight in your plan to start tracking progress toward your goal.
         </p>
       ) : (
@@ -133,7 +133,7 @@ export default function WeightCard({
           {points.length >= 2 ? (
             <TrendChart points={points} target={targetWeight} />
           ) : (
-            <p className="rounded-2xl border border-dashed border-line-strong p-4 text-sm text-muted">
+            <p className="rounded-2xl border border-dashed border-line-strong p-4 text-sm text-muted max-md:text-subhead">
               Log your weight regularly to see your trend here.
             </p>
           )}

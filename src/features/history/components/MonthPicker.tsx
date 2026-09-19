@@ -62,7 +62,7 @@ export default function MonthPicker({
   return (
     <div ref={rootRef} className="relative">
       {/* Styled as a select field so it reads as "tap to change month". */}
-      <h1 className="font-display text-xl font-bold leading-tight tracking-tight text-fg md:text-3xl">
+      <h1 className="font-display text-title font-bold tracking-tight text-fg md:text-3xl">
         <button
           type="button"
           onClick={toggle}
@@ -143,7 +143,7 @@ export default function MonthPicker({
                       onSelect({ year, month });
                       setOpen(false);
                     }}
-                    className={`relative flex h-12 items-center justify-center rounded-xl text-sm font-semibold transition-colors ${
+                    className={`relative flex h-12 items-center justify-center rounded-xl text-sm font-semibold transition-colors max-md:text-subhead ${
                       isSelected
                         ? 'bg-brand text-on-brand'
                         : isFuture
@@ -174,7 +174,7 @@ export default function MonthPicker({
                   onToday();
                   setOpen(false);
                 }}
-                className="mt-3 h-11 w-full rounded-xl border border-line-strong text-sm font-semibold text-fg transition-colors hover:bg-surface-2 active:scale-[0.98]"
+                className="mt-3 h-11 w-full rounded-xl border border-line-strong text-sm font-semibold max-md:text-subhead text-fg transition-colors hover:bg-surface-2 active:scale-[0.98]"
               >
                 Jump to today
               </button>

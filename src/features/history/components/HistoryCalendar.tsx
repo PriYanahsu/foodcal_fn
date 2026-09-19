@@ -69,7 +69,7 @@ function SummaryStrip({ stats, loading }: { stats: Stat[]; loading: boolean }) {
               {stat.value}
             </span>
           )}
-          <span className="w-full truncate text-[11px] font-medium leading-tight text-muted">
+          <span className="w-full truncate text-caption font-medium text-muted">
             {stat.shortLabel}
           </span>
         </div>

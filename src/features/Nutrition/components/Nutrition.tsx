@@ -108,6 +108,7 @@ export default function Nutrition() {
                 loading={loading}
                 refreshing={refreshing}
                 isToday={isToday}
+                target={hasPlan ? goals.calories : null}
               />
             </motion.div>
           </div>

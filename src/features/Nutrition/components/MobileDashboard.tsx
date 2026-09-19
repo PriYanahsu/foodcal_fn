@@ -358,6 +358,7 @@ export default function MobileDashboard({
             loading={loading}
             refreshing={refreshing}
             isToday={isToday}
+            target={goal}
           />
         )}
         {panel === 'coach' && (

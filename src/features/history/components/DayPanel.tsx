@@ -1,19 +1,19 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
-import { CameraIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { CameraIcon } from '@heroicons/react/24/outline';
 import { buttonClass } from '@/components/ui/fc';
 import { CalorieRing, MACRO_STYLES, type MacroKey } from '@/components/nutrition/macros';
-import { MealThumb } from '@/components/nutrition/MealThumb';
+import { MealCard } from '@/components/nutrition/MealCard';
+import MealDetail from '@/components/nutrition/MealDetail';
+import { MealDrillIn } from '@/components/nutrition/MealDrillIn';
 import { ROUTES } from '@/constants/routes';
 import type { FoodLog, NutritionGoals } from '@/features/Nutrition/type';
-import { byLogTime, mealTypeAndTime } from '@/features/Nutrition/utils/formatLogTime';
+import { byLogTime } from '@/features/Nutrition/utils/formatLogTime';
 import type { HistoryStats } from '../type';
 import { dayStatus, formatPanelDate } from '../utils/calendar';
 import { DAY_STATUS_STYLES } from '../utils/Constants';
-import MealDetail from './MealDetail';
 
 interface DayPanelProps {
   date: string;
@@ -28,20 +28,6 @@ interface DayPanelProps {
   onSelectMeal: (id: string | null) => void;
 }
 
-/** Macro and the matching `FoodLog` field, in display order. */
-const MACRO_KEYS = [
-  ['protein', 'proteinG'],
-  ['carbs', 'carbohydrateG'],
-  ['fat', 'fatG'],
-] as const;
-
-/** Slide between the day overview and a meal, like a native push. */
-const SLIDE = {
-  initial: (dir: number) => ({ opacity: 0, x: dir * 24 }),
-  animate: { opacity: 1, x: 0 },
-  exit: (dir: number) => ({ opacity: 0, x: dir * -24 }),
-};
-
 function MacroRow({ macro, value, goal }: { macro: MacroKey; value: number; goal: number | null }) {
   const style = MACRO_STYLES[macro];
   const over = goal ? value - goal : 0;
@@ -49,7 +35,7 @@ function MacroRow({ macro, value, goal }: { macro: MacroKey; value: number; goal
 
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="flex items-baseline justify-between gap-3 text-[13px]">
+      <div className="flex items-baseline justify-between gap-3 text-[13px] max-md:text-subhead">
         <span className="inline-flex items-center gap-1.5 font-semibold text-fg">
           <span className={`h-2 w-2 rounded-[3px] ${style.dot}`} />
           {style.label}
@@ -96,16 +82,16 @@ function DayOverview({
           </span>
         </CalorieRing>
         <div className="min-w-0">
-          <h2 className="font-display text-xl font-bold leading-tight text-fg">
+          <h2 className="font-display text-xl font-bold leading-tight text-fg max-md:text-title">
             {isToday ? 'Today' : formatPanelDate(date)}
           </h2>
-          <p className="mt-0.5 text-[13px] text-muted">
+          <p className="mt-0.5 text-[13px] text-muted max-md:text-subhead">
             <span className="font-bold tabular-nums text-fg">{calories.toLocaleString()}</span> of{' '}
             {target.toLocaleString()} kcal
           </p>
           {style && (
             <span
-              className={`mt-1.5 inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-bold ${style.pill}`}
+              className={`mt-1.5 inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-bold max-md:text-caption ${style.pill}`}
             >
               {status === 'on'
                 ? 'On target'
@@ -142,7 +128,7 @@ function DayOverview({
               <p className="font-bold text-fg">
                 {isToday ? 'Nothing logged yet' : 'No meals this day'}
               </p>
-              <p className="max-w-[240px] text-sm text-muted">
+              <p className="max-w-[240px] text-sm text-muted max-md:text-subhead">
                 {isToday
                   ? 'Snap your first meal — it takes about 10 seconds.'
                   : 'Days you log show up here with every meal and macro.'}
@@ -170,44 +156,13 @@ function DayOverview({
               </div>
 
               <div className="flex flex-col gap-2.5">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-muted">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-muted max-md:text-caption">
                   {meals.length} meal{meals.length === 1 ? '' : 's'}
                 </p>
                 <ul className="flex flex-col gap-2.5">
                   {meals.map((meal) => (
                     <li key={meal.id}>
-                      <button
-                        type="button"
-                        onClick={() => onSelectMeal(String(meal.id))}
-                        className="group flex w-full items-center gap-3 rounded-2xl border border-line bg-surface-2 p-2.5 pr-3 text-left transition-all hover:-translate-y-0.5 hover:border-line-strong hover:shadow-[0_10px_24px_-16px_rgba(0,0,0,0.6)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/30"
-                      >
-                        <MealThumb log={meal} className="h-14 w-14" />
-                        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">
-                            {mealTypeAndTime(meal)}
-                          </span>
-                          <span className="line-clamp-2 text-[15px] font-semibold leading-snug text-fg">
-                            {meal.foodName}
-                          </span>
-                          <span className="flex gap-2.5 text-xs tabular-nums text-muted">
-                            {MACRO_KEYS.map(([key, field]) => (
-                              <span key={key} className="inline-flex items-center gap-1">
-                                <span
-                                  className={`h-1.5 w-1.5 rounded-full ${MACRO_STYLES[key].dot}`}
-                                />
-                                {Math.round(meal[field] ?? 0)}g
-                              </span>
-                            ))}
-                          </span>
-                        </span>
-                        <span className="flex shrink-0 flex-col items-end">
-                          <span className="font-display text-lg font-bold leading-none tabular-nums text-fg">
-                            {Math.round(meal.calories)}
-                          </span>
-                          <span className="text-[11px] font-medium text-muted">kcal</span>
-                        </span>
-                        <ChevronRightIcon className="h-4 w-4 shrink-0 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-fg" />
-                      </button>
+                      <MealCard meal={meal} onOpen={() => onSelectMeal(String(meal.id))} />
                     </li>
                   ))}
                 </ul>
@@ -224,53 +179,16 @@ export default function DayPanel(props: DayPanelProps) {
   const { openMeal, mealPending, onSelectMeal, date, target } = props;
   const meals = [...props.meals].sort(byLogTime);
   const showMeal = !!openMeal || mealPending;
-  const direction = showMeal ? 1 : -1;
-
-  // Opening another day or meal starts from the top, in the side panel and the phone sheet alike.
-  const anchorRef = useRef<HTMLSpanElement>(null);
-  const viewKey = showMeal ? `meal-${openMeal?.id}` : `day-${date}`;
-  useEffect(() => {
-    let el = anchorRef.current?.parentElement;
-    while (el && !/(auto|scroll)/.test(getComputedStyle(el).overflowY)) el = el.parentElement;
-    el?.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [viewKey]);
 
   return (
-    <>
-      <span ref={anchorRef} aria-hidden="true" />
-      <AnimatePresence mode="wait" initial={false} custom={direction}>
-        {showMeal ? (
-          <motion.div
-            key={`meal-${openMeal?.id ?? 'pending'}`}
-            custom={direction}
-            variants={SLIDE}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <MealDetail
-              meal={openMeal}
-              meals={meals}
-              date={date}
-              target={target}
-              onSelectMeal={onSelectMeal}
-            />
-          </motion.div>
-        ) : (
-          <motion.div
-            key={`day-${date}`}
-            custom={direction}
-            variants={SLIDE}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <DayOverview {...props} meals={meals} />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+    <MealDrillIn
+      showDetail={showMeal}
+      viewKey={showMeal ? `meal-${openMeal?.id ?? 'pending'}` : `day-${date}`}
+      detail={
+        <MealDetail meal={openMeal} meals={meals} target={target} onSelectMeal={onSelectMeal} />
+      }
+    >
+      <DayOverview {...props} meals={meals} />
+    </MealDrillIn>
   );
 }

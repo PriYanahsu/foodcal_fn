@@ -74,15 +74,17 @@ export default function CaloriesCard({
 
         <dl className="flex flex-1 flex-col gap-2.5 sm:hidden">
           <div className="flex items-baseline justify-between gap-2">
-            <dt className="text-sm text-muted">Eaten</dt>
+            <dt className="text-sm text-muted max-md:text-subhead">Eaten</dt>
             <dd className="font-display text-xl font-bold text-fg">{fmt(eaten)}</dd>
           </div>
           <div className="flex items-baseline justify-between gap-2 border-t border-line pt-2.5">
-            <dt className="text-sm text-muted">Goal</dt>
+            <dt className="text-sm text-muted max-md:text-subhead">Goal</dt>
             <dd className="font-display text-xl font-bold text-fg">{goal ? fmt(goal) : '—'}</dd>
           </div>
           <div className="flex items-baseline justify-between gap-2 border-t border-line pt-2.5">
-            <dt className="text-sm text-muted">{left !== null && left < 0 ? 'Over' : 'Left'}</dt>
+            <dt className="text-sm text-muted max-md:text-subhead">
+              {left !== null && left < 0 ? 'Over' : 'Left'}
+            </dt>
             <dd
               className={`font-display text-xl font-bold ${left !== null && left < 0 ? 'text-warn' : 'text-brand-ink'}`}
             >
@@ -95,7 +97,7 @@ export default function CaloriesCard({
       <div className="flex min-w-0 flex-col gap-5">
         <div className="hidden items-baseline justify-between gap-3 sm:flex">
           <h2 className="text-lg font-bold text-fg">Calories</h2>
-          <p className="text-sm text-muted">
+          <p className="text-sm text-muted max-md:text-subhead">
             <span className="font-bold text-fg">{fmt(eaten)}</span>
             {goal ? ` eaten of ${fmt(goal)}` : ' kcal eaten'}
           </p>

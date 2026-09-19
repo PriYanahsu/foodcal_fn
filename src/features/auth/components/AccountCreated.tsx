@@ -26,7 +26,7 @@ export function AccountCreated({ email, onContinue }: AccountCreatedProps) {
       </span>
 
       <div className="flex flex-col gap-2">
-        <h2 className="font-display text-[30px] font-bold leading-tight tracking-[-0.02em] text-fg">
+        <h2 className="font-display text-[30px] font-bold leading-tight tracking-[-0.02em] text-fg max-md:text-large-title">
           Account created
         </h2>
         <p className="text-base text-fg-2">Sign in to set up your plan.</p>

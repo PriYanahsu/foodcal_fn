@@ -23,7 +23,7 @@ export default function WaterCard({ userId, date }: WaterCardProps) {
     >
       <div className="flex items-baseline justify-between gap-3">
         <h2 className="text-lg font-bold text-fg">Water</h2>
-        <p className="text-sm text-muted" aria-live="polite">
+        <p className="text-sm text-muted max-md:text-subhead" aria-live="polite">
           <span className="font-bold text-fg">{litres(ml)}</span> of {litres(goalMl)}
         </p>
       </div>
