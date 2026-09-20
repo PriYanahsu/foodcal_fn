@@ -16,8 +16,8 @@ import { Spinner } from '@/components/ui/fc';
 import AvatarUpload from './AvatarUpload';
 import BodyGoalsFields from './BodyGoalsFields';
 import PlanTargets from './PlanTargets';
-import { ThemeSegmented } from './AppearanceCard';
-import { PushCompact } from './RemindersCard';
+import { ThemeSegmented } from '@/components/ui/ThemeSegmented';
+import { PushCompact } from '@/features/notifications/components/PushToggleRow';
 import { ACTIVITY_SHORT } from '../utils/Constants';
 import { getInitials, formatDate } from '../utils/helper';
 import { ProfileViewProps } from '../type';
@@ -207,9 +207,9 @@ export default function MobileProfile({
         </Tile>
 
         <Tile label="Theme" icon={<SwatchIcon className="h-4 w-4" />}>
-          <span className="my-auto block">
+          <div className="my-auto">
             <ThemeSegmented compact />
-          </span>
+          </div>
         </Tile>
 
         <Tile label="Reminders" icon={<BellIcon className="h-4 w-4" />}>
