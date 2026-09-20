@@ -10,7 +10,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { CalorieRing, MacroBar } from '@/components/nutrition/macros';
 import { ACTIVITY_LEVELS } from '../../utils/Constant';
-import type { Goals, Stats } from '../../type';
+import type { AiPlan, Goals, Stats } from '../../type';
 
 export const CONTROL =
   'h-12 w-full rounded-2xl border border-line bg-surface-2 px-4 text-base text-fg outline-none transition-colors placeholder:text-muted focus:border-brand';
@@ -359,12 +359,7 @@ export function ConsultStep({ stats, goals }: { stats: Stats; goals: Goals }) {
   );
 }
 
-export interface AiPlan {
-  status: string;
-  reasoning: string;
-  advice: string;
-  targets: { calories: number; protein: number; carbs: number; fats: number };
-}
+export type { AiPlan };
 
 /** Step 4 — the plan, drawn with the same ring and bars as the dashboard. */
 export function PlanStep({ aiResult }: { aiResult: AiPlan }) {

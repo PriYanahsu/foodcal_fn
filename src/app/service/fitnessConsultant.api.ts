@@ -1,6 +1,9 @@
-import { Goals, Stats } from '@/features/fitnessProfile/type';
+import { AiPlan, Goals, Stats } from '@/features/fitnessProfile/type';
 
-export const fitnessConsultantApi = async (stats: Stats, goals: Goals) => {
+export const fitnessConsultantApi = async (
+  stats: Stats,
+  goals: Goals
+): Promise<{ data: AiPlan }> => {
   const response = await fetch('/api/fitness-consultant', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

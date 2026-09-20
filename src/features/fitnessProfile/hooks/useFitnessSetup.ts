@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Goals, Stats } from '../type';
+import { AiPlan, Goals, Stats } from '../type';
 import { EMPTY_GOALS, EMPTY_STATS } from '../utils/Constant';
 import { FitnessDetails } from '@/features/userProfile';
 import { fitnessConsultantApi, getFitness, queryKeys, updateFitness } from '@/app/service';
@@ -12,7 +12,7 @@ export const useFitnessSetup = (userId: string, onComplete: () => void) => {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [step, setStep] = useState(1);
-  const [aiResult, setAiResult] = useState<any>(null);
+  const [aiResult, setAiResult] = useState<AiPlan | null>(null);
   const [toast, setToast] = useState<{
     message: string;
     detail?: string;
@@ -108,12 +108,27 @@ export const useFitnessSetup = (userId: string, onComplete: () => void) => {
   });
 
   const saveMutation = useMutation({
-    mutationFn: () =>
-      updateFitness({
-        ...stats,
-        ...goals,
-        ...aiResult,
-      } as FitnessDetails),
+    mutationFn: () => {
+      // The API speaks camelCase FitnessDetails while the wizard state is
+      // snake_case and the coach nests its numbers under `targets`, so the
+      // fields are mapped by hand: a spread here silently drops every target.
+      const targets = aiResult?.targets;
+      return updateFitness({
+        gender: stats.gender,
+        age: Number(stats.age),
+        height: Number(stats.height),
+        weight: Number(stats.weight),
+        activityLevel: stats.activity_level,
+        objective: goals.objective,
+        targetWeightKg: Number(goals.target_weight),
+        targetDate: goals.target_date,
+        dailyCalorieTarget: targets?.calories,
+        dailyProteinTargetG: targets?.protein,
+        dailyCarbsTargetG: targets?.carbs,
+        dailyFatTargetG: targets?.fats,
+        aiCoachAdvice: aiResult?.advice,
+      } as FitnessDetails);
+    },
     onSuccess: async ({ data, status }) => {
       if (status !== 200 || !data) return;
       await queryClient.invalidateQueries({ queryKey: queryKeys.fitness(userId) });

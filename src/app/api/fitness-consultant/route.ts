@@ -1,214 +1,213 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI, type GenerateContentResult } from '@google/generative-ai';
+import { SchemaType, type ResponseSchema } from '@google/generative-ai';
+import { TLS_HINT, generateJson, getErrorMessage, isTlsCertError } from '@/lib/gemini/client';
+import { computePlan, normalizePlanInput, type ComputedPlan } from '@/lib/nutrition/plan';
 
 export const runtime = 'nodejs';
 
-const FALLBACK_MODELS = [
-  'gemini-2.5-flash',
-  'gemini-2.0-flash',
-  'gemini-2.5-flash-lite',
-  'gemini-1.5-flash',
-];
+/**
+ * Only the words come from the model. Status, calories and macros are computed
+ * in `computePlan`, so the coach can never invent a number the app then stores.
+ */
+const COACH_SCHEMA: ResponseSchema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    reasoning: {
+      type: SchemaType.STRING,
+      description:
+        'Two sentences, max 45 words, plain language: why this calorie target fits this body and this deadline. If the plan was rejected, say what is unsafe and name the concrete fix (the realistic date or a gentler target weight) using only the numbers supplied.',
+    },
+    advice: {
+      type: SchemaType.STRING,
+      description:
+        'Three to four warm, motivating sentences of coaching the user can act on tomorrow morning. Speak as a partner ("we", "let us"), name one or two concrete habits that fit their protein target and activity level, and end on encouragement.',
+    },
+  },
+  required: ['reasoning', 'advice'],
+};
 
-function getApiKey(): string {
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) {
-    throw new Error('GEMINI_API_KEY is missing in environment variables');
+const COACH_SYSTEM_INSTRUCTION = `You are an elite strength-and-nutrition coach writing the hand-off note for a client's new plan.
+
+You are given a plan that has ALREADY been calculated by a validated engine (Mifflin-St Jeor BMR, activity multiplier, 7700 kcal per kg of body mass, safe-rate and calorie-floor guard rails). Your job is language, never arithmetic.
+
+HARD RULES
+- Never state a calorie, macro, weight, rate or date value that is not present in the plan data you are given. Never recalculate or "correct" the engine.
+- Never contradict the status: if it is "approved", the plan is sound and you are encouraging; if it is "rejected", you are kind but clear that the deadline or target is unsafe, and you point to the realistic alternative given in the data.
+- No medical claims, no diagnoses, no supplement or medication advice, no fasting or detox protocols, no body shaming, and never encourage eating below the calorie target.
+- If a flag warns about age, BMI or a clinician, weave a single calm sentence about checking in with a doctor or dietitian. Do not make it the whole message.
+
+VOICE
+- Warm, specific, human. Positive psychology and motivational interviewing: affirm what they are already doing, frame the plan as a partnership, celebrate the first small win.
+- No filler, no emoji, no markdown, no exclamation-mark spam. Plain sentences a tired person can read at night.
+- Tie the advice to THIS person: their objective, their activity level, their protein target, the length of their runway.`;
+
+function describeFlag(flag: string): string {
+  switch (flag) {
+    case 'activity_level_missing_assumed_sedentary':
+      return 'Activity level was not provided, so the engine assumed sedentary (1.2).';
+    case 'calorie_floor_applied':
+      return 'The calorie floor was reached, so the deficit is smaller than the deadline would need.';
+    case 'target_date_too_soon':
+      return 'The target date is less than a week away.';
+    case 'rate_too_aggressive_loss':
+      return 'The requested weekly weight loss is faster than the safe limit.';
+    case 'rate_too_aggressive_gain':
+      return 'The requested weekly weight gain is faster than the safe limit.';
+    case 'target_weight_below_healthy_bmi':
+      return 'The target weight falls below a healthy BMI (17.5).';
+    case 'target_weight_above_healthy_bmi':
+      return 'The target weight sits above a healthy BMI for a gaining phase.';
+    case 'minor_requires_clinician_guidance':
+      return 'The user is under 18, so a clinician or dietitian should sign off on the plan.';
+    case 'starting_bmi_obese_range':
+      return 'Starting BMI is in the obese range; steady, sustainable change matters more than speed.';
+    default:
+      return flag;
   }
-  return key;
 }
 
-function getErrorMessage(error: unknown): string {
-  if (!(error instanceof Error)) return String(error);
+/** The facts the coach is allowed to talk about, in a compact, unambiguous shape. */
+function buildCoachContext(
+  plan: ComputedPlan,
+  input: ReturnType<typeof normalizePlanInput>['input']
+) {
+  const { metrics, targets } = plan;
 
-  const cause = (error as Error & { cause?: unknown }).cause;
-  const causeErr = cause instanceof Error ? cause : undefined;
-  const code =
-    causeErr && 'code' in causeErr ? String((causeErr as NodeJS.ErrnoException).code) : undefined;
-
-  const parts = [error.message];
-  if (causeErr?.message && causeErr.message !== error.message) parts.push(causeErr.message);
-  if (code) parts.push(code);
-
-  return parts.join(': ');
+  return {
+    status: plan.status,
+    direction: plan.direction,
+    client: {
+      gender: input.gender || 'unspecified',
+      age_years: input.age,
+      height_cm: input.heightCm,
+      current_weight_kg: input.weightKg,
+      target_weight_kg: input.targetWeightKg,
+      activity_level: input.activityLevel || 'not provided',
+      objective: input.objective || plan.direction,
+      target_date: input.targetDate,
+      today: new Date().toISOString().slice(0, 10),
+    },
+    energy: {
+      bmr_kcal: metrics.bmr,
+      tdee_kcal: metrics.tdee,
+      activity_factor: metrics.activityFactor,
+      daily_calorie_target: targets.calories,
+      daily_delta_vs_tdee_kcal: metrics.dailyDeltaKcal,
+    },
+    macros_g_per_day: {
+      protein: targets.protein,
+      carbs: targets.carbs,
+      fats: targets.fats,
+      protein_g_per_kg_goal_weight: metrics.proteinPerKg,
+    },
+    timeline: {
+      total_change_kg: metrics.totalChangeKg,
+      weeks_until_target_date: metrics.weeksAvailable,
+      required_weekly_change_kg: metrics.requiredWeeklyKg,
+      safe_weekly_limit_kg: metrics.safeWeeklyLimitKg,
+      planned_weekly_change_kg: metrics.plannedWeeklyKg,
+      realistic_weeks_at_this_target: metrics.projectedWeeks,
+      realistic_completion_date: metrics.projectedDate,
+    },
+    body_composition: { current_bmi: metrics.bmi, target_bmi: metrics.targetBmi },
+    warnings: plan.flags.map(describeFlag),
+  };
 }
 
-function isTlsCertError(error: unknown): boolean {
-  const message = getErrorMessage(error).toLowerCase();
-  return (
-    message.includes('unable to verify the first certificate') ||
-    message.includes('unable_to_verify_leaf_signature') ||
-    message.includes('cert') && message.includes('self-signed')
-  );
-}
+/** Used when Gemini is unreachable so the user still gets a usable, correct plan. */
+function fallbackCopy(plan: ComputedPlan): { reasoning: string; advice: string } {
+  const { metrics, targets } = plan;
 
-function isRetryableModelError(error: unknown): boolean {
-  const message = getErrorMessage(error).toLowerCase();
-  const status =
-    typeof error === 'object' &&
-    error !== null &&
-    'status' in error &&
-    typeof (error as { status: unknown }).status === 'number'
-      ? (error as { status: number }).status
-      : undefined;
-
-  return (
-    status === 404 ||
-    status === 429 ||
-    message.includes('404') ||
-    message.includes('429') ||
-    message.includes('not found') ||
-    message.includes('is not found') ||
-    message.includes('quota') ||
-    message.includes('rate limit') ||
-    message.includes('resource_exhausted') ||
-    message.includes('deprecated') ||
-    message.includes('no longer available') ||
-    message.includes('not supported') ||
-    message.includes('unavailable')
-  );
-}
-
-async function generateWithFallback(
-  genAI: GoogleGenerativeAI,
-  prompt: string
-): Promise<GenerateContentResult> {
-  const failures: string[] = [];
-
-  for (const modelName of FALLBACK_MODELS) {
-    console.log(`[fitness-consultant] Trying model: ${modelName}`);
-
-    try {
-      const model = genAI.getGenerativeModel({
-        model: modelName,
-        generationConfig: { responseMimeType: 'application/json' },
-      });
-      const result = await model.generateContent(prompt);
-      console.log(`[fitness-consultant] Success with model: ${modelName}`);
-      return result;
-    } catch (error: unknown) {
-      const message = getErrorMessage(error);
-      console.error(`[fitness-consultant] Model failed (${modelName}): ${message}`);
-      failures.push(`${modelName}: ${message}`);
-
-      if (isTlsCertError(error)) {
-        throw error;
-      }
-
-      if (isRetryableModelError(error)) {
-        continue;
-      }
-    }
+  if (plan.status === 'rejected') {
+    return {
+      reasoning:
+        `That pace asks for ${Math.abs(metrics.requiredWeeklyKg)} kg a week, and the safe ceiling for your body is ` +
+        `${metrics.safeWeeklyLimitKg} kg. ${metrics.projectedDate ? `Moving the date to ${metrics.projectedDate} makes it work.` : 'Try a gentler target weight or a later date.'}`,
+      advice:
+        'Nothing here is a setback — the goal is right, the runway is just short. Pick a date a little further out and the same habits will get you there without wrecking your energy. Let us set it up so the plan survives a busy week.',
+    };
   }
 
-  throw new Error(
-    `All Gemini models failed (${failures.length}/${FALLBACK_MODELS.length}). ${failures.join(' | ')}`
-  );
+  return {
+    reasoning:
+      `Your maintenance sits near ${metrics.tdee} kcal, so ${targets.calories} kcal a day moves you about ` +
+      `${Math.abs(metrics.plannedWeeklyKg)} kg per week — steady enough to hold on to muscle.`,
+    advice:
+      `Let us keep it simple: hit ${targets.protein} g of protein and stay close to ${targets.calories} kcal most days, and the rest takes care of itself. ` +
+      'Build each meal around a protein source first, then fill in carbs around the parts of the day you move most. ' +
+      'Consistency across the week beats a perfect day, so log the meal even when it is not the one you planned.',
+  };
 }
 
 export async function POST(req: Request) {
-  console.log('--- Fitness Consultant API Started ---');
   try {
-    const body = await req.json();
-    console.log('Request Body:', JSON.stringify(body, null, 2));
-
-    const { stats, goals } = body;
+    const body = await req.json().catch(() => null);
+    const { stats, goals } = (body ?? {}) as {
+      stats?: Record<string, unknown>;
+      goals?: Record<string, unknown>;
+    };
 
     if (!stats || !goals) {
       return NextResponse.json({ error: 'User stats and goals are required' }, { status: 400 });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
-      console.error('CRITICAL: GEMINI_API_KEY is missing');
-      return NextResponse.json({ error: 'AI Service configuration error' }, { status: 500 });
-    }
-
-    console.log('API Key present (starts with):', process.env.GEMINI_API_KEY.substring(0, 10));
-
-    let responseText = '';
-    try {
-      const apiKey = getApiKey();
-      const genAI = new GoogleGenerativeAI(apiKey);
-
-      const prompt = `
-            You are a highly intelligent, world-class elite fitness coach and nutritionist who specializes in POSITIVE PSYCHOLOGY and MOTIVATIONAL INTERVIEWING.
-            Your goal is to be a supportive, empathetic, and encouraging partner to the user.
-            
-            USER STATS:
-            - Gender: ${stats.gender}
-            - Age: ${stats.age}
-            - Height: ${stats.height} cm
-            - Current Weight: ${stats.weight} kg
-            - Activity Level: ${stats.activity_level}
-            
-            USER GOALS:
-            - Objective: ${goals.objective}
-            - Target Weight: ${goals.target_weight} kg
-            - Target Date: ${goals.target_date}
-            
-            INSTRUCTIONS:
-            1. Feasibility Check: Is the goal realistic and safe?
-            2. Calculations: TDEE, daily calories, and macro split (P/C/F in grams).
-            3. Expert Advice (THE MOST IMPORTANT PART): 
-               - Use human-like, warm, and highly encouraging language.
-               - Instead of "You need to eat more," say "You're doing great! A small nutrient-dense addition to your next meal will help you stay perfectly fueled for your goals."
-               - Focus on "WE" and "Partnership" (e.g., "Let's hit this target together!").
-               - Use positive reinforcement (celebrate what they've already achieved).
-               - Keep it to 3-4 powerful, motivational sentences.
-
-            OUTPUT FORMAT:
-            Return ONLY a JSON object:
-            {
-                "status": "approved" | "rejected",
-                "reasoning": "Quick explanation here",
-                "targets": { "calories": number, "protein": number, "carbs": number, "fats": number },
-                "advice": "Empathetic and motivational coaching advice here"
-            }
-            Do not include any conversational filler outside the JSON.
-            `;
-
-      console.log('--- Calling Gemini ---');
-      const result = await generateWithFallback(genAI, prompt);
-      responseText = result.response.text();
-      console.log('--- Gemini Success ---');
-    } catch (geminiError: unknown) {
-      console.error('Gemini Error:', geminiError);
-      const message = getErrorMessage(geminiError);
-
-      if (isTlsCertError(geminiError)) {
-        return NextResponse.json(
-          {
-            error:
-              'AI Service Error: TLS certificate verification failed (UNABLE_TO_VERIFY_LEAF_SIGNATURE). Restart the Next server via npm run dev so Node uses --use-system-ca (Windows antivirus HTTPS scanning).',
-          },
-          { status: 500 }
-        );
-      }
-
-      return NextResponse.json({ error: `AI Service Error: ${message}` }, { status: 500 });
-    }
-
-    let cleanContent = responseText;
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      cleanContent = jsonMatch[0];
-    }
-
-    try {
-      const analysis = JSON.parse(cleanContent);
-      return NextResponse.json({ data: analysis });
-    } catch {
-      console.error('JSON Parse Error. Raw content:', responseText);
+    const { input, errors } = normalizePlanInput(stats, goals);
+    if (errors.length > 0) {
       return NextResponse.json(
-        {
-          error: 'Failed to parse AI response. The coach was a bit too talkative.',
-          raw: responseText,
-        },
-        { status: 500 }
+        { error: errors.map((e) => e.message).join(' '), fields: errors },
+        { status: 400 }
       );
     }
+
+    // Calories, macros and feasibility are decided here, not by the model.
+    const plan = computePlan(input);
+    const context = buildCoachContext(plan, input);
+
+    let copy = fallbackCopy(plan);
+    let degraded = true;
+    let model: string | null = null;
+
+    try {
+      const result = await generateJson<{ reasoning: string; advice: string }>({
+        label: 'fitness-consultant',
+        systemInstruction: COACH_SYSTEM_INSTRUCTION,
+        parts: [
+          'Write the hand-off note for this client. PLAN DATA (the only numbers you may use):',
+          JSON.stringify(context, null, 2),
+        ],
+        schema: COACH_SCHEMA,
+        task: 'text',
+        legacyTemperature: 0.6,
+      });
+
+      if (result.data?.reasoning?.trim() && result.data?.advice?.trim()) {
+        copy = { reasoning: result.data.reasoning.trim(), advice: result.data.advice.trim() };
+        degraded = false;
+        model = result.model;
+      }
+    } catch (aiError: unknown) {
+      if (isTlsCertError(aiError)) {
+        return NextResponse.json({ error: TLS_HINT }, { status: 500 });
+      }
+      // The plan itself is still valid, so ship it with the written fallback.
+      console.error('[fitness-consultant] coaching copy failed:', getErrorMessage(aiError));
+    }
+
+    return NextResponse.json({
+      data: {
+        status: plan.status,
+        reasoning: copy.reasoning,
+        advice: copy.advice,
+        targets: plan.targets,
+        metrics: plan.metrics,
+        flags: plan.flags,
+        /** true when the numbers are real but the coaching copy is the offline fallback. */
+        degraded,
+        model,
+      },
+    });
   } catch (error: unknown) {
-    console.error('Fitness Consultant Error:', error);
+    console.error('[fitness-consultant] failed:', error);
     return NextResponse.json(
       { error: getErrorMessage(error) || 'Failed to consult fitness coach' },
       { status: 500 }
