@@ -1,29 +1,48 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
-import { motion } from 'framer-motion';
-import { useFoodScan } from '../hooks/useFoodScan';
-import { CameraInput } from './CameraInput';
-import { NutritionCard } from './NutritionCard';
-import { AiScanOverlay } from './AiScanOverlay';
-import { SuccessToast } from '@/components/ui/SuccessToast';
-import { ROUTES } from '@/constants/routes';
+import React, { useCallback, useState } from 'react';
+import { motion, MotionConfig } from 'framer-motion';
 import {
-  XMarkIcon,
-  SparklesIcon,
-  CameraIcon,
-  PhotoIcon,
-  CpuChipIcon,
-  EyeIcon,
   ArrowPathIcon,
+  ArrowUpTrayIcon,
+  InformationCircleIcon,
+  SparklesIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
+import { BottomSheet } from '@/components/ui/BottomSheet';
+import { SuccessToast } from '@/components/ui/SuccessToast';
+import { buttonClass } from '@/components/ui/fc';
+import { ROUTES } from '@/constants/routes';
+import { useFoodScan } from '../hooks/useFoodScan';
+import { useScanDraft } from '../hooks/useScanDraft';
+import { AiScanOverlay } from './AiScanOverlay';
+import { CameraInput } from './CameraInput';
+import { CaptureStage } from './CaptureStage';
+import { PhotoStage } from './PhotoStage';
+import { ReviewPanel } from './ReviewPanel';
+import { PanelLabel, PanelSection, ScanPanel } from './ScanPanel';
+import { ScanStepper } from './ScanStepper';
+
+type Stage = 'photo' | 'context' | 'analyzing' | 'review';
+
+const TITLES: Record<Stage, string> = {
+  photo: 'Snap your meal',
+  context: 'Anything we should know?',
+  analyzing: 'Reading your meal…',
+  review: 'Check what we found',
+};
+
+/** `photo` and `context` are both step 1 — the photo isn't committed until the scan runs. */
+const STEP_OF: Record<Stage, number> = { photo: 0, context: 0, analyzing: 1, review: 1 };
 
 export const FoodScanPage: React.FC = () => {
   const { scanImage, saveFoodLog, isLoading, isSaving, nutritionData, error, reset } =
     useFoodScan();
+  const draft = useScanDraft(nutritionData);
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [prompt, setPrompt] = useState('');
+  const [notesOpen, setNotesOpen] = useState(false);
   const [toast, setToast] = useState<{
     message: string;
     detail?: string;
@@ -32,13 +51,13 @@ export const FoodScanPage: React.FC = () => {
   } | null>(null);
 
   const clearToast = useCallback(() => setToast(null), []);
+  const closeNotes = useCallback(() => setNotesOpen(false), []);
 
   const handleImageSelect = (file: File) => {
     setSelectedFile(file);
+    reset();
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreview(reader.result as string);
-    };
+    reader.onloadend = () => setPreview(reader.result as string);
     reader.readAsDataURL(file);
   };
 
@@ -49,404 +68,204 @@ export const FoodScanPage: React.FC = () => {
     reset();
   };
 
+  const handleScan = () => {
+    if (!selectedFile) return;
+    draft.restart();
+    scanImage(selectedFile, prompt);
+  };
+
   const handleLogMeal = async () => {
-    if (!selectedFile || !nutritionData) return;
-    const foodName = nutritionData.foodName;
-    const success = await saveFoodLog(selectedFile, nutritionData);
+    if (!selectedFile || !draft.meal) return;
+    const { foodName, mealType } = draft.meal;
+    const success = await saveFoodLog(selectedFile, draft.meal);
     if (!success) return;
     setToast({
-      message: 'Meal logged!',
-      detail: `${foodName || 'Your meal'} was moved to History. Tap to see it there.`,
+      message: `Logged to ${mealType}`,
+      detail: `${foodName || 'Your meal'} is in your history. Tap to see it there.`,
       actionLabel: 'View in History',
       actionHref: ROUTES.HISTORY,
     });
     handleReset();
   };
 
-  const handleScan = () => {
-    if (selectedFile) {
-      scanImage(selectedFile, prompt);
-    }
-  };
-
-  const stage = !preview ? 'idle' : isLoading ? 'analyzing' : nutritionData ? 'result' : 'confirm';
-
-  const isConfirm = stage === 'confirm';
-  const isResult = stage === 'result';
-  const fitScreen = isConfirm || isResult;
+  const stage: Stage = !preview
+    ? 'photo'
+    : isLoading
+      ? 'analyzing'
+      : nutritionData
+        ? 'review'
+        : 'context';
 
   return (
-    <div
-      className={`page-container relative flex flex-col items-center animate-fade-in md:pb-10 ${
-        fitScreen
-          ? 'pb-3 max-md:h-[calc(100dvh-3.75rem)] max-md:max-h-[calc(100dvh-3.75rem)] max-md:overflow-hidden max-md:pb-[max(0.75rem,env(safe-area-inset-bottom))]'
-          : 'pb-28'
-      }`}
-    >
-      {/* Ambient AI glow */}
-      <div className="pointer-events-none absolute inset-x-0 -top-10 h-64 bg-[radial-gradient(ellipse_at_center,rgba(118,185,0,0.12),transparent_70%)]" />
-
-      {!preview && (
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="relative z-10 text-center space-y-4 mb-8 w-full max-w-lg"
-        >
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] text-[10px] font-black uppercase tracking-[0.22em] border border-[var(--primary)]/25">
-            <CpuChipIcon className="w-3.5 h-3.5" />
-            AI Food Vision
-          </div>
-          <h1 className="text-3xl md:text-4xl font-black tracking-tighter leading-none text-[var(--foreground)]">
-            Scan. Predict.
-            <br />
-            <span className="text-[var(--primary)]">Know your macros.</span>
-          </h1>
-          <p className="text-[var(--text-muted)] text-sm md:text-base font-medium max-w-md mx-auto leading-relaxed">
-            Point at any meal — AI identifies ingredients, portions, and calories in seconds.
-          </p>
-        </motion.div>
-      )}
-
-      <div
-        className={`relative z-10 w-full mx-auto ${preview ? 'max-w-lg md:max-w-4xl lg:max-w-5xl' : 'max-w-lg'} ${
-          fitScreen ? 'max-md:flex-1 max-md:min-h-0 max-md:flex max-md:flex-col' : ''
-        }`}
-      >
-        {!preview ? (
-          <CameraInput onImageSelect={handleImageSelect} isLoading={isLoading}>
-            {(openCamera, openUpload) => (
-              <div className="space-y-6 flex flex-col items-center">
-                <button
-                  onClick={openCamera}
-                  disabled={isLoading}
-                  className="w-full aspect-[4/3] rounded-[2rem] border border-[var(--card-border)] bg-[var(--card-bg)] flex flex-col items-center justify-center p-4 text-center relative overflow-hidden group transition-all active:scale-[0.985] outline-none shadow-xl hover:border-[var(--primary)]/40"
-                >
-                  {/* Idle scan atmosphere */}
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(118,185,0,0.08),transparent_55%)]" />
-                  <div
-                    className="absolute inset-0 opacity-30"
-                    style={{
-                      backgroundImage:
-                        'linear-gradient(to right, rgba(118,185,0,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(118,185,0,0.06) 1px, transparent 1px)',
-                      backgroundSize: '32px 32px',
-                    }}
-                  />
-                  <div className="scan-beam opacity-60" />
-
-                  {/* Reticle corners */}
-                  <div className="absolute top-5 left-5 w-9 h-9 border-t-2 border-l-2 border-[var(--primary)] rounded-tl-xl" />
-                  <div className="absolute top-5 right-5 w-9 h-9 border-t-2 border-r-2 border-[var(--primary)] rounded-tr-xl" />
-                  <div className="absolute bottom-5 left-5 w-9 h-9 border-b-2 border-l-2 border-[var(--primary)] rounded-bl-xl" />
-                  <div className="absolute bottom-5 right-5 w-9 h-9 border-b-2 border-r-2 border-[var(--primary)] rounded-br-xl" />
-
-                  <div className="absolute top-5 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--surface-strong)] border border-[var(--card-border)] backdrop-blur-sm">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] animate-pulse" />
-                    <span className="text-[9px] font-black uppercase tracking-[0.18em] text-[var(--foreground)]">
-                      Ready
-                    </span>
-                  </div>
-
-                  <div className="space-y-4 z-10">
-                    <div className="relative mx-auto w-fit">
-                      <div className="absolute inset-0 rounded-3xl bg-[var(--primary)]/25 blur-xl group-hover:bg-[var(--primary)]/40 transition-all" />
-                      <div className="relative p-5 rounded-3xl bg-[var(--primary)]/10 border border-[var(--primary)]/30 text-[var(--primary)] transition-all group-hover:scale-110 group-hover:bg-[var(--primary)] group-hover:text-black group-hover:border-[var(--primary)]">
-                        <CameraIcon className="w-10 h-10" />
-                      </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      <p className="font-black text-xl tracking-tight text-[var(--foreground)]">Open AI Camera</p>
-                      <p className="text-[var(--text-muted)] text-xs font-medium">
-                        Center your plate inside the frame
-                      </p>
-                    </div>
-                  </div>
-                </button>
-
-                <div className="grid grid-cols-3 gap-2 w-full">
-                  {[
-                    { icon: EyeIcon, label: 'Detect' },
-                    { icon: SparklesIcon, label: 'Predict' },
-                    { icon: CpuChipIcon, label: 'Macros' },
-                  ].map(({ icon: Icon, label }) => (
-                    <div
-                      key={label}
-                      className="rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] py-3 px-2 flex flex-col items-center gap-1.5 shadow-sm"
-                    >
-                      <Icon className="w-4 h-4 text-[var(--primary)]" />
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--foreground)]">
-                        {label}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex items-center gap-3 w-full">
-                  <button
-                    onClick={openUpload}
-                    disabled={isLoading}
-                    className="flex-1 py-4 px-5 rounded-2xl bg-[var(--btn-primary)] text-black text-sm font-bold tracking-tight hover:bg-[var(--btn-primary-hover)] transition-all flex items-center justify-center gap-2"
-                  >
-                    <PhotoIcon className="w-4 h-4 opacity-70" />
-                    Gallery
-                  </button>
-                  <button
-                    onClick={openCamera}
-                    disabled={isLoading}
-                    className="flex-[1.3] py-4 px-5 rounded-2xl bg-[var(--btn-primary)] text-black text-sm font-black tracking-tight shadow-[0_0_28px_rgba(118,185,0,0.25)] hover:shadow-[0_0_40px_rgba(118,185,0,0.4)] transition-all flex items-center justify-center gap-2"
-                  >
-                    <CameraIcon className="w-4 h-4" />
-                    Capture
-                  </button>
-                </div>
-              </div>
-            )}
-          </CameraInput>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={
-              fitScreen
-                ? 'flex flex-col w-full gap-2.5 md:gap-5 max-md:flex-1 max-md:min-h-0'
-                : 'space-y-5'
-            }
-          >
-            {/* Stage header */}
-            <div className="flex items-center justify-between gap-3 px-1 shrink-0">
-              <div>
-                <p className="text-[9px] font-black uppercase tracking-[0.22em] text-[var(--primary)] mb-0.5 md:mb-1">
-                  {stage === 'analyzing'
-                    ? 'Neural Pass'
-                    : stage === 'result'
-                      ? 'Prediction Ready'
-                      : 'Pre-Scan'}
+    <MotionConfig reducedMotion="user">
+      <CameraInput onImageSelect={handleImageSelect} isLoading={isLoading}>
+        {(openCamera, openUpload) => (
+          // One screen everywhere. Phones: the viewport minus the top bar (64px), the tab bar
+          // (68px + inset) and the 36px the tab bar's camera button sticks up above it —
+          // without that last bit the bottom row ends up underneath it. Desktop has none of
+          // those bars, so it gets the whole viewport; the photo absorbs the slack, which is
+          // what keeps a big screen from ending in a void.
+          <div className="mx-auto flex h-[calc(100dvh-4rem-68px-2.25rem-env(safe-area-inset-bottom))] min-h-[440px] w-full max-w-[1240px] flex-col gap-3 bg-canvas px-4 py-3 font-ui text-fg md:h-dvh md:min-h-[620px] md:max-w-[1440px] md:gap-5 md:px-8 md:py-8">
+            <header className="flex shrink-0 items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="mb-1 hidden text-[13px] font-semibold text-muted md:block">
+                  Scan a meal
                 </p>
-                <h2 className="text-base md:text-xl font-black tracking-tight">
-                  {stage === 'analyzing'
-                    ? 'AI is reading your meal'
-                    : stage === 'result'
-                      ? 'Nutrition unlocked'
-                      : 'Guide the model'}
-                </h2>
+                <h1 className="truncate font-display text-[22px] font-bold leading-tight tracking-[-0.02em] md:text-[26px]">
+                  {TITLES[stage]}
+                </h1>
               </div>
-              {!isLoading && (
-                <button
-                  onClick={handleReset}
-                  className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[var(--card-border)] bg-[var(--surface)] text-[11px] font-bold uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--foreground)] hover:border-[var(--primary)]/40 hover:bg-[var(--surface-strong)] active:scale-[0.97] transition-all"
-                >
-                  <ArrowPathIcon className="w-3.5 h-3.5" />
-                  Reset
-                </button>
-              )}
-            </div>
+              {/* Kept left of the floating notification bell on desktop. */}
+              <div className="flex shrink-0 items-center md:mr-14">
+                <ScanStepper current={STEP_OF[stage]} />
+              </div>
+            </header>
 
-            <div
-              className={
-                fitScreen
-                  ? 'flex flex-col gap-2.5 md:gap-5 max-md:flex-1 max-md:min-h-0'
-                  : 'space-y-5'
-              }
-            >
-              <div
-                className={`grid grid-cols-1 md:grid-cols-2 gap-2.5 md:gap-6 lg:gap-8 md:items-stretch ${
-                  isConfirm
-                    ? 'max-md:flex-1 max-md:min-h-0 max-md:grid-rows-[6fr_4fr]'
-                    : isResult
-                      ? 'max-md:flex-1 max-md:min-h-0 max-md:grid-rows-[5fr_5fr]'
-                      : ''
-                }`}
+            {stage === 'photo' ? (
+              <CaptureStage onOpenCamera={openCamera} onOpenUpload={openUpload} />
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                className="flex min-h-0 flex-1 flex-col gap-3 md:grid md:grid-cols-[minmax(0,1fr)_minmax(340px,440px)] md:items-stretch md:gap-6"
               >
-                {/* Preview / analysis viewport */}
-                <div
-                  className={`relative w-full rounded-[1.25rem] md:rounded-[2rem] overflow-hidden border border-[var(--card-border)] bg-[var(--card-bg)] shadow-xl ring-1 ring-[var(--card-border)] ${
-                    isConfirm || isResult
-                      ? 'max-md:min-h-0 max-md:h-full md:aspect-square'
-                      : 'aspect-square'
-                  }`}
-                >
-                  <img
-                    src={preview}
-                    alt="Meal preview"
-                    className={`absolute inset-0 w-full h-full object-contain transition-transform duration-700 ${isLoading ? 'scale-[1.02]' : ''}`}
-                  />
-                  {isLoading && <AiScanOverlay prompt={prompt} />}
+                <div className="flex min-h-0 flex-1 flex-col gap-3">
+                  <PhotoStage
+                    src={preview!}
+                    scanning={isLoading}
+                    className="min-h-0 flex-1"
+                  >
+                    {isLoading && <AiScanOverlay prompt={prompt} />}
 
-                  {!isLoading && !nutritionData && (
-                    <>
-                      <div className="absolute inset-0 pointer-events-none">
-                        <div className="absolute top-3 left-3 md:top-4 md:left-4 w-7 h-7 md:w-8 md:h-8 border-t-2 border-l-2 border-[var(--card-border)] rounded-tl-lg" />
-                        <div className="absolute top-3 right-3 md:top-4 md:right-4 w-7 h-7 md:w-8 md:h-8 border-t-2 border-r-2 border-[var(--card-border)] rounded-tr-lg" />
-                        <div className="absolute bottom-3 left-3 md:bottom-4 md:left-4 w-7 h-7 md:w-8 md:h-8 border-b-2 border-l-2 border-[var(--card-border)] rounded-bl-lg" />
-                        <div className="absolute bottom-3 right-3 md:bottom-4 md:right-4 w-7 h-7 md:w-8 md:h-8 border-b-2 border-r-2 border-[var(--card-border)] rounded-br-lg" />
-                      </div>
+                    {stage === 'context' && (
                       <button
-                        onClick={() => {
-                          setPreview(null);
-                          setSelectedFile(null);
-                        }}
-                        className="absolute top-3 right-3 md:top-4 md:right-4 z-20 p-2 md:p-2.5 rounded-xl bg-[var(--card-bg)] text-[var(--foreground)] backdrop-blur-xl hover:bg-[var(--surface-strong)] transition-colors border border-[var(--card-border)] shadow-md"
+                        type="button"
+                        onClick={handleReset}
+                        aria-label="Remove photo"
+                        className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border border-line bg-surface-1/90 text-fg backdrop-blur transition-transform active:scale-90"
                       >
-                        <XMarkIcon className="w-5 h-5" />
+                        <XMarkIcon className="h-5 w-5" />
                       </button>
-                    </>
-                  )}
+                    )}
 
-                  {nutritionData && (
-                    <div className="absolute bottom-3 left-3 right-3 md:bottom-4 md:left-4 md:right-4 z-20 hidden md:block">
-                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--card-bg)] border border-[var(--primary)]/40 backdrop-blur-md shadow-md">
-                        <SparklesIcon className="w-3.5 h-3.5 text-[var(--primary)]" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-[var(--foreground)]">
-                          {nutritionData.foodName}
+                    {stage === 'review' && draft.meal && (
+                      <span className="absolute inset-x-3 bottom-3 flex items-center gap-2">
+                        <span className="min-w-0 truncate rounded-full border border-line bg-surface-1/90 px-3 py-1.5 text-xs font-bold text-fg backdrop-blur">
+                          {draft.meal.foodName || 'Detected meal'}
                         </span>
-                      </div>
+                        {draft.meal.analysisNotes && (
+                          <button
+                            type="button"
+                            onClick={() => setNotesOpen(true)}
+                            aria-label="How we got this estimate"
+                            className="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line bg-surface-1/90 text-fg backdrop-blur transition-transform active:scale-90 md:hidden"
+                          >
+                            <InformationCircleIcon className="h-5 w-5" />
+                          </button>
+                        )}
+                      </span>
+                    )}
+                  </PhotoStage>
+
+                  {/* Phones reach these through the photo's × and the panel's Discard. */}
+                  {!isLoading && (
+                    <div className="hidden shrink-0 gap-3 md:flex">
+                      <button
+                        type="button"
+                        onClick={openCamera}
+                        className={buttonClass('secondary', 'sm')}
+                      >
+                        <ArrowPathIcon className="h-4 w-4" />
+                        Retake
+                      </button>
+                      <button
+                        type="button"
+                        onClick={openUpload}
+                        className={buttonClass('secondary', 'sm')}
+                      >
+                        <ArrowUpTrayIcon className="h-4 w-4" />
+                        Upload a different photo
+                      </button>
                     </div>
                   )}
                 </div>
 
-                {/* Side panel — analyzing / prompt / result */}
-                <div
-                  className={`flex flex-col w-full md:h-full md:min-h-0 ${
-                    isConfirm || isResult ? 'max-md:h-full max-md:min-h-0' : 'shrink-0'
-                  }`}
-                >
-                  {isLoading && (
-                    <div className="hidden md:flex flex-col justify-center gap-4 rounded-3xl border border-[var(--card-border)] bg-[var(--surface)] p-6 h-full min-h-0">
-                      <div className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--primary)]">
-                        <span className="relative flex h-2 w-2">
-                          <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--primary)] opacity-75 animate-ping" />
-                          <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--primary)]" />
-                        </span>
-                        AI Vision Active
-                      </div>
-                      <p className="text-lg font-black tracking-tight">Analyzing your meal…</p>
-                      <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-                        Detecting ingredients, estimating portions, and calculating macros. This
-                        usually takes a few seconds.
-                      </p>
-                      <div className="flex gap-2 mt-2">
-                        {[0, 1, 2].map((d) => (
-                          <span
-                            key={d}
-                            className="w-2 h-2 rounded-full bg-[var(--primary)]"
-                            style={{ animation: `pulse 1s ease-in-out ${d * 0.2}s infinite` }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {!nutritionData && !isLoading && (
-                    <div className="flex flex-col h-full min-h-0 rounded-2xl md:rounded-3xl border border-[var(--card-border)] bg-[var(--surface)] p-3 md:p-5">
-                      <div className="flex justify-between items-center shrink-0">
-                        <label
-                          htmlFor="prompt"
-                          className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]"
-                        >
-                          Context for AI
-                        </label>
-                        <span className="text-[10px] font-bold text-[var(--primary)]">Optional</span>
-                      </div>
+                {stage === 'review' && draft.meal ? (
+                  <ReviewPanel
+                    meal={draft.meal}
+                    baseQuantity={nutritionData?.quantity ?? ''}
+                    servings={draft.servings}
+                    onIncrement={draft.increment}
+                    onDecrement={draft.decrement}
+                    mealType={draft.mealType}
+                    onMealType={draft.setMealType}
+                    onLog={handleLogMeal}
+                    onDiscard={handleReset}
+                    isSaving={isSaving}
+                    error={error}
+                  />
+                ) : (
+                  <ScanPanel>
+                    <PanelSection>
+                      <label htmlFor="scan-context" className="block">
+                        <PanelLabel hint="Optional">Anything else?</PanelLabel>
+                      </label>
                       <textarea
-                        id="prompt"
+                        id="scan-context"
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
-                        rows={2}
-                        placeholder="e.g. 2 slices pepperoni pizza + coke…"
-                        className="scrollbar-theme w-full flex-1 min-h-0 mt-2 md:mt-3 p-3 md:p-4 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl md:rounded-2xl focus:border-[var(--primary)]/50 focus:bg-[var(--surface)] outline-none resize-none overflow-y-auto text-sm font-medium text-[var(--foreground)] transition-all placeholder:text-[var(--text-muted)]"
+                        disabled={isLoading}
+                        rows={3}
+                        placeholder="e.g. cooked in 1 tbsp butter"
+                        className="scrollbar-theme mt-2 w-full resize-none rounded-xl border border-line bg-surface-2 p-3 text-sm text-fg outline-none transition-colors placeholder:text-muted focus:border-brand/50 disabled:opacity-60"
                       />
-                      <p className="hidden md:block text-[11px] text-[var(--text-muted)] leading-relaxed shrink-0 mt-3">
-                        Tip: name portions or hidden ingredients — AI folds them into the prediction.
+                      <p className="mt-2 hidden text-xs text-muted md:block">
+                        Naming portions or hidden ingredients gets the estimate a lot closer.
                       </p>
-                    </div>
-                  )}
+                    </PanelSection>
 
-                  {nutritionData && (
-                    <div className="flex flex-col h-full min-h-0 max-md:overflow-hidden md:justify-center md:gap-5">
-                      <div className="max-md:h-full max-md:min-h-0 max-md:overflow-hidden md:contents">
-                        <div className="h-full min-h-0 md:hidden">
-                          <NutritionCard data={nutritionData} compact />
-                        </div>
-                        <div className="hidden md:block">
-                          <NutritionCard data={nutritionData} />
-                        </div>
-                      </div>
-
-                      {/* Desktop CTAs stay in panel; mobile CTAs are pinned below grid */}
-                      <div className="hidden md:grid md:grid-cols-1 gap-3 shrink-0">
-                        <button
-                          onClick={handleLogMeal}
-                          disabled={isSaving}
-                          className="w-full py-4 btn-primary text-xs font-black uppercase tracking-widest rounded-2xl flex items-center justify-center gap-2 disabled:opacity-60"
-                        >
-                          {isSaving ? (
-                            <>
-                              <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
-                              Saving…
-                            </>
-                          ) : (
-                            'Log Meal'
-                          )}
-                        </button>
-                        <button
-                          onClick={handleReset}
-                          disabled={isSaving}
-                          className="w-full py-4 rounded-2xl bg-[var(--btn-primary)] text-black text-xs font-black uppercase tracking-widest hover:bg-[var(--btn-primary-hover)] transition-all"
-                        >
-                          Scan Another
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {!nutritionData && !isLoading && (
-                <div className="flex justify-center px-1 shrink-0 pt-0.5">
-                  <button
-                    onClick={handleScan}
-                    className="w-full max-w-md py-3.5 md:py-5 rounded-2xl bg-[var(--btn-primary)] text-black text-sm font-black uppercase tracking-[0.18em] flex items-center justify-center gap-3 shadow-[0_0_32px_rgba(118,185,0,0.35)] hover:shadow-[0_0_48px_rgba(118,185,0,0.5)] transition-all"
-                  >
-                    <SparklesIcon className="w-5 h-5" />
-                    Run AI Scan
-                  </button>
-                </div>
-              )}
-
-              {nutritionData && (
-                <div className="grid grid-cols-2 gap-2 shrink-0 md:hidden">
-                  <button
-                    onClick={handleLogMeal}
-                    disabled={isSaving}
-                    className="w-full py-3 rounded-2xl bg-[var(--btn-primary)] text-black text-sm font-black uppercase tracking-[0.18em] flex items-center justify-center gap-2 shadow-[0_0_32px_rgba(118,185,0,0.35)] hover:shadow-[0_0_48px_rgba(118,185,0,0.5)] transition-all disabled:opacity-60"
-                  >
-                    {isSaving ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
-                        Saving…
-                      </>
-                    ) : (
-                      'Log Meal'
+                    {error && (
+                      <p className="shrink-0 rounded-xl border border-danger/30 bg-danger/10 px-3 py-2 text-[13px] font-semibold text-danger md:mt-4">
+                        {error}
+                      </p>
                     )}
-                  </button>
-                  <button
-                    onClick={handleReset}
-                    disabled={isSaving}
-                    className="w-full py-3 rounded-2xl bg-[var(--btn-primary)] text-black text-sm font-black uppercase tracking-[0.18em] hover:bg-[var(--btn-primary-hover)] transition-all disabled:opacity-60"
-                  >
-                    Scan Another
-                  </button>
-                </div>
-              )}
 
-              {error && (
-                <div className="p-4 bg-red-500/10 border border-red-500/25 rounded-2xl text-center shrink-0">
-                  <p className="text-red-400 text-xs font-bold uppercase tracking-tight">{error}</p>
-                </div>
-              )}
-            </div>
-          </motion.div>
+                    <div className="grid shrink-0 grid-cols-[auto_1fr] gap-2 md:mt-auto md:gap-3 md:pt-6">
+                      <button
+                        type="button"
+                        onClick={handleReset}
+                        disabled={isLoading}
+                        className={buttonClass('secondary', 'md')}
+                      >
+                        Discard
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleScan}
+                        disabled={isLoading}
+                        className={buttonClass('primary', 'md')}
+                      >
+                        <SparklesIcon className="h-5 w-5" />
+                        {isLoading ? 'Scanning…' : 'Run AI scan'}
+                      </button>
+                    </div>
+                  </ScanPanel>
+                )}
+              </motion.div>
+            )}
+          </div>
         )}
-      </div>
+      </CameraInput>
+
+      <BottomSheet open={notesOpen} onClose={closeNotes} label="How we got this estimate">
+        <div className="pb-4">
+          <p className="font-display text-lg font-bold tracking-[-0.02em] text-fg">
+            {nutritionData?.foodName || 'Your meal'}
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-fg-2">{nutritionData?.analysisNotes}</p>
+        </div>
+      </BottomSheet>
 
       <SuccessToast
         message={toast?.message ?? null}
@@ -455,6 +274,6 @@ export const FoodScanPage: React.FC = () => {
         actionHref={toast?.actionHref}
         onClose={clearToast}
       />
-    </div>
+    </MotionConfig>
   );
 };

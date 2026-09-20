@@ -22,15 +22,12 @@ export interface FoodScanResponse {
   error?: string;
 }
 
-export interface NutritionCardProps {
-  data: NutritionData;
-  compact?: boolean;
-}
-
 export interface CameraOverlayProps {
   onCapture: () => void;
   onClose: () => void;
   onSwitchCamera: () => void;
+  /** Opens the file picker without leaving the camera. */
+  onPickFromGallery?: () => void;
   videoRef: RefObject<HTMLVideoElement | null>;
   canvasRef: RefObject<HTMLCanvasElement | null>;
   error?: string | null;

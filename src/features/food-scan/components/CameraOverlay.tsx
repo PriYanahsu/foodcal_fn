@@ -1,11 +1,17 @@
-import { XMarkIcon, ArrowsRightLeftIcon } from '@heroicons/react/24/outline';
+'use client';
+
 import { useEffect } from 'react';
+import { ArrowPathRoundedSquareIcon, PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { CameraOverlayProps } from '../types';
+
+const CHROME_BUTTON =
+  'flex h-11 w-11 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-white backdrop-blur transition-transform active:scale-90';
 
 export const CameraOverlay = ({
   onCapture,
   onClose,
   onSwitchCamera,
+  onPickFromGallery,
   videoRef,
   canvasRef,
   error,
@@ -19,101 +25,94 @@ export const CameraOverlay = ({
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center animate-fade-in overflow-hidden">
-      {/* Header */}
-      <div className="absolute top-0 left-0 right-0 flex justify-between items-center p-4 md:p-6 z-30">
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close camera"
-          className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-black/60 text-[var(--foreground)] backdrop-blur-xl hover:bg-black/80 transition-all border border-[var(--card-border)] shadow-lg"
-        >
-          <XMarkIcon className="w-5 h-5 shrink-0" />
-          <span className="text-xs font-black uppercase tracking-widest">Close</span>
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Take a photo"
+      className="fixed inset-0 z-[100] flex animate-fade-in flex-col bg-black font-ui text-white"
+    >
+      <header className="flex shrink-0 items-center justify-between gap-3 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+        <button type="button" onClick={onClose} aria-label="Close camera" className={CHROME_BUTTON}>
+          <XMarkIcon className="h-5 w-5" />
         </button>
-        <div className="hidden sm:block text-[var(--foreground)] text-[10px] font-black uppercase tracking-[0.2em] opacity-40 bg-black/40 px-4 py-2 rounded-full backdrop-blur-xl border border-[var(--card-border)]">
-          AI Camera Active
-        </div>
+        <p className="font-display text-base font-bold tracking-[-0.01em]">Take a photo</p>
         <button
           type="button"
           onClick={onSwitchCamera}
           aria-label="Switch camera"
-          className="p-3 rounded-2xl bg-black/60 text-[var(--foreground)] backdrop-blur-xl hover:bg-black/80 transition-all border border-[var(--card-border)] shadow-lg"
-          title="Switch Camera"
+          className={CHROME_BUTTON}
         >
-          <ArrowsRightLeftIcon className="w-6 h-6" />
+          <ArrowPathRoundedSquareIcon className="h-5 w-5" />
         </button>
-      </div>
+      </header>
 
-      {/* Viewport Area - Fullscreen on Mobile, Very Large on Desktop */}
-      <div className="relative w-full h-full flex items-center justify-center bg-neutral-950">
-        <div className="relative w-full h-full md:w-[90vw] md:h-[85vh] md:max-w-6xl md:rounded-[3rem] overflow-hidden bg-neutral-900 shadow-[0_0_100px_rgba(0,0,0,0.8)] md:border md:border-[var(--card-border)] transition-all duration-500 ease-out">
-          <video ref={videoRef} className="w-full h-full object-cover" autoPlay playsInline muted />
+      <div className="relative min-h-0 flex-1 overflow-hidden">
+        <video
+          ref={videoRef}
+          className="h-full w-full object-cover"
+          autoPlay
+          playsInline
+          muted
+        />
 
-          {/* Minimal Guidelines */}
-          <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-            <div className="w-64 h-64 md:w-80 md:h-80 border-[0.5px] border-[var(--card-border)] rounded-[3rem] shadow-[0_0_0_100vmax_rgba(0,0,0,0.3)]" />
+        {/* Framing guide — brackets only, so nothing covers the food. */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-6 md:inset-[12%]">
+          <span className="absolute left-0 top-0 h-12 w-12 rounded-tl-2xl border-l-[3px] border-t-[3px] border-brand" />
+          <span className="absolute right-0 top-0 h-12 w-12 rounded-tr-2xl border-r-[3px] border-t-[3px] border-brand" />
+          <span className="absolute bottom-0 left-0 h-12 w-12 rounded-bl-2xl border-b-[3px] border-l-[3px] border-brand" />
+          <span className="absolute bottom-0 right-0 h-12 w-12 rounded-br-2xl border-b-[3px] border-r-[3px] border-brand" />
+        </div>
 
-            {/* Corner Accents */}
-            <div className="absolute w-64 h-64 md:w-80 md:h-80 pointer-events-none">
-              <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-[var(--primary)] rounded-tl-3xl" />
-              <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-[var(--primary)] rounded-tr-3xl" />
-              <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-[var(--primary)] rounded-bl-3xl" />
-              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-[var(--primary)] rounded-br-3xl" />
+        <p className="pointer-events-none absolute inset-x-0 bottom-8 flex justify-center">
+          <span className="inline-flex items-center gap-2 rounded-full bg-black/65 px-3.5 py-2 text-[13px] font-semibold backdrop-blur">
+            <span className="h-2 w-2 rounded-full bg-brand" />
+            Centre your plate
+          </span>
+        </p>
+
+        {error && (
+          <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/90 p-8 backdrop-blur">
+            <div className="max-w-xs text-center">
+              <p className="text-sm font-semibold text-danger">{error}</p>
+              <button
+                type="button"
+                onClick={onClose}
+                className="mt-4 h-11 rounded-xl bg-brand px-5 text-sm font-bold text-on-brand"
+              >
+                Close
+              </button>
             </div>
           </div>
-
-          {/* Error Overlay */}
-          {error && (
-            <div className="absolute inset-0 flex items-center justify-center p-8 bg-black/90 backdrop-blur-xl z-30">
-              <div className="text-center space-y-4">
-                <p className="text-red-400 text-sm font-black uppercase tracking-widest">{error}</p>
-                <button
-                  onClick={onClose}
-                  className="px-6 py-2 bg-[var(--btn-primary)] text-black text-[10px] font-black uppercase rounded-full tracking-widest"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
-      {/* Bottom controls */}
-      <div className="absolute bottom-0 left-0 right-0 z-30 px-6 pb-8 md:pb-12 pt-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
-        <div className="flex items-center justify-between max-w-lg mx-auto">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-[var(--surface-strong)] text-[var(--foreground)] border border-[var(--card-border)] backdrop-blur-xl hover:bg-[var(--surface-strong)] transition-all min-w-[100px] justify-center"
-          >
-            <XMarkIcon className="w-5 h-5" />
-            <span className="text-xs font-bold uppercase tracking-wider">Cancel</span>
-          </button>
+      <div className="flex shrink-0 items-center justify-between px-8 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-5">
+        <button
+          type="button"
+          onClick={onPickFromGallery}
+          aria-label="Choose a photo instead"
+          className={`${CHROME_BUTTON} ${onPickFromGallery ? '' : 'invisible'}`}
+        >
+          <PhotoIcon className="h-5 w-5" />
+        </button>
 
-          <button
-            type="button"
-            onClick={onCapture}
-            aria-label="Capture photo"
-            className="group relative flex items-center justify-center transition-transform active:scale-90"
-          >
-            <div className="absolute w-24 h-24 md:w-28 md:h-28 rounded-full border-[6px] border-white/25 group-hover:border-[var(--primary)]/40 transition-all" />
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white group-hover:bg-[var(--primary)] shadow-2xl transition-all flex items-center justify-center">
-              <div className="w-[90%] h-[90%] rounded-full border-2 border-black/5" />
-            </div>
-          </button>
+        <button
+          type="button"
+          onClick={onCapture}
+          aria-label="Take photo"
+          className="flex h-[74px] w-[74px] items-center justify-center rounded-full border-[3px] border-white transition-transform active:scale-90"
+        >
+          <span className="h-[58px] w-[58px] rounded-full bg-white" />
+        </button>
 
-          <button
-            type="button"
-            onClick={onSwitchCamera}
-            aria-label="Switch camera"
-            className="flex items-center justify-center p-3 rounded-2xl bg-[var(--surface-strong)] text-[var(--foreground)] border border-[var(--card-border)] backdrop-blur-xl hover:bg-[var(--surface-strong)] transition-all min-w-[100px]"
-            title="Switch Camera"
-          >
-            <ArrowsRightLeftIcon className="w-6 h-6" />
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onSwitchCamera}
+          aria-label="Switch camera"
+          className={`${CHROME_BUTTON} rounded-full`}
+        >
+          <ArrowPathRoundedSquareIcon className="h-5 w-5" />
+        </button>
       </div>
 
       <canvas ref={canvasRef} className="hidden" />

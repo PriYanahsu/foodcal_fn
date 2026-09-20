@@ -41,7 +41,10 @@ export const CameraInput: React.FC<CameraInputProps> = ({
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0];
-          if (file) onImageSelect(file);
+          if (!file) return;
+          onImageSelect(file);
+          // The picker can be opened from inside the camera, which must then close.
+          closeCamera();
         }}
       />
 
@@ -74,6 +77,7 @@ export const CameraInput: React.FC<CameraInputProps> = ({
           onCapture={handleCapture}
           onClose={closeCamera}
           onSwitchCamera={switchCamera}
+          onPickFromGallery={openUpload}
           videoRef={videoRef}
           canvasRef={canvasRef}
           error={error}
