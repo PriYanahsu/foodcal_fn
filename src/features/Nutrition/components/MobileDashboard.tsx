@@ -164,9 +164,10 @@ export default function MobileDashboard({
   const litres = Number((water.ml / 1000).toFixed(2));
 
   return (
-    // Exactly one screen: the viewport minus the top bar (64px), the tab bar (68px + inset)
-    // and the 36px its camera button sticks up above the bar.
-    <div className="flex h-[calc(100dvh-4rem-68px-2.25rem-env(safe-area-inset-bottom))] min-h-[440px] flex-col gap-3 px-4 py-3 font-ui text-fg short:gap-2.5 short:py-2.5">
+    // Exactly one screen: the viewport minus the top bar (64px) and tab bar (68px + inset).
+    // No extra reservation for the tab bar's camera button here — the tiles are meant to
+    // run to the bar, and holding them off it leaves an obvious blank strip.
+    <div className="flex h-[calc(100dvh-4rem-68px-env(safe-area-inset-bottom))] min-h-[440px] flex-col gap-3 px-4 py-3 font-ui text-fg short:gap-2.5 short:py-2.5">
       <header className="relative flex shrink-0 items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs text-muted short:hidden">{formatLongDate(selectedDate)}</p>
@@ -200,7 +201,7 @@ export default function MobileDashboard({
       </div>
 
       <div
-        className={`flex min-h-0 flex-1 flex-col gap-3 transition-opacity duration-300 short:gap-2.5 ${
+        className={`flex min-h-0 flex-1 flex-col gap-3 overflow-hidden transition-opacity duration-300 short:gap-2.5 ${
           refreshing ? 'opacity-70' : ''
         }`}
       >
