@@ -4,20 +4,19 @@ interface PhotoStageProps {
   src: string;
   /** Nudges the photo in while the AI reads it, under the scan overlay. */
   scanning?: boolean;
+  /** Carries the frame (rounding, border) — full-bleed callers simply omit it. */
   className?: string;
   children?: React.ReactNode;
 }
 
-/** The framed meal photo. Overlays (scan animation, chips, controls) come in as children. */
+/** The meal photo. Overlays (scan animation, chips, controls) come in as children. */
 export const PhotoStage: React.FC<PhotoStageProps> = ({
   src,
   scanning = false,
   className = '',
   children,
 }) => (
-  <div
-    className={`relative overflow-hidden rounded-3xl border border-line bg-surface-2 ${className}`}
-  >
+  <div className={`relative overflow-hidden bg-surface-2 ${className}`}>
     {/* eslint-disable-next-line @next/next/no-img-element -- local data URL, not a remote asset */}
     <img
       src={src}

@@ -18,6 +18,7 @@ import { useScanDraft } from '../hooks/useScanDraft';
 import { AiScanOverlay } from './AiScanOverlay';
 import { CameraInput } from './CameraInput';
 import { CaptureStage } from './CaptureStage';
+import { MobileReviewSheet } from './MobileReviewSheet';
 import { PhotoStage } from './PhotoStage';
 import { ReviewPanel } from './ReviewPanel';
 import { PanelLabel, PanelSection, ScanPanel } from './ScanPanel';
@@ -52,6 +53,7 @@ export const FoodScanPage: React.FC = () => {
 
   const clearToast = useCallback(() => setToast(null), []);
   const closeNotes = useCallback(() => setNotesOpen(false), []);
+  const openNotes = useCallback(() => setNotesOpen(true), []);
 
   const handleImageSelect = (file: File) => {
     setSelectedFile(file);
@@ -128,10 +130,17 @@ export const FoodScanPage: React.FC = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                className="flex min-h-0 flex-1 flex-col gap-3 md:grid md:grid-cols-[minmax(0,1fr)_minmax(340px,440px)] md:items-stretch md:gap-6"
+                // At `review` the phone gets the full-screen sheet below instead.
+                className={`flex min-h-0 flex-1 flex-col gap-3 md:grid md:grid-cols-[minmax(0,1fr)_minmax(340px,440px)] md:items-stretch md:gap-6 ${
+                  stage === 'review' ? 'max-md:hidden' : ''
+                }`}
               >
                 <div className="flex min-h-0 flex-1 flex-col gap-3">
-                  <PhotoStage src={preview!} scanning={isLoading} className="min-h-0 flex-1">
+                  <PhotoStage
+                    src={preview!}
+                    scanning={isLoading}
+                    className="min-h-0 flex-1 rounded-3xl border border-line"
+                  >
                     {isLoading && <AiScanOverlay prompt={prompt} />}
 
                     {!isLoading && (
@@ -146,21 +155,10 @@ export const FoodScanPage: React.FC = () => {
                     )}
 
                     {stage === 'review' && draft.meal && (
-                      <span className="absolute right-3 top-3 flex items-center gap-2">
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-1/85 px-3 py-2 text-xs font-bold text-fg backdrop-blur">
-                          <SparklesIcon className="h-4 w-4 text-brand-ink" />
-                          AI estimate
-                        </span>
-                        {draft.meal.analysisNotes && (
-                          <button
-                            type="button"
-                            onClick={() => setNotesOpen(true)}
-                            aria-label="How we got this estimate"
-                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-line bg-surface-1/85 text-fg backdrop-blur transition-transform active:scale-90 md:hidden"
-                          >
-                            <InformationCircleIcon className="h-5 w-5" />
-                          </button>
-                        )}
+                      // The notes sit in the panel at this size, so no info button here.
+                      <span className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-1/85 px-3 py-2 text-xs font-bold text-fg backdrop-blur">
+                        <SparklesIcon className="h-4 w-4 text-brand-ink" />
+                        AI estimate
                       </span>
                     )}
                   </PhotoStage>
@@ -254,6 +252,24 @@ export const FoodScanPage: React.FC = () => {
           </div>
         )}
       </CameraInput>
+
+      {stage === 'review' && draft.meal && preview && (
+        <MobileReviewSheet
+          preview={preview}
+          meal={draft.meal}
+          mealType={draft.mealType}
+          onMealType={draft.setMealType}
+          isEditing={draft.isEditing}
+          onToggleEdit={draft.toggleEdit}
+          onField={draft.setField}
+          isEdited={draft.isEdited}
+          onLog={handleLogMeal}
+          onDiscard={handleReset}
+          onOpenNotes={openNotes}
+          isSaving={isSaving}
+          error={error}
+        />
+      )}
 
       <BottomSheet open={notesOpen} onClose={closeNotes} label="How we got this estimate">
         <div className="pb-4">
