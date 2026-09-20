@@ -151,13 +151,14 @@ export default function HistoryCalendar(props: HistoryCalendarProps) {
 
   return (
     <MotionConfig reducedMotion="user">
-      {/* Phones: exactly one screen (viewport minus top bar 64px and tab bar 68px + inset),
-          with the calendar taking whatever height is left. Larger screens scroll normally. */}
+      {/* Phones: exactly one screen — the viewport minus the top bar (64px), the tab bar
+          (68px + inset) and the 36px its camera button overhangs — with the calendar taking
+          whatever height is left. Larger screens scroll normally. */}
       <motion.div
         initial="hidden"
         animate="show"
         transition={{ staggerChildren: 0.06 }}
-        className="mx-auto flex h-[calc(100dvh-4rem-68px-env(safe-area-inset-bottom))] min-h-[520px] w-full max-w-[1240px] flex-col gap-3 bg-canvas px-4 py-3 font-ui text-fg md:h-auto md:min-h-0 md:gap-5 md:px-8 md:py-8"
+        className="mx-auto flex h-[calc(100dvh-4rem-68px-2.25rem-env(safe-area-inset-bottom))] min-h-[440px] w-full max-w-[1240px] flex-col gap-3 bg-canvas px-4 py-3 font-ui text-fg md:h-auto md:min-h-0 md:gap-5 md:px-8 md:py-8"
       >
         <motion.header
           variants={REVEAL}
