@@ -147,7 +147,7 @@ export const FoodScanPage: React.FC = () => {
                     dim={stage === 'review'}
                     className={`min-h-0 border-line md:flex-1 md:rounded-3xl md:border ${
                       stage === 'review'
-                        ? 'max-md:-mx-4 max-md:-mt-3 max-md:h-[clamp(130px,24dvh,230px)] max-md:shrink-0'
+                        ? 'max-md:h-[clamp(120px,20dvh,190px)] max-md:shrink-0 max-md:rounded-3xl max-md:border'
                         : 'flex-1 rounded-3xl border'
                     }`}
                   >

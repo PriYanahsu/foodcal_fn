@@ -58,9 +58,9 @@ export const ReviewPanel: React.FC<ReviewPanelProps> = ({
 
   return (
     <div
-      // Phones: lifted over the bottom of the photo, filling the rest of the screen.
-      // From md up: the boxed column beside it. Either way the actions sit at the foot.
-      className="custom-scrollbar relative z-10 flex min-h-0 flex-1 flex-col gap-3 rounded-3xl border border-line bg-surface-1 p-4 max-md:-mt-7 short:gap-2 short:p-3 md:h-full md:flex-none md:gap-4 md:overflow-y-auto md:p-6"
+      // Fills whatever the photo leaves, with the actions at the foot. It scrolls inside
+      // itself rather than growing the page, so the phone screen never scrolls.
+      className="custom-scrollbar flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto rounded-3xl border border-line bg-surface-1 p-4 short:gap-2 short:p-3 md:h-full md:flex-none md:gap-4 md:p-6"
     >
       {/* Identity + confidence */}
       <div className="flex shrink-0 items-start justify-between gap-3">

@@ -54,8 +54,8 @@ export default function UiPreview() {
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col gap-3 md:grid md:grid-cols-[minmax(0,1fr)_minmax(340px,440px)] md:items-stretch md:gap-6">
-        <div className="flex min-h-0 flex-1 flex-col gap-3">
-          <PhotoStage src={IMG} className="min-h-0 border-line max-md:-mx-4 max-md:-mt-3 max-md:h-[clamp(150px,27dvh,250px)] max-md:shrink-0 md:flex-1 md:rounded-3xl md:border">
+        <div className="flex min-h-0 flex-col gap-3 max-md:shrink-0 md:flex-1">
+          <PhotoStage src={IMG} dim className="min-h-0 border-line max-md:h-[clamp(120px,20dvh,190px)] max-md:shrink-0 max-md:rounded-3xl max-md:border md:flex-1 md:rounded-3xl md:border">
             <button
               aria-label="Discard this photo"
               className="absolute left-4 top-4 flex h-10 w-10 items-center justify-center rounded-xl border border-line bg-surface-1/85 text-fg backdrop-blur"
