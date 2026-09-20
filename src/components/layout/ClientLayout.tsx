@@ -33,7 +33,10 @@ function AppShell({ children }: { children: React.ReactNode }) {
   }, [pathname]);
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-canvas text-[var(--foreground)]">
+    // `min-h-dvh`, not `min-h-screen`: on a phone `100vh` is the tall viewport (URL bar
+    // hidden) while the one-screen pages size themselves to `100dvh`. The difference is
+    // exactly the URL bar, and it left every page scrollable by that much.
+    <div className="flex min-h-dvh flex-col bg-canvas text-[var(--foreground)] md:flex-row">
       {!isAuthPage && <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />}
 
       <main

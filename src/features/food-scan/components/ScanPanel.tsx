@@ -28,11 +28,11 @@ export const PanelSection: React.FC<{ className?: string; children: React.ReactN
 );
 
 /** Small bold heading used at the top of a panel section. */
-export const PanelLabel: React.FC<{ className?: string; hint?: string; children: React.ReactNode }> = ({
-  className = '',
-  hint,
-  children,
-}) => (
+export const PanelLabel: React.FC<{
+  className?: string;
+  hint?: string;
+  children: React.ReactNode;
+}> = ({ className = '', hint, children }) => (
   <p className={`text-sm font-bold text-fg ${className}`}>
     {children}
     {hint && <span className="ml-1.5 font-semibold text-muted">{hint}</span>}

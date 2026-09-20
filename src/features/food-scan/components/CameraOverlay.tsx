@@ -47,13 +47,7 @@ export const CameraOverlay = ({
       </header>
 
       <div className="relative min-h-0 flex-1 overflow-hidden">
-        <video
-          ref={videoRef}
-          className="h-full w-full object-cover"
-          autoPlay
-          playsInline
-          muted
-        />
+        <video ref={videoRef} className="h-full w-full object-cover" autoPlay playsInline muted />
 
         {/* Framing guide — brackets only, so nothing covers the food. */}
         <div aria-hidden="true" className="pointer-events-none absolute inset-6 md:inset-[12%]">

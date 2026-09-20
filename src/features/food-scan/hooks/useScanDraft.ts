@@ -33,7 +33,9 @@ export const useScanDraft = (data: NutritionData | null) => {
   }, []);
 
   const step = useCallback((delta: number) => {
-    setServings((n) => Math.min(SERVING_MAX, Math.max(SERVING_MIN, Number((n + delta).toFixed(2)))));
+    setServings((n) =>
+      Math.min(SERVING_MAX, Math.max(SERVING_MIN, Number((n + delta).toFixed(2))))
+    );
   }, []);
 
   const increment = useCallback(() => step(SERVING_STEP), [step]);
@@ -48,8 +50,7 @@ export const useScanDraft = (data: NutritionData | null) => {
       proteinG: data.proteinG * servings,
       carbohydrateG: data.carbohydrateG * servings,
       fatG: data.fatG * servings,
-      quantity:
-        servings === 1 || !data.quantity ? data.quantity : `${servings} × ${data.quantity}`,
+      quantity: servings === 1 || !data.quantity ? data.quantity : `${servings} × ${data.quantity}`,
     };
   }, [data, servings, mealType]);
 

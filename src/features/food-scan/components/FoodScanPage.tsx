@@ -131,11 +131,7 @@ export const FoodScanPage: React.FC = () => {
                 className="flex min-h-0 flex-1 flex-col gap-3 md:grid md:grid-cols-[minmax(0,1fr)_minmax(340px,440px)] md:items-stretch md:gap-6"
               >
                 <div className="flex min-h-0 flex-1 flex-col gap-3">
-                  <PhotoStage
-                    src={preview!}
-                    scanning={isLoading}
-                    className="min-h-0 flex-1"
-                  >
+                  <PhotoStage src={preview!} scanning={isLoading} className="min-h-0 flex-1">
                     {isLoading && <AiScanOverlay prompt={prompt} />}
 
                     {stage === 'context' && (
