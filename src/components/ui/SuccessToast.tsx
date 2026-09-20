@@ -58,14 +58,14 @@ export function SuccessToast({
 
   if (typeof document === 'undefined') return null;
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {message && (
         <motion.div
           key="success-toast"
           role="status"
           aria-live="polite"
-          initial={{ opacity: 1, y: 0, scale: 1 }}
+          initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 20, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.98 }}
           transition={{ type: 'spring', damping: 26, stiffness: 340, mass: 0.8 }}
@@ -131,6 +131,7 @@ export function SuccessToast({
           </div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
