@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNotifications } from '../context/NotificationContext';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { XMarkIcon, BellIcon } from '@heroicons/react/24/outline';
+import { BellIcon } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const NotificationPrompt: React.FC = () => {
@@ -58,7 +58,7 @@ export const NotificationPrompt: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-[100]"
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-[2px]"
             onClick={handleDismiss}
           />
 
@@ -69,34 +69,31 @@ export const NotificationPrompt: React.FC = () => {
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             className="fixed z-[101] left-3 right-3 bottom-[max(1rem,env(safe-area-inset-bottom))] md:left-auto md:right-4 md:w-96 isolate"
           >
-            <div className="overflow-hidden rounded-2xl border border-[var(--primary)]/30 p-5 shadow-2xl bg-[var(--card-bg)] backdrop-blur-xl">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0">
-                  <div className="w-12 h-12 rounded-full bg-[var(--primary)]/20 flex items-center justify-center">
-                    <BellIcon className="w-6 h-6 text-[var(--primary)]" />
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-base mb-2 text-[var(--foreground)]">
-                    Enable Push Notifications? 🔔
-                  </h4>
-                  <p className="text-sm text-[var(--text-muted)] mb-4 leading-relaxed">
-                    Get notified about your nutrition goals, meal reminders, and achievements even
-                    when you're away from the app!
+            <div className="overflow-hidden rounded-3xl border border-line bg-surface-1 p-5 font-ui shadow-[0_24px_60px_rgba(0,0,0,0.5)]">
+              <div className="flex items-start gap-3.5">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand/15 text-brand-ink">
+                  <BellIcon className="h-5 w-5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-base font-bold leading-tight text-fg">Turn on reminders?</h3>
+                  <p className="mt-1 text-footnote leading-relaxed text-muted">
+                    Meal nudges, goal alerts and milestones reach you even when FoodCal is closed.
                   </p>
-                  <div className="flex gap-2">
+                  <div className="mt-4 flex gap-2">
                     <button
+                      type="button"
                       onClick={handleEnable}
                       disabled={isSubscribing}
-                      className="flex-1 bg-[var(--btn-primary)] text-black text-sm font-bold px-5 py-2.5 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="h-11 flex-1 rounded-xl bg-brand text-sm font-bold text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
                     >
-                      {isSubscribing ? 'Enabling...' : 'Yes, Enable'}
+                      {isSubscribing ? 'Enabling…' : 'Turn on'}
                     </button>
                     <button
+                      type="button"
                       onClick={handleDismiss}
-                      className="px-4 py-2.5 text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors rounded-lg hover:bg-[var(--surface)]"
+                      className="h-11 rounded-xl border border-line-strong bg-surface-2 px-4 text-sm font-bold text-fg-2 transition-colors hover:text-fg"
                     >
-                      <XMarkIcon className="w-5 h-5" />
+                      Not now
                     </button>
                   </div>
                 </div>

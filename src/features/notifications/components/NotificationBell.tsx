@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useNotifications } from '../context/NotificationContext';
 import { BellIcon } from '@heroicons/react/24/outline';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useNotifications } from '../context/NotificationContext';
 import { NotificationPanel } from './NotificationPanel';
-import { motion, AnimatePresence } from 'framer-motion';
 
 export const NotificationBell: React.FC = () => {
   const { unreadCount } = useNotifications();
@@ -14,16 +14,18 @@ export const NotificationBell: React.FC = () => {
     <div className="relative">
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className={`relative isolate overflow-hidden p-2 rounded-xl transition-all duration-300 border ${
+        onClick={() => setIsOpen((open) => !open)}
+        aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
+        aria-expanded={isOpen}
+        className={`flex h-11 w-11 items-center justify-center rounded-xl border transition-colors active:scale-95 ${
           isOpen
-            ? 'bg-[var(--primary)] border-[var(--primary)] text-black shadow-[0_0_20px_#76b90066]'
+            ? 'border-brand bg-brand text-on-brand'
             : unreadCount > 0
-              ? 'bg-[var(--primary)]/10 border-[var(--primary)]/30 text-[var(--primary)]'
-              : 'bg-[var(--surface)] border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-strong)]'
+              ? 'border-brand/40 bg-brand/10 text-brand-ink'
+              : 'border-line bg-surface-2 text-fg-2 hover:text-fg'
         }`}
       >
-        <BellIcon className={`w-5 h-5 ${unreadCount > 0 && !isOpen ? 'animate-bounce' : ''}`} />
+        <BellIcon className="h-5 w-5" />
       </button>
 
       <AnimatePresence>
@@ -32,8 +34,9 @@ export const NotificationBell: React.FC = () => {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0 }}
-            className={`absolute -top-1 -right-1 z-10 min-w-[1.1rem] h-[1.1rem] px-0.5 rounded-full flex items-center justify-center text-[9px] font-bold shadow-lg pointer-events-none ${
-              isOpen ? 'bg-white text-black' : 'bg-red-500 text-white'
+            aria-hidden="true"
+            className={`pointer-events-none absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1 text-[10px] font-bold ring-2 ring-canvas ${
+              isOpen ? 'bg-fg text-canvas' : 'bg-brand text-on-brand'
             }`}
           >
             {unreadCount > 9 ? '9+' : unreadCount}

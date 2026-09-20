@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNotifications } from '../context/NotificationContext';
 import { AppNotification } from '../types';
-import { XMarkIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { BellAlertIcon, SparklesIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
 
 export const NotificationToast = () => {
@@ -57,37 +57,14 @@ export const NotificationToast = () => {
 
   if (!activeNotification) return null;
 
-  // Get icon based on notification type
-  const getIcon = () => {
-    switch (activeNotification.type) {
-      case 'milestone':
-        return '🏆';
-      case 'coach_advice':
-        return '💪';
-      case 'motivation':
-        return '🔥';
-      case 'goal_reminder':
-        return '🎯';
-      default:
-        return '🔔';
-    }
+  const TONES: Record<string, string> = {
+    milestone: 'bg-warn/15 text-warn',
+    coach_advice: 'bg-brand/15 text-brand-ink',
+    motivation: 'bg-protein/15 text-protein',
+    goal_reminder: 'bg-carbs/15 text-carbs',
+    system: 'bg-info/15 text-info',
   };
-
-  // Get gradient colors based on type
-  const getGradient = () => {
-    switch (activeNotification.type) {
-      case 'milestone':
-        return 'from-yellow-500/20 to-orange-500/20 border-yellow-500/40';
-      case 'coach_advice':
-        return 'from-blue-500/20 to-cyan-500/20 border-blue-500/40';
-      case 'motivation':
-        return 'from-[var(--primary)]/20 to-green-500/20 border-[var(--primary)]/40';
-      case 'goal_reminder':
-        return 'from-purple-500/20 to-pink-500/20 border-purple-500/40';
-      default:
-        return 'from-gray-500/20 to-gray-600/20 border-gray-500/40';
-    }
-  };
+  const tone = TONES[activeNotification.type] ?? TONES.system;
 
   return (
     <AnimatePresence>
@@ -98,63 +75,46 @@ export const NotificationToast = () => {
           exit={{ opacity: 0, x: 400, scale: 0.9 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           onClick={handleClick}
-          className="fixed z-[100] left-3 right-3 top-[max(0.75rem,env(safe-area-inset-top))] md:left-auto md:right-6 md:w-full md:max-w-md cursor-pointer group isolate"
+          className="group fixed left-3 right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-[100] isolate cursor-pointer md:left-auto md:right-6 md:w-full md:max-w-sm"
         >
-          <div
-            className={`
-                        relative overflow-hidden rounded-2xl
-                        bg-gradient-to-br ${getGradient()}
-                        border backdrop-blur-xl
-                        shadow-2xl
-                        transition-shadow duration-300
-                        hover:shadow-[0_0_30px_rgba(118,185,0,0.25)]
-                    `}
-          >
-            {/* Animated background glow */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[var(--primary)]/10 via-transparent to-[var(--primary)]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="relative overflow-hidden rounded-3xl border border-line bg-surface-1 font-ui shadow-[0_24px_60px_rgba(0,0,0,0.5)]">
+            <div className="flex items-start gap-3 p-4">
+              <span
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${tone}`}
+              >
+                <BellAlertIcon className="h-5 w-5" />
+              </span>
 
-            {/* Content */}
-            <div className="relative p-5 flex gap-4 items-start">
-              {/* Icon */}
-              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-black/30 backdrop-blur-sm flex items-center justify-center text-2xl border border-[var(--card-border)]">
-                {getIcon()}
-              </div>
-
-              {/* Text Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <h4 className="font-black text-base text-[var(--foreground)] leading-tight">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-2">
+                  <h3 className="min-w-0 text-sm font-bold leading-snug text-fg">
                     {activeNotification.title}
-                  </h4>
+                  </h3>
                   <button
+                    type="button"
                     onClick={handleDismiss}
-                    className="flex-shrink-0 text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors p-1 rounded-lg hover:bg-[var(--surface-strong)]"
+                    aria-label="Dismiss"
+                    className="-mr-1 -mt-0.5 shrink-0 rounded-lg p-1 text-muted transition-colors hover:bg-surface-2 hover:text-fg"
                   >
-                    <XMarkIcon className="w-4 h-4" />
+                    <XMarkIcon className="h-4 w-4" />
                   </button>
                 </div>
-                <p className="text-sm text-[var(--foreground)] leading-relaxed mb-2">
+                <p className="mt-1 line-clamp-3 text-footnote leading-relaxed text-fg-2">
                   {activeNotification.message}
                 </p>
-
-                {/* Click hint */}
-                <div className="flex items-center gap-1 text-[10px] text-[var(--primary)] font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
-                  <SparklesIcon className="w-3 h-3" />
-                  <span>Tap to view dashboard</span>
-                </div>
+                <span className="mt-2 inline-flex items-center gap-1 text-caption font-bold text-brand-ink">
+                  <SparklesIcon className="h-3.5 w-3.5" />
+                  Tap to open
+                </span>
               </div>
             </div>
 
-            {/* Progress bar for auto-dismiss */}
-            <motion.div
+            <motion.span
               initial={{ width: '100%' }}
               animate={{ width: '0%' }}
               transition={{ duration: 6, ease: 'linear' }}
-              className="absolute bottom-0 left-0 h-1 bg-[var(--primary)]"
+              className="absolute bottom-0 left-0 h-1 bg-brand"
             />
-
-            {/* Shine effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
           </div>
         </motion.div>
       )}
