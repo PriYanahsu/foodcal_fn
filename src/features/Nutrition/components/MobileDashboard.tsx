@@ -16,7 +16,7 @@ import type { FitnessDetails } from '@/features/userProfile';
 import type { DailyStats, FoodLog, NutritionGoals } from '../type';
 import { useLoggedDays } from '../hooks/useLoggedDays';
 import { useWaterIntake } from '../hooks/useWaterIntake';
-import { useWeightTrend } from '../hooks/useWeightTrend';
+import { useWeightLog } from '@/hooks/useWeightLog';
 import { WATER_GLASS_ML } from '../utils/Constants';
 import { formatLongDate, greetingFor } from '../utils/toLocalDate';
 import { byLogTime } from '../utils/formatLogTime';
@@ -152,7 +152,7 @@ export default function MobileDashboard({
   const closeCalendar = useCallback(() => setCalendarOpen(false), []);
   const loggedDays = useLoggedDays();
   const water = useWaterIntake(userId, selectedDate);
-  const weight = useWeightTrend(userId, fitness.weight, fitness.targetWeightKg);
+  const weight = useWeightLog(userId, fitness.weight, fitness.targetWeightKg);
 
   const eaten = Math.round(stats.calories);
   const goal = hasPlan ? goals.calories : null;

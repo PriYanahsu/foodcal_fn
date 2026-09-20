@@ -1,5 +1,5 @@
-import FitnessHub from '@/features/fitnessProfile/components/FitnessHub';
+import MyPlan from '@/features/fitnessProfile/components/MyPlan';
 
 export default function FitnessPage() {
-  return <FitnessHub />;
+  return <MyPlan />;
 }

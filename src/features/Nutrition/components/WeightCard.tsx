@@ -2,7 +2,8 @@
 
 import { useId } from 'react';
 import Link from 'next/link';
-import { useWeightTrend, type WeightPoint } from '../hooks/useWeightTrend';
+import { WeighInField } from '@/components/nutrition/WeighInField';
+import { useWeightLog, type WeightPoint } from '@/hooks/useWeightLog';
 
 interface WeightCardProps {
   userId: string | undefined;
@@ -86,7 +87,7 @@ export default function WeightCard({
   targetWeight,
   targetDate,
 }: WeightCardProps) {
-  const { points, current, change, since, progress } = useWeightTrend(
+  const { points, current, startedOn, change, progress, logWeight } = useWeightLog(
     userId,
     profileWeight,
     targetWeight
@@ -105,13 +106,13 @@ export default function WeightCard({
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-lg font-bold text-fg">Weight</h2>
         <Link href="/fitness" className="text-sm font-semibold text-brand-ink hover:underline">
-          Log weight
+          Full chart
         </Link>
       </div>
 
       {current === null ? (
         <p className="text-sm text-muted max-md:text-subhead">
-          Add your weight in your plan to start tracking progress toward your goal.
+          Log your first weigh-in below to start tracking progress toward your goal.
         </p>
       ) : (
         <>
@@ -120,12 +121,12 @@ export default function WeightCard({
               {current}
               <span className="ml-1 font-ui text-base font-semibold text-muted">kg</span>
             </p>
-            {change !== null && change !== 0 && since && (
+            {change !== null && change !== 0 && startedOn && (
               <p
                 className={`text-sm font-semibold ${movingTowardGoal ? 'text-brand-ink' : 'text-muted'}`}
               >
                 {change > 0 ? '+' : '−'}
-                {Math.abs(change).toFixed(1)} kg since {shortDate(since)}
+                {Math.abs(change).toFixed(1)} kg since {shortDate(startedOn)}
               </p>
             )}
           </div>
@@ -150,6 +151,10 @@ export default function WeightCard({
           )}
         </>
       )}
+
+      <div className="border-t border-line pt-4">
+        <WeighInField current={current} lastLoggedIso={startedOn} onSave={logWeight} />
+      </div>
     </section>
   );
 }
