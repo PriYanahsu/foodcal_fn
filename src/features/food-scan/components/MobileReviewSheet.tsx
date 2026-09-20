@@ -3,11 +3,7 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
-import {
-  InformationCircleIcon,
-  SparklesIcon,
-  XMarkIcon,
-} from '@heroicons/react/24/outline';
+import { InformationCircleIcon, SparklesIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { EditableField, MealType, NutritionData } from '../types';
 import { PhotoStage } from './PhotoStage';
 import { ReviewPanel } from './ReviewPanel';

@@ -4,6 +4,7 @@
 import React, { useState } from 'react';
 import { PhotoStage } from '@/features/food-scan/components/PhotoStage';
 import { ReviewPanel } from '@/features/food-scan/components/ReviewPanel';
+import { MobileReviewSheet } from '@/features/food-scan/components/MobileReviewSheet';
 import { ScanStepper } from '@/features/food-scan/components/ScanStepper';
 import type { EditableField, MealType, NutritionData } from '@/features/food-scan/types';
 import { buttonClass } from '@/components/ui/fc';
@@ -53,9 +54,9 @@ export default function UiPreview() {
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-3 md:grid md:grid-cols-[minmax(0,1fr)_minmax(340px,440px)] md:items-stretch md:gap-6">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 max-md:hidden md:grid md:grid-cols-[minmax(0,1fr)_minmax(340px,440px)] md:items-stretch md:gap-6">
         <div className="flex min-h-0 flex-1 flex-col gap-3">
-          <PhotoStage src={IMG} className="min-h-0 flex-1">
+          <PhotoStage src={IMG} className="min-h-0 flex-1 rounded-3xl border border-line">
             <button
               aria-label="Discard this photo"
               className="absolute left-3 top-3 flex h-10 w-10 items-center justify-center rounded-xl border border-line bg-surface-1/85 text-fg backdrop-blur"
@@ -97,6 +98,21 @@ export default function UiPreview() {
           isSaving={false}
         />
       </div>
+
+      <MobileReviewSheet
+        preview={IMG}
+        meal={meal}
+        mealType={mealType}
+        onMealType={setMealType}
+        isEditing={isEditing}
+        onToggleEdit={() => setIsEditing((v) => !v)}
+        onField={(f, v) => setEdits((e) => ({ ...e, [f]: v }))}
+        isEdited={Object.keys(edits).length > 0}
+        onLog={() => {}}
+        onDiscard={() => {}}
+        onOpenNotes={() => {}}
+        isSaving={false}
+      />
     </div>
   );
 }

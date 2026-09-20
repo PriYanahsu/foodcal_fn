@@ -5,7 +5,6 @@ import { motion, MotionConfig } from 'framer-motion';
 import {
   ArrowPathIcon,
   ArrowUpTrayIcon,
-  InformationCircleIcon,
   SparklesIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';

@@ -33,8 +33,7 @@ const ValueInput: React.FC<{
 const SHELL = {
   sheet:
     'relative z-10 -mt-7 rounded-t-3xl border-t border-line pb-[max(1rem,env(safe-area-inset-bottom))]',
-  panel:
-    'rounded-3xl border border-line md:h-full md:min-h-0 md:gap-4 md:overflow-y-auto md:p-6',
+  panel: 'rounded-3xl border border-line md:h-full md:min-h-0 md:gap-4 md:overflow-y-auto md:p-6',
 } as const;
 
 interface ReviewPanelProps {
