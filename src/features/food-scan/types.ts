@@ -1,4 +1,6 @@
-import { RefObject } from "react";
+import { RefObject } from 'react';
+
+export type EditableField = 'calories' | 'proteinG' | 'carbohydrateG' | 'fatG';
 
 export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
@@ -38,4 +40,3 @@ export interface CameraInputProps {
   isLoading?: boolean;
   children?: (openCamera: () => void, openUpload: () => void) => React.ReactNode;
 }
-

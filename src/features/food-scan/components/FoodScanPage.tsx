@@ -134,28 +134,29 @@ export const FoodScanPage: React.FC = () => {
                   <PhotoStage src={preview!} scanning={isLoading} className="min-h-0 flex-1">
                     {isLoading && <AiScanOverlay prompt={prompt} />}
 
-                    {stage === 'context' && (
+                    {!isLoading && (
                       <button
                         type="button"
                         onClick={handleReset}
-                        aria-label="Remove photo"
-                        className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border border-line bg-surface-1/90 text-fg backdrop-blur transition-transform active:scale-90"
+                        aria-label="Discard this photo"
+                        className="absolute left-3 top-3 flex h-10 w-10 items-center justify-center rounded-xl border border-line bg-surface-1/85 text-fg backdrop-blur transition-transform active:scale-90"
                       >
                         <XMarkIcon className="h-5 w-5" />
                       </button>
                     )}
 
                     {stage === 'review' && draft.meal && (
-                      <span className="absolute inset-x-3 bottom-3 flex items-center gap-2">
-                        <span className="min-w-0 truncate rounded-full border border-line bg-surface-1/90 px-3 py-1.5 text-xs font-bold text-fg backdrop-blur">
-                          {draft.meal.foodName || 'Detected meal'}
+                      <span className="absolute right-3 top-3 flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-1/85 px-3 py-2 text-xs font-bold text-fg backdrop-blur">
+                          <SparklesIcon className="h-4 w-4 text-brand-ink" />
+                          AI estimate
                         </span>
                         {draft.meal.analysisNotes && (
                           <button
                             type="button"
                             onClick={() => setNotesOpen(true)}
                             aria-label="How we got this estimate"
-                            className="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line bg-surface-1/90 text-fg backdrop-blur transition-transform active:scale-90 md:hidden"
+                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-line bg-surface-1/85 text-fg backdrop-blur transition-transform active:scale-90 md:hidden"
                           >
                             <InformationCircleIcon className="h-5 w-5" />
                           </button>
@@ -190,12 +191,12 @@ export const FoodScanPage: React.FC = () => {
                 {stage === 'review' && draft.meal ? (
                   <ReviewPanel
                     meal={draft.meal}
-                    baseQuantity={nutritionData?.quantity ?? ''}
-                    servings={draft.servings}
-                    onIncrement={draft.increment}
-                    onDecrement={draft.decrement}
                     mealType={draft.mealType}
                     onMealType={draft.setMealType}
+                    isEditing={draft.isEditing}
+                    onToggleEdit={draft.toggleEdit}
+                    onField={draft.setField}
+                    isEdited={draft.isEdited}
                     onLog={handleLogMeal}
                     onDiscard={handleReset}
                     isSaving={isSaving}

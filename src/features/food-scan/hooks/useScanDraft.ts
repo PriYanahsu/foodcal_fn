@@ -1,8 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import { MealType, NutritionData } from '../types';
-import { SERVING_MAX, SERVING_MIN, SERVING_STEP } from '../utils/constants';
+import { EditableField, MealType, NutritionData } from '../types';
 
 /** The meal the clock suggests, so the picker is usually already right. */
 export function mealTypeForNow(now = new Date()): MealType {
@@ -15,44 +14,37 @@ export function mealTypeForNow(now = new Date()): MealType {
 }
 
 /**
- * What the user gets to change about a prediction before logging it: how much
- * they actually ate, and which meal it belongs to. The AI estimates a single
- * serving, so every number on the review panel is scaled from that — and the
- * meal type is set here because the scan API never returns one.
+ * What the user gets to change about a prediction before logging it: the
+ * numbers themselves, when the estimate is off, and which meal it belongs to —
+ * the scan API never returns a meal type, so it is chosen here.
  *
- * `restart()` is called when a scan begins, so each prediction is reviewed from
- * one serving and the current time of day.
+ * `restart()` runs when a scan begins, so each prediction is reviewed fresh.
  */
 export const useScanDraft = (data: NutritionData | null) => {
-  const [servings, setServings] = useState(1);
   const [mealType, setMealType] = useState<MealType>(mealTypeForNow);
+  const [edits, setEdits] = useState<Partial<Record<EditableField, number>>>({});
+  const [isEditing, setIsEditing] = useState(false);
 
   const restart = useCallback(() => {
-    setServings(1);
+    setEdits({});
+    setIsEditing(false);
     setMealType(mealTypeForNow());
   }, []);
 
-  const step = useCallback((delta: number) => {
-    setServings((n) =>
-      Math.min(SERVING_MAX, Math.max(SERVING_MIN, Number((n + delta).toFixed(2))))
-    );
+  const toggleEdit = useCallback(() => setIsEditing((on) => !on), []);
+
+  const setField = useCallback((field: EditableField, value: number) => {
+    // A cleared input reads as NaN; keep the last good number rather than store it.
+    if (!Number.isFinite(value)) return;
+    setEdits((current) => ({ ...current, [field]: Math.max(0, value) }));
   }, []);
 
-  const increment = useCallback(() => step(SERVING_STEP), [step]);
-  const decrement = useCallback(() => step(-SERVING_STEP), [step]);
+  const meal = useMemo<NutritionData | null>(
+    () => (data ? { ...data, ...edits, mealType } : null),
+    [data, edits, mealType]
+  );
 
-  const meal = useMemo<NutritionData | null>(() => {
-    if (!data) return null;
-    return {
-      ...data,
-      mealType,
-      calories: data.calories * servings,
-      proteinG: data.proteinG * servings,
-      carbohydrateG: data.carbohydrateG * servings,
-      fatG: data.fatG * servings,
-      quantity: servings === 1 || !data.quantity ? data.quantity : `${servings} × ${data.quantity}`,
-    };
-  }, [data, servings, mealType]);
+  const isEdited = Object.keys(edits).length > 0;
 
-  return { servings, mealType, setMealType, increment, decrement, restart, meal };
+  return { meal, mealType, setMealType, isEditing, toggleEdit, setField, isEdited, restart };
 };
