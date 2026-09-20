@@ -4,7 +4,6 @@
 import React, { useState } from 'react';
 import { PhotoStage } from '@/features/food-scan/components/PhotoStage';
 import { ReviewPanel } from '@/features/food-scan/components/ReviewPanel';
-import { MobileReviewSheet } from '@/features/food-scan/components/MobileReviewSheet';
 import { ScanStepper } from '@/features/food-scan/components/ScanStepper';
 import type { EditableField, MealType, NutritionData } from '@/features/food-scan/types';
 import { buttonClass } from '@/components/ui/fc';
@@ -42,7 +41,7 @@ export default function UiPreview() {
 
   return (
     <div className="mx-auto flex h-[calc(100dvh-4rem-68px-2.25rem-env(safe-area-inset-bottom))] min-h-[440px] w-full max-w-[1240px] flex-col gap-3 bg-canvas px-4 py-3 font-ui text-fg md:h-dvh md:min-h-[620px] md:max-w-[1440px] md:gap-5 md:px-8 md:py-8">
-      <header className="flex shrink-0 items-center justify-between gap-3">
+      <header className="flex shrink-0 items-center justify-between gap-3 max-md:hidden">
         <div className="min-w-0">
           <p className="mb-1 hidden text-[13px] font-semibold text-muted md:block">Scan a meal</p>
           <h1 className="truncate font-display text-[22px] font-bold leading-tight tracking-[-0.02em] md:text-[26px]">
@@ -54,16 +53,16 @@ export default function UiPreview() {
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-3 max-md:hidden md:grid md:grid-cols-[minmax(0,1fr)_minmax(340px,440px)] md:items-stretch md:gap-6">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 md:grid md:grid-cols-[minmax(0,1fr)_minmax(340px,440px)] md:items-stretch md:gap-6">
         <div className="flex min-h-0 flex-1 flex-col gap-3">
-          <PhotoStage src={IMG} className="min-h-0 flex-1 rounded-3xl border border-line">
+          <PhotoStage src={IMG} className="min-h-0 border-line max-md:-mx-4 max-md:-mt-3 max-md:h-[clamp(150px,27dvh,250px)] max-md:shrink-0 md:flex-1 md:rounded-3xl md:border">
             <button
               aria-label="Discard this photo"
-              className="absolute left-3 top-3 flex h-10 w-10 items-center justify-center rounded-xl border border-line bg-surface-1/85 text-fg backdrop-blur"
+              className="absolute left-4 top-4 flex h-10 w-10 items-center justify-center rounded-xl border border-line bg-surface-1/85 text-fg backdrop-blur"
             >
               <XMarkIcon className="h-5 w-5" />
             </button>
-            <span className="absolute right-3 top-3 flex items-center gap-2">
+            <span className="absolute right-4 top-4 flex items-center gap-2">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-1/85 px-3 py-2 text-xs font-bold text-fg backdrop-blur">
                 <SparklesIcon className="h-4 w-4 text-brand-ink" />
                 AI estimate
@@ -99,20 +98,6 @@ export default function UiPreview() {
         />
       </div>
 
-      <MobileReviewSheet
-        preview={IMG}
-        meal={meal}
-        mealType={mealType}
-        onMealType={setMealType}
-        isEditing={isEditing}
-        onToggleEdit={() => setIsEditing((v) => !v)}
-        onField={(f, v) => setEdits((e) => ({ ...e, [f]: v }))}
-        isEdited={Object.keys(edits).length > 0}
-        onLog={() => {}}
-        onDiscard={() => {}}
-        onOpenNotes={() => {}}
-        isSaving={false}
-      />
     </div>
   );
 }

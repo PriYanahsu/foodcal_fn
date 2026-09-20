@@ -25,19 +25,7 @@ const ValueInput: React.FC<{
   />
 );
 
-/**
- * `sheet` is the phone's full-screen review: the card is lifted over the photo
- * and runs to the bottom edge. `panel` is the boxed column beside the photo on
- * tablets and desktop.
- */
-const SHELL = {
-  sheet:
-    'relative z-10 -mt-7 rounded-t-3xl border-t border-line pb-[max(1rem,env(safe-area-inset-bottom))]',
-  panel: 'rounded-3xl border border-line md:h-full md:min-h-0 md:gap-4 md:overflow-y-auto md:p-6',
-} as const;
-
 interface ReviewPanelProps {
-  variant?: keyof typeof SHELL;
   meal: NutritionData;
   mealType: MealType;
   onMealType: (meal: MealType) => void;
@@ -53,7 +41,6 @@ interface ReviewPanelProps {
 
 /** Step 2: what the AI read off the photo, corrected by the person who ate it. */
 export const ReviewPanel: React.FC<ReviewPanelProps> = ({
-  variant = 'panel',
   meal,
   mealType,
   onMealType,
@@ -71,7 +58,9 @@ export const ReviewPanel: React.FC<ReviewPanelProps> = ({
 
   return (
     <div
-      className={`custom-scrollbar flex shrink-0 flex-col gap-3 bg-surface-1 p-4 short:gap-2 short:p-3 ${SHELL[variant]}`}
+      // Phones: lifted over the bottom of the photo, filling the rest of the screen.
+      // From md up: the boxed column beside it. Either way the actions sit at the foot.
+      className="custom-scrollbar relative z-10 flex min-h-0 flex-1 flex-col gap-3 rounded-3xl border border-line bg-surface-1 p-4 max-md:-mt-7 short:gap-2 short:p-3 md:h-full md:flex-none md:gap-4 md:overflow-y-auto md:p-6"
     >
       {/* Identity + confidence */}
       <div className="flex shrink-0 items-start justify-between gap-3">
@@ -219,7 +208,7 @@ export const ReviewPanel: React.FC<ReviewPanelProps> = ({
         </p>
       )}
 
-      <div className="grid shrink-0 grid-cols-[auto_1fr] gap-2 md:mt-auto md:gap-3 md:pt-4">
+      <div className="mt-auto grid shrink-0 grid-cols-[auto_1fr] gap-2 pt-1 md:gap-3 md:pt-4">
         <button
           type="button"
           onClick={onDiscard}

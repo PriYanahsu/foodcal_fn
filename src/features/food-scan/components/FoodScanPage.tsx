@@ -17,7 +17,6 @@ import { useScanDraft } from '../hooks/useScanDraft';
 import { AiScanOverlay } from './AiScanOverlay';
 import { CameraInput } from './CameraInput';
 import { CaptureStage } from './CaptureStage';
-import { MobileReviewSheet } from './MobileReviewSheet';
 import { PhotoStage } from './PhotoStage';
 import { ReviewPanel } from './ReviewPanel';
 import { PanelLabel, PanelSection, ScanPanel } from './ScanPanel';
@@ -107,7 +106,12 @@ export const FoodScanPage: React.FC = () => {
           // those bars, so it gets the whole viewport; the photo absorbs the slack, which is
           // what keeps a big screen from ending in a void.
           <div className="mx-auto flex h-[calc(100dvh-4rem-68px-2.25rem-env(safe-area-inset-bottom))] min-h-[440px] w-full max-w-[1240px] flex-col gap-3 bg-canvas px-4 py-3 font-ui text-fg md:h-dvh md:min-h-[620px] md:max-w-[1440px] md:gap-5 md:px-8 md:py-8">
-            <header className="flex shrink-0 items-center justify-between gap-3">
+            <header
+              // At `review` the phone gives the whole screen to the photo and the card.
+              className={`flex shrink-0 items-center justify-between gap-3 ${
+                stage === 'review' ? 'max-md:hidden' : ''
+              }`}
+            >
               <div className="min-w-0">
                 <p className="mb-1 hidden text-[13px] font-semibold text-muted md:block">
                   Scan a meal
@@ -130,15 +134,17 @@ export const FoodScanPage: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                 // At `review` the phone gets the full-screen sheet below instead.
-                className={`flex min-h-0 flex-1 flex-col gap-3 md:grid md:grid-cols-[minmax(0,1fr)_minmax(340px,440px)] md:items-stretch md:gap-6 ${
-                  stage === 'review' ? 'max-md:hidden' : ''
-                }`}
+                className="flex min-h-0 flex-1 flex-col gap-3 md:grid md:grid-cols-[minmax(0,1fr)_minmax(340px,440px)] md:items-stretch md:gap-6"
               >
                 <div className="flex min-h-0 flex-1 flex-col gap-3">
                   <PhotoStage
                     src={preview!}
                     scanning={isLoading}
-                    className="min-h-0 flex-1 rounded-3xl border border-line"
+                    className={`min-h-0 border-line md:flex-1 md:rounded-3xl md:border ${
+                      stage === 'review'
+                        ? 'max-md:-mx-4 max-md:-mt-3 max-md:h-[clamp(150px,27dvh,250px)] max-md:shrink-0'
+                        : 'flex-1 rounded-3xl border'
+                    }`}
                   >
                     {isLoading && <AiScanOverlay prompt={prompt} />}
 
@@ -147,7 +153,7 @@ export const FoodScanPage: React.FC = () => {
                         type="button"
                         onClick={handleReset}
                         aria-label="Discard this photo"
-                        className="absolute left-3 top-3 flex h-10 w-10 items-center justify-center rounded-xl border border-line bg-surface-1/85 text-fg backdrop-blur transition-transform active:scale-90"
+                        className="absolute left-4 top-4 flex h-10 w-10 items-center justify-center rounded-xl border border-line bg-surface-1/85 text-fg backdrop-blur transition-transform active:scale-90"
                       >
                         <XMarkIcon className="h-5 w-5" />
                       </button>
@@ -155,7 +161,7 @@ export const FoodScanPage: React.FC = () => {
 
                     {stage === 'review' && draft.meal && (
                       // The notes sit in the panel at this size, so no info button here.
-                      <span className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-1/85 px-3 py-2 text-xs font-bold text-fg backdrop-blur">
+                      <span className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-1/85 px-3 py-2 text-xs font-bold text-fg backdrop-blur">
                         <SparklesIcon className="h-4 w-4 text-brand-ink" />
                         AI estimate
                       </span>
@@ -251,24 +257,6 @@ export const FoodScanPage: React.FC = () => {
           </div>
         )}
       </CameraInput>
-
-      {stage === 'review' && draft.meal && preview && (
-        <MobileReviewSheet
-          preview={preview}
-          meal={draft.meal}
-          mealType={draft.mealType}
-          onMealType={draft.setMealType}
-          isEditing={draft.isEditing}
-          onToggleEdit={draft.toggleEdit}
-          onField={draft.setField}
-          isEdited={draft.isEdited}
-          onLog={handleLogMeal}
-          onDiscard={handleReset}
-          onOpenNotes={openNotes}
-          isSaving={isSaving}
-          error={error}
-        />
-      )}
 
       <BottomSheet open={notesOpen} onClose={closeNotes} label="How we got this estimate">
         <div className="pb-4">
