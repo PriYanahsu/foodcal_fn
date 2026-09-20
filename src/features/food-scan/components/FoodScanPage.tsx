@@ -5,6 +5,7 @@ import { motion, MotionConfig } from 'framer-motion';
 import {
   ArrowPathIcon,
   ArrowUpTrayIcon,
+  InformationCircleIcon,
   SparklesIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
@@ -105,7 +106,7 @@ export const FoodScanPage: React.FC = () => {
           // without that last bit the bottom row ends up underneath it. Desktop has none of
           // those bars, so it gets the whole viewport; the photo absorbs the slack, which is
           // what keeps a big screen from ending in a void.
-          <div className="mx-auto flex h-[calc(100dvh-4rem-68px-2.25rem-env(safe-area-inset-bottom))] min-h-[440px] w-full max-w-[1240px] flex-col gap-3 bg-canvas px-4 py-3 font-ui text-fg md:h-dvh md:min-h-[620px] md:max-w-[1440px] md:gap-5 md:px-8 md:py-8">
+          <div className="mx-auto flex h-[calc(100dvh-4rem-68px-2.25rem-env(safe-area-inset-bottom))] min-h-[440px] w-full max-w-[1240px] flex-col gap-3 overflow-hidden bg-canvas px-4 py-3 font-ui text-fg md:h-dvh md:min-h-[620px] md:max-w-[1440px] md:gap-5 md:overflow-visible md:px-8 md:py-8">
             <header
               // At `review` the phone gives the whole screen to the photo and the card.
               className={`flex shrink-0 items-center justify-between gap-3 ${
@@ -133,16 +134,20 @@ export const FoodScanPage: React.FC = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                // At `review` the phone gets the full-screen sheet below instead.
                 className="flex min-h-0 flex-1 flex-col gap-3 md:grid md:grid-cols-[minmax(0,1fr)_minmax(340px,440px)] md:items-stretch md:gap-6"
               >
-                <div className="flex min-h-0 flex-1 flex-col gap-3">
+                <div
+                  className={`flex min-h-0 flex-col gap-3 ${
+                    stage === 'review' ? 'max-md:shrink-0 md:flex-1' : 'flex-1'
+                  }`}
+                >
                   <PhotoStage
                     src={preview!}
                     scanning={isLoading}
+                    dim={stage === 'review'}
                     className={`min-h-0 border-line md:flex-1 md:rounded-3xl md:border ${
                       stage === 'review'
-                        ? 'max-md:-mx-4 max-md:-mt-3 max-md:h-[clamp(150px,27dvh,250px)] max-md:shrink-0'
+                        ? 'max-md:-mx-4 max-md:-mt-3 max-md:h-[clamp(130px,24dvh,230px)] max-md:shrink-0'
                         : 'flex-1 rounded-3xl border'
                     }`}
                   >
@@ -160,10 +165,22 @@ export const FoodScanPage: React.FC = () => {
                     )}
 
                     {stage === 'review' && draft.meal && (
-                      // The notes sit in the panel at this size, so no info button here.
-                      <span className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-1/85 px-3 py-2 text-xs font-bold text-fg backdrop-blur">
-                        <SparklesIcon className="h-4 w-4 text-brand-ink" />
-                        AI estimate
+                      <span className="absolute right-4 top-4 flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-1/85 px-3 py-2 text-xs font-bold text-fg backdrop-blur">
+                          <SparklesIcon className="h-4 w-4 text-brand-ink" />
+                          AI estimate
+                        </span>
+                        {/* The panel has room to spell the estimate out from md up. */}
+                        {draft.meal.analysisNotes && (
+                          <button
+                            type="button"
+                            onClick={openNotes}
+                            aria-label="How we got this estimate"
+                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-line bg-surface-1/85 text-fg backdrop-blur transition-transform active:scale-90 md:hidden"
+                          >
+                            <InformationCircleIcon className="h-5 w-5" />
+                          </button>
+                        )}
                       </span>
                     )}
                   </PhotoStage>
