@@ -22,6 +22,7 @@ import { PhotoStage } from './PhotoStage';
 import { ReviewPanel } from './ReviewPanel';
 import { PanelLabel, PanelSection, ScanPanel } from './ScanPanel';
 import { ScanStepper } from './ScanStepper';
+import { MEAL_TYPES } from '../utils/constants';
 
 type Stage = 'photo' | 'context' | 'analyzing' | 'review';
 
@@ -77,12 +78,14 @@ export const FoodScanPage: React.FC = () => {
 
   const handleLogMeal = async () => {
     if (!selectedFile || !draft.meal) return;
-    const { foodName, mealType } = draft.meal;
+    const { foodName, mealType, calories } = draft.meal;
     const success = await saveFoodLog(selectedFile, draft.meal);
+    // The panel shows why it failed; leave the review up so nothing is lost.
     if (!success) return;
+    const label = MEAL_TYPES.find((m) => m.key === mealType)?.label ?? 'your day';
     setToast({
-      message: `Logged to ${mealType}`,
-      detail: `${foodName || 'Your meal'} is in your history. Tap to see it there.`,
+      message: `Logged to ${label}`,
+      detail: `${foodName || 'Your meal'} · ${Math.round(calories).toLocaleString('en-US')} kcal`,
       actionLabel: 'View in History',
       actionHref: ROUTES.HISTORY,
     });
