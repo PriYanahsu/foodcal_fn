@@ -1,15 +1,105 @@
-"use client";
+'use client';
+
 import {
   UserIcon,
   TrophyIcon,
   SparklesIcon,
   ArrowRightIcon,
   CheckCircleIcon,
+  ExclamationTriangleIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { SuccessToast } from '@/components/ui/SuccessToast';
+import { BottomSheet } from '@/components/ui/BottomSheet';
+import { Spinner } from '@/components/ui/fc';
+import { PHONE_QUERY, useMediaQuery } from '@/hooks/useMediaQuery';
 import { ACTIVITY_LEVELS } from '../utils/Constant';
 import { useFitnessSetup } from '../hooks/useFitnessSetup';
+
+const CONTROL =
+  'h-11 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-fg outline-none transition-colors placeholder:text-muted focus:border-brand';
+const LABEL = 'mb-1.5 block text-caption font-semibold text-muted';
+const PRIMARY =
+  'inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand text-base font-bold text-on-brand transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50';
+const SECONDARY =
+  'inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-line-strong bg-surface-2 text-base font-bold text-fg transition-colors hover:bg-surface-3 disabled:opacity-50';
+
+/** One pill per step, filled up to the step you are on. */
+function Progress({ step }: { step: number }) {
+  return (
+    <div className="flex gap-1.5">
+      {[1, 2, 3, 4].map((n) => (
+        <span
+          key={n}
+          className={`h-1 flex-1 rounded-full transition-colors duration-500 ${
+            n <= step ? 'bg-brand' : 'bg-surface-3'
+          }`}
+        />
+      ))}
+    </div>
+  );
+}
+
+function StepHeading({
+  icon,
+  title,
+  subtitle,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/15 text-brand-ink">
+        {icon}
+      </span>
+      <div className="min-w-0">
+        <h2 className="text-lg font-bold leading-tight text-fg">{title}</h2>
+        <p className="text-caption text-muted">{subtitle}</p>
+      </div>
+    </div>
+  );
+}
+
+function Choice({
+  selected,
+  disabled = false,
+  onClick,
+  title,
+  children,
+  className = '',
+}: {
+  selected: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+  title?: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      className={`flex h-11 items-center justify-center rounded-xl border px-2 text-center text-sm font-semibold leading-tight transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+        selected
+          ? 'border-brand bg-brand/10 text-fg'
+          : 'border-line bg-surface-2 text-muted hover:text-fg'
+      } ${className}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+const MACROS = [
+  { key: 'calories', label: 'Calories', unit: '', tone: 'text-brand-ink' },
+  { key: 'protein', label: 'Protein', unit: 'g', tone: 'text-protein' },
+  { key: 'carbs', label: 'Carbs', unit: 'g', tone: 'text-carbs' },
+  { key: 'fats', label: 'Fats', unit: 'g', tone: 'text-fat' },
+] as const;
 
 export default function FitnessSetupWizard({
   userId,
@@ -42,436 +132,388 @@ export default function FitnessSetupWizard({
     derivedObjective,
     setTargetWeight,
     handleConsultAI,
-    handleSavePlan
+    handleSavePlan,
   } = useFitnessSetup(userId, onComplete);
 
-  const inputClass =
-    'w-full bg-[var(--surface)] border border-[var(--card-border)] px-3 py-2 sm:py-2.5 rounded-xl text-sm focus:border-[var(--primary)] outline-none';
-  const labelClass =
-    'block text-[10px] font-medium mb-1 text-[var(--text-muted)] uppercase tracking-wider';
+  const isPhone = useMediaQuery(PHONE_QUERY);
 
-  const WizardContent = (
-    <div
-      className={`bg-[var(--card-bg)] border border-[var(--card-border)] w-full rounded-2xl overflow-hidden shadow-xl relative animate-fade-in ${isInline ? '' : 'max-w-md mx-auto'
-        }`}
-    >
-      {onCancel && !isInline && (
-        <button
-          type="button"
-          onClick={onCancel}
-          className="absolute top-3 right-3 z-10 p-1.5 text-[var(--text-muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-strong)] rounded-full transition-all"
-          title="Cancel Consultation"
-        >
-          <XMarkIcon className="w-5 h-5" />
-        </button>
+  const content = (
+    <section className="flex w-full flex-col gap-4 rounded-3xl border border-line bg-surface-1 p-5 font-ui text-fg">
+      <Progress step={step} />
+
+      {step === 1 && (
+        <div className="flex flex-col gap-4">
+          <StepHeading
+            icon={<UserIcon className="h-5 w-5" />}
+            title="Tell us about yourself"
+            subtitle="Your stats set the base for every target."
+          />
+
+          {prefillLoading ? (
+            <div className="h-56 animate-pulse rounded-2xl bg-surface-2" />
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="col-span-2">
+                <span className={LABEL}>Gender</span>
+                <div className="grid grid-cols-3 gap-2">
+                  {['Male', 'Female', 'Other'].map((g) => (
+                    <Choice
+                      key={g}
+                      selected={stats.gender === g}
+                      onClick={() => setStats({ ...stats, gender: g })}
+                    >
+                      {g}
+                    </Choice>
+                  ))}
+                </div>
+              </div>
+
+              <label>
+                <span className={LABEL}>Age</span>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  value={stats.age}
+                  placeholder="28"
+                  onChange={(e) =>
+                    setStats({
+                      ...stats,
+                      age: e.target.value === '' ? '' : parseInt(e.target.value),
+                    })
+                  }
+                  className={CONTROL}
+                />
+              </label>
+
+              <label>
+                <span className={LABEL}>Height (cm)</span>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  value={stats.height}
+                  placeholder="175"
+                  onChange={(e) =>
+                    setStats({
+                      ...stats,
+                      height: e.target.value === '' ? '' : parseInt(e.target.value),
+                    })
+                  }
+                  className={CONTROL}
+                />
+              </label>
+
+              <label className="col-span-2">
+                <span className={LABEL}>Current weight (kg)</span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  value={stats.weight}
+                  placeholder="72"
+                  onChange={(e) =>
+                    setStats({
+                      ...stats,
+                      weight: e.target.value === '' ? '' : parseFloat(e.target.value),
+                    })
+                  }
+                  className={CONTROL}
+                />
+              </label>
+
+              <div className="col-span-2">
+                <span className={LABEL}>Activity level</span>
+                <div className="grid grid-cols-2 gap-2">
+                  {ACTIVITY_LEVELS.map((level) => (
+                    <Choice
+                      key={level}
+                      selected={stats.activity_level === level}
+                      onClick={() => setStats({ ...stats, activity_level: level })}
+                    >
+                      {level}
+                    </Choice>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={nextStep}
+            disabled={prefillLoading || !canProceedStep1}
+            className={PRIMARY}
+          >
+            Next <ArrowRightIcon className="h-4 w-4" />
+          </button>
+        </div>
       )}
 
-      <div className="h-1 w-full bg-[var(--surface)]">
-        <div
-          className="h-full bg-[var(--primary)] transition-all duration-500"
-          style={{ width: `${(step / 4) * 100}%` }}
-        />
-      </div>
+      {step === 2 && (
+        <div className="flex flex-col gap-4">
+          <StepHeading
+            icon={<TrophyIcon className="h-5 w-5" />}
+            title="What's your goal?"
+            subtitle="Where you want to be, and by when."
+          />
 
-      <div className="p-4 sm:p-5">
-        {step === 1 && (
-          <div className="space-y-3.5 sm:space-y-4 animate-slide-up">
-            <div className="text-center space-y-1">
-              <div className="w-10 h-10 bg-[var(--primary)]/10 text-[var(--primary)] rounded-xl flex items-center justify-center mx-auto mb-1.5">
-                <UserIcon className="w-5 h-5" />
-              </div>
-              <h2 className="text-lg sm:text-xl font-bold leading-tight">Tell us about yourself</h2>
-              <p className="text-[var(--text-muted)] text-xs">
-                Physical stats help the AI set your base targets.
-              </p>
+          <div>
+            <span className={LABEL}>Objective</span>
+            <div className="grid grid-cols-3 gap-2">
+              {['Lose Weight', 'Maintain Weight', 'Gain Muscle'].map((o) => {
+                const allowed = isObjectiveAllowed(o);
+                return (
+                  <Choice
+                    key={o}
+                    selected={goals.objective === o}
+                    disabled={!allowed}
+                    onClick={() => allowed && setGoals({ ...goals, objective: o })}
+                    title={
+                      !allowed && derivedObjective
+                        ? `Locked — based on your weight vs target, your goal is ${derivedObjective}`
+                        : undefined
+                    }
+                    className="text-caption"
+                  >
+                    {o}
+                  </Choice>
+                );
+              })}
             </div>
-
-            {prefillLoading ? (
-              <div className="h-28 rounded-xl bg-[var(--surface)] animate-pulse" />
-            ) : (
-              <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-                <div className="col-span-2">
-                  <label className={labelClass}>Gender</label>
-                  <div className="flex gap-2">
-                    {['Male', 'Female', 'Other'].map((g) => (
-                      <button
-                        key={g}
-                        type="button"
-                        onClick={() => setStats({ ...stats, gender: g })}
-                        className={`flex-1 py-2 sm:py-2.5 rounded-xl border-2 text-sm transition-all ${stats.gender === g
-                          ? 'border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--foreground)]'
-                          : 'border-[var(--card-border)] text-[var(--text-muted)] hover:border-[var(--card-border)]'
-                          }`}
-                      >
-                        {g}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <label className={labelClass}>Age</label>
-                  <input
-                    type="number"
-                    value={stats.age}
-                    placeholder="Your age"
-                    onChange={(e) =>
-                      setStats({
-                        ...stats,
-                        age: e.target.value === '' ? '' : parseInt(e.target.value),
-                      })
-                    }
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className={labelClass}>Height (cm)</label>
-                  <input
-                    type="number"
-                    value={stats.height}
-                    placeholder="e.g. 175"
-                    onChange={(e) =>
-                      setStats({
-                        ...stats,
-                        height: e.target.value === '' ? '' : parseInt(e.target.value),
-                      })
-                    }
-                    className={inputClass}
-                  />
-                </div>
-                <div className="col-span-2">
-                  <label className={labelClass}>Weight (kg)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={stats.weight}
-                    placeholder="Your current weight"
-                    onChange={(e) =>
-                      setStats({
-                        ...stats,
-                        weight: e.target.value === '' ? '' : parseFloat(e.target.value),
-                      })
-                    }
-                    className={inputClass}
-                  />
-                </div>
-                <div className="col-span-2">
-                  <label className={labelClass}>Activity Level</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {ACTIVITY_LEVELS.map((level) => (
-                      <button
-                        key={level}
-                        type="button"
-                        onClick={() => setStats({ ...stats, activity_level: level })}
-                        className={`py-2 px-2 text-[11px] sm:text-xs rounded-xl border-2 transition-all text-left ${stats.activity_level === level
-                          ? 'border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--foreground)]'
-                          : 'border-[var(--card-border)] text-[var(--text-muted)] hover:border-[var(--card-border)]'
-                          }`}
-                      >
-                        {level}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
+            {derivedObjective && (
+              <p className="mt-1.5 text-caption text-muted">
+                Auto-set from {stats.weight} kg → {goals.target_weight} kg
+              </p>
             )}
+          </div>
 
+          <div className="grid grid-cols-2 gap-3">
+            <label>
+              <span className={LABEL}>Target weight (kg)</span>
+              <input
+                type="number"
+                inputMode="decimal"
+                step="0.1"
+                value={goals.target_weight}
+                placeholder="68"
+                onChange={(e) =>
+                  setTargetWeight(e.target.value === '' ? '' : parseFloat(e.target.value))
+                }
+                className={CONTROL}
+              />
+            </label>
+            <label>
+              <span className={LABEL}>Target date</span>
+              <input
+                type="date"
+                value={goals.target_date}
+                onChange={(e) => setGoals({ ...goals, target_date: e.target.value })}
+                className={CONTROL}
+              />
+            </label>
+          </div>
+
+          <div className="flex gap-2">
+            <button type="button" onClick={prevStep} className={`${SECONDARY} flex-1`}>
+              Back
+            </button>
             <button
               type="button"
               onClick={nextStep}
-              disabled={prefillLoading || !canProceedStep1}
-              className="btn-primary w-full flex items-center justify-center gap-2 text-sm sm:text-base py-2.5 disabled:opacity-40"
+              disabled={!canProceedStep2}
+              className={`${PRIMARY} flex-[2]`}
             >
-              Next <ArrowRightIcon className="w-4 h-4" />
+              Next <ArrowRightIcon className="h-4 w-4" />
             </button>
           </div>
-        )}
+        </div>
+      )}
 
-        {step === 2 && (
-          <div className="space-y-3.5 sm:space-y-4 animate-slide-up">
-            <div className="text-center space-y-1">
-              <div className="w-10 h-10 bg-[var(--accent)]/10 text-[var(--accent)] rounded-xl flex items-center justify-center mx-auto mb-1.5">
-                <TrophyIcon className="w-5 h-5" />
-              </div>
-              <h2 className="text-lg sm:text-xl font-bold leading-tight">What&apos;s your goal?</h2>
-              <p className="text-[var(--text-muted)] text-xs">
-                Be specific about what you want to achieve.
+      {step === 3 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col items-center gap-3 text-center">
+            <span className="relative flex h-16 w-16 items-center justify-center">
+              <span className="absolute inset-0 animate-ping rounded-full bg-brand/20" />
+              <span className="relative flex h-full w-full items-center justify-center rounded-full border-2 border-brand bg-surface-2">
+                <SparklesIcon className="h-7 w-7 text-brand-ink" />
+              </span>
+            </span>
+            <div>
+              <h2 className="text-lg font-bold leading-tight text-fg">Consult your AI coach</h2>
+              <p className="mt-0.5 text-caption text-muted">
+                It reads your stats and goal, then builds daily targets.
               </p>
-            </div>
-
-            <div className="space-y-2.5 sm:space-y-3">
-              <div>
-                <label className={labelClass}>Objective</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {['Lose Weight', 'Maintain Weight', 'Gain Muscle'].map((o) => {
-                    const allowed = isObjectiveAllowed(o);
-                    const selected = goals.objective === o;
-                    return (
-                      <button
-                        key={o}
-                        type="button"
-                        disabled={!allowed}
-                        onClick={() => {
-                          if (!allowed) return;
-                          setGoals({ ...goals, objective: o });
-                        }}
-                        title={
-                          !allowed && derivedObjective
-                            ? `Locked — based on your weight vs target, goal is ${derivedObjective}`
-                            : undefined
-                        }
-                        className={`py-2 sm:py-2.5 px-1 text-[11px] sm:text-xs rounded-xl border-2 transition-all leading-tight ${selected
-                          ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--foreground)]'
-                          : allowed
-                            ? 'border-[var(--card-border)] text-[var(--text-muted)] hover:border-[var(--card-border)]'
-                            : 'border-[var(--card-border)] text-[var(--text-muted)] cursor-not-allowed opacity-40'
-                          }`}
-                      >
-                        {o}
-                      </button>
-                    );
-                  })}
-                </div>
-                {derivedObjective && (
-                  <p className="text-[10px] text-[var(--text-muted)] mt-1.5">
-                    Auto-set from weight ({stats.weight} kg) → target ({goals.target_weight} kg)
-                  </p>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-2.5">
-                <div>
-                  <label className={labelClass}>Target Weight (kg)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={goals.target_weight}
-                    placeholder="Your goal weight"
-                    onChange={(e) =>
-                      setTargetWeight(
-                        e.target.value === '' ? '' : parseFloat(e.target.value)
-                      )
-                    }
-                    className={`${inputClass} focus:border-[var(--accent)]`}
-                  />
-                </div>
-                <div>
-                  <label className={labelClass}>Target Date</label>
-                  <input
-                    type="date"
-                    value={goals.target_date}
-                    onChange={(e) => setGoals({ ...goals, target_date: e.target.value })}
-                    className={`${inputClass} focus:border-[var(--accent)]`}
-                    style={{ colorScheme: 'dark' }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <button type="button" onClick={prevStep} className="btn-secondary flex-1 py-2.5 text-sm">
-                Back
-              </button>
-              <button
-                type="button"
-                onClick={nextStep}
-                disabled={!canProceedStep2}
-                className="btn-primary flex-[2] flex items-center justify-center gap-2 py-2.5 text-sm disabled:opacity-40"
-              >
-                Next <ArrowRightIcon className="w-4 h-4" />
-              </button>
             </div>
           </div>
-        )}
 
-        {step === 3 && (
-          <div className="space-y-4 text-center py-1 animate-slide-up">
-            <div className="relative mx-auto w-16 h-16 sm:w-20 sm:h-20">
-              <div className="absolute inset-0 bg-[var(--primary)]/20 rounded-full animate-ping" />
-              <div className="relative bg-[var(--card-bg)] border-4 border-[var(--primary)] rounded-full w-full h-full flex items-center justify-center">
-                <SparklesIcon className="w-8 h-8 sm:w-10 sm:h-10 text-[var(--primary)] animate-pulse" />
-              </div>
-            </div>
-            <div className="space-y-2.5">
-              <h2 className="text-lg sm:text-xl font-bold leading-tight">Consulting Expert AI Coach</h2>
-              <p className="text-[var(--text-muted)] text-xs max-w-sm mx-auto">
-                Analyzing your stats & goals to build a plan that fits your body.
-              </p>
-              <div className="text-left max-w-sm mx-auto rounded-xl border border-[var(--card-border)] bg-[var(--surface)] p-3 space-y-2">
-                <p className="text-[11px] font-semibold text-[var(--foreground)]">What you&apos;ll get on your dashboard:</p>
-                <ul className="space-y-1.5 text-[11px] text-[var(--text-muted)] leading-relaxed">
-                  <li className="flex gap-2">
-                    <span className="text-[var(--primary)] shrink-0">•</span>
-                    <span>
-                      <span className="text-[var(--foreground)] font-medium">Daily calorie target</span> — how much energy to eat for your goal
-                    </span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-[var(--primary)] shrink-0">•</span>
-                    <span>
-                      <span className="text-[var(--foreground)] font-medium">Protein, carbs &amp; fats</span> — macro targets to hit each day
-                    </span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-[var(--primary)] shrink-0">•</span>
-                    <span>
-                      <span className="text-[var(--foreground)] font-medium">Coach advice</span> — short tips tailored to your plan
-                    </span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-[var(--primary)] shrink-0">•</span>
-                    <span>
-                      Log meals afterward and track progress against these targets in real time
-                    </span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div className="flex flex-col gap-2">
-              <button
-                type="button"
-                onClick={handleConsultAI}
-                disabled={loading}
-                className="btn-primary py-2.5 sm:py-3 text-sm sm:text-base shadow-[0_0_20px_rgba(118,185,0,0.35)] disabled:opacity-50"
-              >
-                {loading ? 'Analyzing...' : 'Begin Consultation'}
-              </button>
-              {!loading && (
-                <button
-                  type="button"
-                  onClick={prevStep}
-                  className="text-[var(--text-muted)] hover:text-[var(--foreground)] transition-colors text-xs py-1"
-                >
-                  Go Back and Edit Goals
-                </button>
+          <ul className="flex flex-col gap-2 rounded-2xl border border-line bg-surface-2 p-4 text-footnote text-fg-2">
+            {[
+              ['Daily calorie target', 'how much to eat for your goal'],
+              ['Protein, carbs and fats', 'macro targets to hit each day'],
+              ['Coach advice', 'short tips tailored to your plan'],
+            ].map(([title, detail]) => (
+              <li key={title} className="flex gap-2">
+                <span className="mt-0.5 text-brand-ink">•</span>
+                <span>
+                  <span className="font-bold text-fg">{title}</span> — {detail}
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          <div className="flex flex-col gap-2">
+            <button type="button" onClick={handleConsultAI} disabled={loading} className={PRIMARY}>
+              {loading ? (
+                <>
+                  <Spinner className="h-4 w-4" />
+                  Analysing…
+                </>
+              ) : (
+                <>
+                  <SparklesIcon className="h-5 w-5" />
+                  Begin consultation
+                </>
               )}
-            </div>
-          </div>
-        )}
-
-        {step === 4 && aiResult && (
-          <div className="space-y-3.5 sm:space-y-4 animate-slide-up">
-            <div
-              className={`p-3 sm:p-3.5 rounded-xl border ${aiResult.status === 'approved'
-                ? 'bg-green-500/10 border-green-500/20'
-                : 'bg-red-500/10 border-red-500/20'
-                }`}
-            >
-              <h3
-                className={`text-base sm:text-lg font-bold mb-1 flex items-center gap-2 ${aiResult.status === 'approved' ? 'text-green-400' : 'text-red-400'
-                  }`}
+            </button>
+            {!loading && (
+              <button
+                type="button"
+                onClick={prevStep}
+                className="h-10 rounded-xl text-sm font-bold text-muted transition-colors hover:text-fg"
               >
-                {aiResult.status === 'approved' ? (
-                  <CheckCircleIcon className="w-5 h-5 shrink-0" />
-                ) : (
-                  <span>⚠️</span>
-                )}
-                {aiResult.status === 'approved' ? 'Your Plan is Ready!' : 'Reality Check Required'}
-              </h3>
-              <p className="text-[var(--text-muted)] text-xs leading-relaxed italic">
-                &ldquo;{aiResult.reasoning}&rdquo;
-              </p>
-            </div>
-
-            {aiResult.status === 'approved' ? (
-              <>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <div className="bg-[var(--surface)] p-2.5 rounded-xl border border-[var(--card-border)] text-center">
-                    <span className="block text-[var(--primary)] text-lg font-bold">
-                      {aiResult.targets.calories}
-                    </span>
-                    <span className="text-[var(--text-muted)] text-[10px] uppercase">Calories</span>
-                  </div>
-                  <div className="bg-[var(--surface)] p-2.5 rounded-xl border border-[var(--card-border)] text-center">
-                    <span className="block text-red-400 text-lg font-bold">
-                      {aiResult.targets.protein}g
-                    </span>
-                    <span className="text-[var(--text-muted)] text-[10px] uppercase">Protein</span>
-                  </div>
-                  <div className="bg-[var(--surface)] p-2.5 rounded-xl border border-[var(--card-border)] text-center">
-                    <span className="block text-blue-400 text-lg font-bold">
-                      {aiResult.targets.carbs}g
-                    </span>
-                    <span className="text-[var(--text-muted)] text-[10px] uppercase">Carbs</span>
-                  </div>
-                  <div className="bg-[var(--surface)] p-2.5 rounded-xl border border-[var(--card-border)] text-center">
-                    <span className="block text-purple-400 text-lg font-bold">
-                      {aiResult.targets.fats}g
-                    </span>
-                    <span className="text-[var(--text-muted)] text-[10px] uppercase">Fats</span>
-                  </div>
-                </div>
-
-                <div className="bg-[var(--primary)]/5 p-3 rounded-xl border border-[var(--primary)]/20">
-                  <h4 className="font-bold text-[var(--primary)] mb-1 flex items-center gap-1.5 text-xs">
-                    <SparklesIcon className="w-3.5 h-3.5" /> Elite Coach Advice
-                  </h4>
-                  <p className="text-xs text-[var(--text-muted)] leading-relaxed">{aiResult.advice}</p>
-                </div>
-
-                <div className="flex flex-col-reverse sm:flex-row gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setStep(2)}
-                    className="btn-secondary flex-1 py-2.5 text-sm"
-                  >
-                    Change goals
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSavePlan}
-                    disabled={loading}
-                    className="btn-primary flex-[2] py-2.5 text-sm"
-                  >
-                    {loading ? 'Saving Plan...' : 'Activate My Plan'}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div className="space-y-3 text-center">
-                <p className="text-xs sm:text-sm text-[var(--text-muted)]">
-                  Your AI coach suggests modifying your target date or weight for a healthier plan.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setStep(2)}
-                  className="btn-primary py-2.5 px-6 text-sm"
-                >
-                  Adjust My Goals
-                </button>
-              </div>
+                Go back and edit goals
+              </button>
             )}
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      )}
+
+      {step === 4 && aiResult && (
+        <div className="flex flex-col gap-4">
+          <div
+            className={`rounded-2xl border p-4 ${
+              aiResult.status === 'approved'
+                ? 'border-brand/30 bg-brand/10'
+                : 'border-danger/40 bg-danger/10'
+            }`}
+          >
+            <h3
+              className={`flex items-center gap-2 text-base font-bold ${
+                aiResult.status === 'approved' ? 'text-brand-ink' : 'text-danger'
+              }`}
+            >
+              {aiResult.status === 'approved' ? (
+                <CheckCircleIcon className="h-5 w-5 shrink-0" />
+              ) : (
+                <ExclamationTriangleIcon className="h-5 w-5 shrink-0" />
+              )}
+              {aiResult.status === 'approved' ? 'Your plan is ready' : 'Reality check'}
+            </h3>
+            <p className="mt-1 text-footnote leading-relaxed text-fg-2">{aiResult.reasoning}</p>
+          </div>
+
+          {aiResult.status === 'approved' ? (
+            <>
+              <div className="grid grid-cols-4 divide-x divide-line rounded-2xl border border-line bg-surface-2 py-2.5">
+                {MACROS.map(({ key, label, unit, tone }) => (
+                  <div key={key} className="flex min-w-0 flex-col items-center gap-0.5 px-1">
+                    <span
+                      className={`font-display text-[19px] font-bold leading-tight tabular-nums ${tone}`}
+                    >
+                      {aiResult.targets[key]}
+                      {unit}
+                    </span>
+                    <span className="w-full truncate text-center text-caption font-medium text-muted">
+                      {label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="rounded-2xl border border-line bg-surface-2 p-4">
+                <h4 className="flex items-center gap-1.5 text-footnote font-bold text-brand-ink">
+                  <SparklesIcon className="h-4 w-4" /> Coach advice
+                </h4>
+                <p className="mt-1 text-footnote leading-relaxed text-fg-2">{aiResult.advice}</p>
+              </div>
+
+              <div className="flex flex-col-reverse gap-2 sm:flex-row">
+                <button type="button" onClick={() => setStep(2)} className={`${SECONDARY} flex-1`}>
+                  Change goals
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSavePlan}
+                  disabled={loading}
+                  className={`${PRIMARY} flex-[2]`}
+                >
+                  {loading && <Spinner className="h-4 w-4" />}
+                  {loading ? 'Saving plan…' : 'Activate my plan'}
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col gap-3 text-center">
+              <p className="text-footnote text-muted">
+                Your coach suggests moving the target date or weight for a healthier plan.
+              </p>
+              <button type="button" onClick={() => setStep(2)} className={PRIMARY}>
+                Adjust my goals
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </section>
+  );
+
+  const feedback = (
+    <SuccessToast
+      message={toast?.message ?? null}
+      detail={toast?.detail}
+      actionLabel={toast?.actionLabel}
+      actionHref={toast?.actionHref}
+      onClose={clearToast}
+      durationMs={2800}
+    />
   );
 
   if (isInline) {
     return (
       <>
-        {WizardContent}
-        <SuccessToast
-          message={toast?.message ?? null}
-          detail={toast?.detail}
-          actionLabel={toast?.actionLabel}
-          actionHref={toast?.actionHref}
-          onClose={clearToast}
-          durationMs={2800}
-        />
+        {content}
+        {feedback}
+      </>
+    );
+  }
+
+  // Phones get the app's bottom sheet — same gesture as every other panel.
+  if (isPhone) {
+    return (
+      <>
+        <BottomSheet open onClose={() => onCancel?.()} label="AI consultation">
+          {content}
+        </BottomSheet>
+        {feedback}
       </>
     );
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-      {WizardContent}
-      <SuccessToast
-        message={toast?.message ?? null}
-        detail={toast?.detail}
-        actionLabel={toast?.actionLabel}
-        actionHref={toast?.actionHref}
-        onClose={clearToast}
-        durationMs={2800}
-      />
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+      {onCancel && (
+        <button
+          type="button"
+          onClick={onCancel}
+          aria-label="Close consultation"
+          className="fixed right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-line bg-surface-2 text-fg-2 transition-colors hover:text-fg"
+        >
+          <XMarkIcon className="h-5 w-5" />
+        </button>
+      )}
+      <div className="max-h-[88vh] w-full max-w-md overflow-y-auto overscroll-contain">
+        {content}
+      </div>
+      {feedback}
     </div>
   );
 }

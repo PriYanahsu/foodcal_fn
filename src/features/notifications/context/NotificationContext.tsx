@@ -7,6 +7,29 @@ import { getVapidPublicKey } from '@/lib/vapid-key';
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
+/**
+ * Turning push off unsubscribes, but the browser permission stays granted — without
+ * this flag the auto-subscribe below would silently switch it back on next load.
+ */
+const PUSH_OFF_KEY = 'foodcal-push-off';
+
+function isPushTurnedOff() {
+  try {
+    return localStorage.getItem(PUSH_OFF_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function rememberPushOff(off: boolean) {
+  try {
+    if (off) localStorage.setItem(PUSH_OFF_KEY, '1');
+    else localStorage.removeItem(PUSH_OFF_KEY);
+  } catch {
+    // Private mode / blocked storage — the toggle still works for this session.
+  }
+}
+
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [permission, setPermission] = useState<NotificationPermission>('default');
@@ -62,8 +85,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
         setHasPushSubscription(false);
 
-        // Permission already granted but no PushManager subscription → create one
-        if (Notification.permission === 'granted') {
+        // Permission already granted but no PushManager subscription → create one,
+        // unless the user turned reminders off here.
+        if (Notification.permission === 'granted' && !isPushTurnedOff()) {
           console.log('Permission granted but no push subscription — auto-subscribing...');
           await ensurePushSubscription(registration);
         }
@@ -159,6 +183,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           // Continue anyway - some browsers might still work
         }
       }
+
+      rememberPushOff(false);
 
       // Check current permission first
       const currentPermission = Notification.permission;
@@ -378,6 +404,32 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   }, []);
 
+  const disablePush = useCallback(async () => {
+    try {
+      setIsSubscribing(true);
+      rememberPushOff(true);
+
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        if (subscription) {
+          await fetch('/api/push-subscribe', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ endpoint: subscription.endpoint }),
+          }).catch(() => undefined);
+          await subscription.unsubscribe();
+        }
+      }
+
+      setHasPushSubscription(false);
+    } catch (e) {
+      console.error('Failed to turn off push notifications:', e);
+    } finally {
+      setIsSubscribing(false);
+    }
+  }, []);
+
   const sendTestPush = useCallback(async () => {
     if (!user) {
       alert('You must be logged in to test push notifications.');
@@ -442,6 +494,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         requestPermission,
         hasPushSubscription,
         isSubscribing,
+        disablePush,
         sendTestPush,
       }}
     >

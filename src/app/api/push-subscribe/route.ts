@@ -16,3 +16,17 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ success: true });
 }
+
+export async function DELETE(request: Request) {
+  const token = await getRequestAccessToken();
+  if (!token) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { endpoint } = await request.json().catch(() => ({ endpoint: null }));
+  if (!endpoint) {
+    return NextResponse.json({ error: 'Invalid subscription data' }, { status: 400 });
+  }
+
+  return NextResponse.json({ success: true });
+}

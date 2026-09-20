@@ -4,6 +4,10 @@ export interface AvatarUploadProps {
   onUpload: (file: File) => Promise<void>;
   size?: number;
   isEditing: boolean;
+  /** Shown while there is no photo — e.g. "AK". */
+  initials?: string;
+  /** Id for the hidden file input, so a "Change photo" label can target it. */
+  inputId?: string;
 }
 
 export interface ProfileData {
@@ -29,44 +33,69 @@ export interface FitnessDetails {
   aiCoachAdvice: string;
 }
 
-export interface ProfileFieldProps {
-  label: string;
-  value: string;
-  hint?: string;
-  className?: string;
-}
-
-export interface ChoiceChipsProps {
-  options: readonly string[];
-  value: string;
-  onChange: (next: string) => void;
-  accent?: 'primary' | 'accent';
-}
-
 export interface ProfileFeedback {
   type: 'success' | 'error';
   message: string;
 }
 
-export interface UserDetailFormProps {
+export interface BodyGoalsFieldsProps {
+  fitness: FitnessDetails;
+  goal: string | null;
+  onChange: (patch: Partial<FitnessDetails>) => void;
+}
+
+export interface IdentityCardProps {
+  uid: string;
   profile: ProfileData;
   isEditing: boolean;
   saving: boolean;
+  completion: number;
   onChange: (patch: Partial<Pick<ProfileData, 'fullName'>>) => void;
   onStartEdit: () => void;
   onCancel: () => void;
   onSave: () => void;
+  onAvatarUpload: (file: File) => Promise<void>;
 }
 
-export interface FitnessDetailFormProps {
-  fitness: FitnessDetails;
-  isEditing: boolean;
+export interface BodyGoalsCardProps extends BodyGoalsFieldsProps {
+  dirty: boolean;
   saving: boolean;
+  missingCount: number;
   canConsult: boolean;
-  showConsultCta: boolean;
-  onChange: (patch: Partial<FitnessDetails>) => void;
-  onStartEdit: () => void;
-  onCancel: () => void;
+  highlightConsult: boolean;
+  onReset: () => void;
   onSave: () => void;
   onConsult: () => void;
+}
+
+export interface AccountCardProps {
+  onLogout: () => void;
+  onDelete: () => void;
+}
+
+/** Everything the phone and desktop profile layouts render — one shape, two views. */
+export interface ProfileViewProps {
+  uid: string;
+  profile: ProfileData;
+  fitness: FitnessDetails;
+  goal: string | null;
+  completion: number;
+  missingBodyCount: number;
+  nameEditing: boolean;
+  nameSaving: boolean;
+  fitnessDirty: boolean;
+  fitnessSaving: boolean;
+  canConsult: boolean;
+  highlightConsult: boolean;
+  onProfileChange: (patch: Partial<Pick<ProfileData, 'fullName'>>) => void;
+  onStartNameEdit: () => void;
+  onCancelNameEdit: () => void;
+  onSaveName: () => Promise<boolean>;
+  onAvatarUpload: (file: File) => Promise<void>;
+  onFitnessChange: (patch: Partial<FitnessDetails>) => void;
+  onResetFitness: () => void;
+  onSaveFitness: () => Promise<boolean>;
+  onConsult: () => void;
+  onLogout: () => void;
+  onDelete: () => void;
 }

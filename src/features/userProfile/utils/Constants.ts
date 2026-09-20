@@ -8,8 +8,6 @@ export const EMPTY_PROFILE: ProfileData = {
 
 export const GENDERS = ['Male', 'Female', 'Other'] as const;
 
-export const GOALS = ['Lose Weight', 'Maintain Weight', 'Gain Muscle'] as const;
-
 export const ACTIVITY_LEVELS = [
   'Sedentary',
   'Lightly Active',
@@ -24,6 +22,14 @@ export const ACTIVITY_HINTS: Record<string, string> = {
   'Very Active': '6–7 days/week',
 };
 
+/** Short forms for the phone tiles, where the full label truncates. */
+export const ACTIVITY_SHORT: Record<string, string> = {
+  Sedentary: 'Sedentary',
+  'Lightly Active': 'Light',
+  'Moderately Active': 'Moderate',
+  'Very Active': 'Very active',
+};
+
 export const MISSING_FIELD_LABELS: Record<string, string> = {
   full_name: 'Full name',
   avatar_url: 'Profile photo',
@@ -36,9 +42,6 @@ export const MISSING_FIELD_LABELS: Record<string, string> = {
   target_weight: 'Target weight',
   target_date: 'Target date',
 };
-
-export const SELECT_CLASS =
-  'w-full px-2.5 py-1.5 sm:px-4 sm:py-2.5 text-xs sm:text-base bg-[var(--input-bg)] border border-[var(--input-border)] rounded-lg sm:rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] appearance-none';
 
 export const EMPTY_FITNESS_DETAILS: FitnessDetails = {
   id: '',

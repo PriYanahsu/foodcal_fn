@@ -26,5 +26,7 @@ export interface NotificationContextType {
   requestPermission: () => Promise<void>;
   hasPushSubscription: boolean;
   isSubscribing: boolean;
+  /** Unsubscribes from push and remembers the choice; permission itself stays granted. */
+  disablePush: () => Promise<void>;
   sendTestPush: () => Promise<boolean>;
 }
