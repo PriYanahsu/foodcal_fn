@@ -25,18 +25,21 @@ export default function ProgressCard({
   profileWeight,
   targetWeight,
   targetDate,
+  createdAt,
   onLogged,
 }: {
   userId: string | undefined;
   profileWeight: number | null;
   targetWeight: number | null;
   targetDate: string | null;
+  createdAt?: string | null;
   onLogged?: () => void;
 }) {
-  const { points, current, start, startedOn, change, progress, logWeight } = useWeightLog(
+  const { startPoint, points, current, start, startedOn, lastLoggedOn, loggedToday, change, progress, logWeight } = useWeightLog(
     userId,
     profileWeight,
-    targetWeight
+    targetWeight,
+    createdAt
   );
   // Read the clock once per mount rather than on every render.
   const [now] = useState(() => Date.now());
@@ -78,7 +81,7 @@ export default function ProgressCard({
       </div>
 
       {points.length >= 2 ? (
-        <ProgressChart points={points} target={targetWeight} />
+        <ProgressChart startPoint={startPoint} points={points} target={targetWeight} />
       ) : (
         <div className="rounded-2xl border border-dashed border-line-strong p-6 text-center">
           <p className="text-sm font-semibold text-fg">Your trend starts with two weigh-ins</p>
@@ -104,7 +107,12 @@ export default function ProgressCard({
       )}
 
       <div className="border-t border-line pt-4">
-        <WeighInField current={current} lastLoggedIso={startedOn} onSave={save} />
+        <WeighInField
+          current={current}
+          lastLoggedIso={lastLoggedOn}
+          alreadyLoggedToday={loggedToday}
+          onSave={save}
+        />
       </div>
     </section>
   );

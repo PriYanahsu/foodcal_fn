@@ -6,4 +6,5 @@ export const queryKeys = {
   dailyStats: (date: string) => ['daily-stats', date] as const,
   dailyStatsRoot: ['daily-stats'] as const,
   history: ['history'] as const,
+  weights: (userId: string) => ['weights', userId] as const,
 };

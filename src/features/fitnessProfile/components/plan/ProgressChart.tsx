@@ -18,16 +18,18 @@ function niceStep(raw: number) {
  * Fixed viewBox so the labels keep their proportions at any width.
  */
 export default function ProgressChart({
+  startPoint,
   points,
   target,
   className = 'h-auto w-full',
 }: {
+  startPoint: WeightPoint | null;
   points: WeightPoint[];
   target: number | null;
   /** `h-full w-full` lets the chart shrink into a one-screen layout. */
   className?: string;
 }) {
-  const weights = points.map((p) => p.weight);
+  const weights = points.map((p) => p.weightKg);
   const all = target ? [...weights, target] : weights;
   const lo = Math.min(...all);
   const hi = Math.max(...all);
@@ -45,7 +47,7 @@ export default function ProgressChart({
     PAD.left + (points.length === 1 ? innerW : (i / (points.length - 1)) * innerW);
   const y = (v: number) => PAD.top + ((yMax - v) / (yMax - yMin)) * innerH;
 
-  const line = points.map((p, i) => `${x(i)},${y(p.weight)}`).join(' ');
+  const line = points.map((p, i) => `${x(i)},${y(p.weightKg)}`).join(' ');
   const last = points[points.length - 1];
   const first = points[0];
   const middle = points[Math.floor((points.length - 1) / 2)];
@@ -109,9 +111,9 @@ export default function ProgressChart({
         const isLast = i === points.length - 1;
         return (
           <circle
-            key={p.created_at}
+            key={`w-${i}`}
             cx={x(i)}
-            cy={y(p.weight)}
+            cy={y(p.weightKg)}
             r={isLast ? 5 : 3.5}
             className={isLast ? 'fill-brand stroke-brand' : 'fill-surface-1 stroke-fg'}
             strokeWidth="2"
@@ -120,15 +122,15 @@ export default function ProgressChart({
       })}
 
       <text x={PAD.left} y={H - 8} className="fill-muted text-[11px]">
-        {shortDate(first.created_at)}
+        {shortDate((startPoint ?? first).loggedOn)}
       </text>
       {points.length > 2 && (
         <text x={W / 2} y={H - 8} textAnchor="middle" className="fill-muted text-[11px]">
-          {shortDate(middle.created_at)}
+          {shortDate(middle.loggedOn)}
         </text>
       )}
       <text x={W - PAD.right} y={H - 8} textAnchor="end" className="fill-muted text-[11px]">
-        {shortDate(last.created_at)}
+        {shortDate(last.loggedOn)}
       </text>
     </svg>
   );

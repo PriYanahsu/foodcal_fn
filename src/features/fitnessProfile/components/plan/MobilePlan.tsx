@@ -82,10 +82,11 @@ export default function MobilePlan({
 }) {
   const [sheet, setSheet] = useState<Sheet | null>(null);
   const targetWeight = fitness?.targetWeightKg ?? null;
-  const { points, current, start, startedOn, change, logWeight } = useWeightLog(
+  const { startPoint, points, current, start, lastLoggedOn, loggedToday, change, logWeight } = useWeightLog(
     userId,
     fitness?.weight ?? null,
-    targetWeight
+    targetWeight,
+    fitness?.createdAt ?? null
   );
 
   const losing = targetWeight !== null && current !== null && targetWeight < current;
@@ -140,7 +141,7 @@ export default function MobilePlan({
 
         {points.length >= 2 ? (
           <div className="min-h-0 flex-1">
-            <ProgressChart points={points} target={targetWeight} className="h-full w-full" />
+            <ProgressChart startPoint={startPoint} points={points} target={targetWeight} className="h-full w-full" />
           </div>
         ) : (
           <div className="flex min-h-0 flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-line-strong p-4 text-center">
@@ -152,7 +153,8 @@ export default function MobilePlan({
         <div className="shrink-0 border-t border-line pt-3">
           <WeighInField
             current={current}
-            lastLoggedIso={startedOn}
+            lastLoggedIso={lastLoggedOn}
+            alreadyLoggedToday={loggedToday}
             onSave={save}
             showHeading={false}
           />

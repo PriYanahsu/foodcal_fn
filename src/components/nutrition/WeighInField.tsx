@@ -7,21 +7,17 @@ const longDate = (iso: string) =>
   new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 
 interface WeighInFieldProps {
-  /** Last known weight — the field opens on this so it can be nudged, not retyped. */
   current: number | null;
   lastLoggedIso?: string | null;
+  alreadyLoggedToday?: boolean;
   onSave: (weight: number) => void;
-  /** Title and helper text above the control; off inside a tight card. */
   showHeading?: boolean;
 }
 
-/**
- * The one way to record a weigh-in: prefilled with the last weight, ±0.1 kg
- * steppers, and a line that confirms the point landed on the chart.
- */
 export function WeighInField({
   current,
   lastLoggedIso = null,
+  alreadyLoggedToday = false,
   onSave,
   showHeading = true,
 }: WeighInFieldProps) {
@@ -45,7 +41,7 @@ export function WeighInField({
   };
 
   const save = () => {
-    if (!valid) return;
+    if (!valid || alreadyLoggedToday) return;
     onSave(parsed);
     setTyped(null);
     setJustSaved(parsed);
@@ -59,7 +55,7 @@ export function WeighInField({
             <label htmlFor="weigh-in" className="block text-sm font-bold text-fg">
               Log today&apos;s weight
             </label>
-            <p className="mt-0.5 text-caption text-muted">Every save adds a point to your chart.</p>
+            <p className="mt-0.5 text-caption text-muted">One weigh-in per day.</p>
           </div>
           <p className="text-caption text-muted">
             {lastLoggedIso ? `Last logged ${longDate(lastLoggedIso)}` : 'No weigh-ins yet'}
@@ -67,7 +63,7 @@ export function WeighInField({
         </div>
       )}
 
-      <div className="flex items-center gap-2">
+      <div className="flex w-full items-center gap-2">
         <button
           type="button"
           onClick={() => nudge(-0.1)}
@@ -77,10 +73,11 @@ export function WeighInField({
           <MinusIcon className="h-5 w-5" />
         </button>
 
-        <div className="relative min-w-0 flex-1">
+        <div className="relative min-w-0 flex-1 max-w-40">
           <input
             id="weigh-in"
             type="number"
+            disabled={alreadyLoggedToday}
             inputMode="decimal"
             step="0.1"
             value={draft}
@@ -89,7 +86,7 @@ export function WeighInField({
             onKeyDown={(e) => e.key === 'Enter' && save()}
             placeholder="72.4"
             aria-describedby="weigh-in-hint"
-            className={`h-12 w-full rounded-2xl border-2 bg-surface-2 pl-4 pr-11 text-center font-display text-[22px] font-bold tabular-nums text-fg outline-none transition-colors placeholder:font-ui placeholder:text-base placeholder:font-normal placeholder:text-muted sm:w-40 ${
+            className={`h-12 w-full rounded-2xl border-2 bg-surface-2 pl-4 pr-11 text-center font-display text-[22px] font-bold tabular-nums text-fg outline-none transition-colors placeholder:font-ui placeholder:text-base placeholder:font-normal placeholder:text-muted disabled:opacity-60 ${
               outOfRange ? 'border-danger' : 'border-line-strong focus:border-brand'
             }`}
           />
@@ -110,8 +107,8 @@ export function WeighInField({
         <button
           type="button"
           onClick={save}
-          disabled={!valid}
-          className="h-12 shrink-0 rounded-2xl bg-brand px-5 text-base font-bold text-on-brand transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50 sm:px-6"
+          disabled={!valid || alreadyLoggedToday}
+          className="h-12 shrink-0 rounded-2xl bg-brand px-4 text-base font-bold text-on-brand transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50 sm:px-5"
         >
           Save
         </button>
@@ -120,11 +117,17 @@ export function WeighInField({
       <p
         id="weigh-in-hint"
         className={`text-caption ${
-          outOfRange ? 'text-danger' : justSaved !== null ? 'text-brand-ink' : 'text-muted'
+          outOfRange || alreadyLoggedToday
+            ? 'text-danger'
+            : justSaved !== null
+              ? 'text-brand-ink'
+              : 'text-muted'
         }`}
       >
         {outOfRange ? (
           'Enter a weight between 20 and 400 kg.'
+        ) : alreadyLoggedToday ? (
+          'You already logged today. Log another weight tomorrow.'
         ) : justSaved !== null ? (
           <span className="inline-flex items-center gap-1.5 font-semibold">
             <CheckCircleIcon className="h-4 w-4" />

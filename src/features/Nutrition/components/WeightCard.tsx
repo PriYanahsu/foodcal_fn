@@ -10,6 +10,7 @@ interface WeightCardProps {
   profileWeight: number;
   targetWeight: number;
   targetDate: string;
+  createdAt?: string | null;
 }
 
 const shortDate = (iso: string) =>
@@ -25,7 +26,7 @@ export function TrendChart({
   target: number;
   heightClass?: string;
 }) {
-  const weights = points.map((p) => p.weight);
+  const weights = points.map((p) => p.weightKg);
   const min = Math.min(...weights, target || Infinity) - 0.5;
   const max = Math.max(...weights, target || -Infinity) + 0.5;
   const x = (i: number) => (i / (points.length - 1)) * 100;
@@ -47,7 +48,7 @@ export function TrendChart({
           </linearGradient>
         </defs>
         <polygon
-          points={`0,100 ${points.map((p, i) => `${x(i)},${y(p.weight)}`).join(' ')} 100,100`}
+          points={`0,100 ${points.map((p, i) => `${x(i)},${y(p.weightKg)}`).join(' ')} 100,100`}
           fill={`url(#${gradientId})`}
         />
         {target > 0 && (
@@ -63,7 +64,7 @@ export function TrendChart({
           />
         )}
         <polyline
-          points={points.map((p, i) => `${x(i)},${y(p.weight)}`).join(' ')}
+          points={points.map((p, i) => `${x(i)},${y(p.weightKg)}`).join(' ')}
           fill="none"
           vectorEffect="non-scaling-stroke"
           strokeWidth="2.5"
@@ -75,7 +76,7 @@ export function TrendChart({
       {/* End point as HTML so it stays round when the chart stretches. */}
       <span
         className="absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand ring-4 ring-surface-1"
-        style={{ left: '100%', top: `${y(last.weight)}%` }}
+        style={{ left: '100%', top: `${y(last.weightKg)}%` }}
       />
     </div>
   );
@@ -86,11 +87,13 @@ export default function WeightCard({
   profileWeight,
   targetWeight,
   targetDate,
+  createdAt,
 }: WeightCardProps) {
-  const { points, current, startedOn, change, progress, logWeight } = useWeightLog(
+  const { points, current, lastLoggedOn, loggedToday, change, progress, logWeight } = useWeightLog(
     userId,
     profileWeight,
-    targetWeight
+    targetWeight,
+    createdAt
   );
   const movingTowardGoal =
     change !== null &&
@@ -121,12 +124,12 @@ export default function WeightCard({
               {current}
               <span className="ml-1 font-ui text-base font-semibold text-muted">kg</span>
             </p>
-            {change !== null && change !== 0 && startedOn && (
+            {change !== null && change !== 0 && lastLoggedOn && (
               <p
                 className={`text-sm font-semibold ${movingTowardGoal ? 'text-brand-ink' : 'text-muted'}`}
               >
                 {change > 0 ? '+' : '−'}
-                {Math.abs(change).toFixed(1)} kg since {shortDate(startedOn)}
+                {Math.abs(change).toFixed(1)} kg since {shortDate(lastLoggedOn)}
               </p>
             )}
           </div>
@@ -153,7 +156,12 @@ export default function WeightCard({
       )}
 
       <div className="border-t border-line pt-4">
-        <WeighInField current={current} lastLoggedIso={startedOn} onSave={logWeight} />
+        <WeighInField
+          current={current}
+          lastLoggedIso={lastLoggedOn}
+          alreadyLoggedToday={loggedToday}
+          onSave={logWeight}
+        />
       </div>
     </section>
   );

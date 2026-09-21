@@ -131,6 +131,7 @@ export default function Nutrition() {
                 profileWeight={fitness.weight}
                 targetWeight={fitness.targetWeightKg}
                 targetDate={fitness.targetDate}
+                createdAt={fitness.createdAt}
               />
             </motion.div>
             {isFeatureEnabled('steps') && <StepTracker />}

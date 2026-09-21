@@ -152,7 +152,7 @@ export default function MobileDashboard({
   const closeCalendar = useCallback(() => setCalendarOpen(false), []);
   const loggedDays = useLoggedDays();
   const water = useWaterIntake(userId, selectedDate);
-  const weight = useWeightLog(userId, fitness.weight, fitness.targetWeightKg);
+  const weight = useWeightLog(userId, fitness.weight, fitness.targetWeightKg, fitness.createdAt);
 
   const eaten = Math.round(stats.calories);
   const goal = hasPlan ? goals.calories : null;
@@ -381,6 +381,7 @@ export default function MobileDashboard({
             profileWeight={fitness.weight}
             targetWeight={fitness.targetWeightKg}
             targetDate={fitness.targetDate}
+            createdAt={fitness.createdAt}
           />
         )}
       </BottomSheet>

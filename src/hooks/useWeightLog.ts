@@ -1,36 +1,45 @@
 'use client';
 
-import { getLocal, profileKey, setLocal, useLocalValue } from '@/lib/local-store';
+import { queryKeys } from '@/app/service';
+import { getWeights, logWeight as logWeightApi, type WeightPoint } from '@/app/service/weight.api';
+import { toLocalDate } from '@/features/Nutrition/utils/toLocalDate';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-export interface WeightPoint {
-  weight: number;
-  created_at: string;
+export type { WeightPoint };
+
+function asDate(iso: string | null | undefined): string {
+  if (!iso) return toLocalDate();
+  return iso.slice(0, 10);
 }
 
-const NO_LOGS: WeightPoint[] = [];
-
-const weightLogKey = (userId: string) => `weight_logs_${userId}`;
-
-/**
- * Weigh-ins for the plan screen. Same device-local log the dashboard's weight
- * card reads (`weight_logs_<userId>`, newest first), so both stay in step.
- */
 export function useWeightLog(
   userId: string | undefined,
   profileWeight: number | null,
-  targetWeight: number | null
+  targetWeight: number | null,
+  createdAt?: string | null
 ) {
-  const logs = useLocalValue<WeightPoint[]>(userId ? weightLogKey(userId) : null, NO_LOGS);
+  const queryClient = useQueryClient();
 
-  // Oldest → newest for the chart.
-  const points = [...logs].reverse();
-  const current = logs[0]?.weight ?? profileWeight ?? null;
-  const start = points[0]?.weight ?? profileWeight ?? null;
-  const startedOn = points[0]?.created_at ?? null;
+  const { data: raw = [] } = useQuery({
+    queryKey: queryKeys.weights(userId ?? ''),
+    queryFn: () => getWeights(userId!),
+    enabled: !!userId,
+  });
+
+  const logs = [...raw].sort((a, b) => a.loggedOn.localeCompare(b.loggedOn));
+  const start = profileWeight ?? logs[0]?.weightKg ?? null;
+  const current = logs.at(-1)?.weightKg ?? profileWeight ?? null;
+  const startPoint: WeightPoint | null =
+    profileWeight != null
+      ? { weightKg: profileWeight, loggedOn: asDate(createdAt) }
+      : null;
+  const points = startPoint ? [startPoint, ...logs] : logs;
+  const lastLoggedOn = logs.at(-1)?.loggedOn ?? null;
+  const startedOn = startPoint?.loggedOn ?? logs[0]?.loggedOn ?? null;
+  const loggedToday = (lastLoggedOn?.slice(0, 10) ?? '') === toLocalDate();
   const change = current !== null && start !== null ? current - start : null;
   const toGo = current !== null && targetWeight ? current - targetWeight : null;
 
-  // How far from the starting weight to the target, 0–100.
   let progress: number | null = null;
   if (current !== null && start !== null && targetWeight && start !== targetWeight) {
     progress = Math.round(
@@ -38,15 +47,19 @@ export function useWeightLog(
     );
   }
 
-  const logWeight = (weight: number) => {
-    if (!userId || !Number.isFinite(weight)) return;
-    const stored = getLocal<WeightPoint[]>(weightLogKey(userId)) ?? [];
-    stored.unshift({ weight, created_at: new Date().toISOString() });
-    setLocal(weightLogKey(userId), stored);
+  const logWeightMutation = useMutation({
+    mutationFn: (weightKg: number) => logWeightApi(weightKg),
+    onSuccess: () => {
+      if (!userId) return;
+      queryClient.invalidateQueries({ queryKey: queryKeys.weights(userId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.fitness(userId) });
+    },
+  });
 
-    const profile = getLocal<Record<string, unknown>>(profileKey(userId)) ?? {};
-    setLocal(profileKey(userId), { ...profile, weight });
+  const logWeight = (weight: number) => {
+    if (!Number.isFinite(weight)) return;
+    logWeightMutation.mutate(weight);
   };
 
-  return { points, current, start, startedOn, change, toGo, progress, logWeight };
+  return { startPoint, points, current, start, startedOn, lastLoggedOn, loggedToday, change, toGo, progress, logWeight };
 }

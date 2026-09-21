@@ -7,4 +7,5 @@ export { getHistory } from './history.api';
 export { getRecentFoodLogs } from './recentFoodLog.api';
 export { analyzeFoodImage } from './scan.api';
 export { getUser, updateUser, uploadAvatar } from './user.api';
+export { getWeights, logWeight } from './weight.api';
 export { queryKeys } from './queryKeys';

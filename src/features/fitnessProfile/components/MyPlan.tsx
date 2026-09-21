@@ -122,6 +122,7 @@ export default function MyPlan() {
             profileWeight={fitnessProfile?.weight ?? null}
             targetWeight={fitnessProfile?.targetWeightKg ?? null}
             targetDate={fitnessProfile?.targetDate ?? null}
+            createdAt={fitnessProfile?.createdAt ?? null}
             onLogged={fetchFitnessProfile}
           />
           <TargetsCard fitness={fitnessProfile} onUpdatePlan={() => setShowWizard(true)} />
