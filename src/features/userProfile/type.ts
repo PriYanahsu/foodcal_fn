@@ -32,6 +32,7 @@ export interface FitnessDetails {
   dailyFatTargetG: number;
   aiCoachAdvice: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface ProfileFeedback {

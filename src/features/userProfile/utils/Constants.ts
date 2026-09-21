@@ -59,4 +59,5 @@ export const EMPTY_FITNESS_DETAILS: FitnessDetails = {
   dailyFatTargetG: 0,
   aiCoachAdvice: '',
   createdAt: '',
+  updatedAt: '',
 };
