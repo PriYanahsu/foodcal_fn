@@ -140,7 +140,7 @@ export function ServerWakeNotice({ action }: { action: string }) {
     return (
       <Notice
         tone="info"
-        title={`Starting the server — about a minute. We’ll ${action} as soon as it answers.`}
+        title={`Starting the server — about 1½+ minutes. We’ll ${action} as soon as it answers.`}
         body="It sleeps when nobody’s using it. You can keep this screen open."
       />
     );

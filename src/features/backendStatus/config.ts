@@ -24,10 +24,10 @@ export const PING_TIMEOUT_MS = 20_000;
 export const RETRY_DELAY_MS = 3_000;
 
 /** Total time we keep trying before showing the retry card. */
-export const WAKE_BUDGET_MS = 75_000;
+export const WAKE_BUDGET_MS = 180_000;
 
 /** Typical cold start — drives the progress bar, not the giving-up decision. */
-export const EXPECTED_WAKE_MS = 50_000;
+export const EXPECTED_WAKE_MS = 90_000;
 
 /**
  * A warm server answers well inside this, so "waking" UI (banner, button copy,

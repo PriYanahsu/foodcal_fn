@@ -156,7 +156,7 @@ function getCopy({
       : {
           title: 'Starting the server',
           detail:
-            'It sleeps when nobody is using it and takes about a minute to wake. Keep browsing — anything you submit is sent the moment it is up.',
+            'It sleeps when nobody is using it and takes about 1½ minutes to wake. Keep browsing — anything you submit is sent the moment it is up.',
         };
   }
 
