@@ -68,12 +68,12 @@ export function WeighInField({
           type="button"
           onClick={() => nudge(-0.1)}
           aria-label="Lower by 0.1 kg"
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-line-strong bg-surface-2 text-fg-2 transition-colors hover:text-fg active:scale-95"
+          className="flex h-12 w-11 shrink-0 items-center justify-center rounded-2xl border border-line-strong bg-surface-2 text-fg-2 transition-colors hover:text-fg active:scale-95"
         >
           <MinusIcon className="h-5 w-5" />
         </button>
 
-        <div className="relative min-w-0 flex-1 max-w-40">
+        <div className="relative min-w-[92px] flex-1 max-w-40">
           <input
             id="weigh-in"
             type="number"
@@ -86,11 +86,11 @@ export function WeighInField({
             onKeyDown={(e) => e.key === 'Enter' && save()}
             placeholder="72.4"
             aria-describedby="weigh-in-hint"
-            className={`h-12 w-full rounded-2xl border-2 bg-surface-2 pl-4 pr-11 text-center font-display text-[22px] font-bold tabular-nums text-fg outline-none transition-colors placeholder:font-ui placeholder:text-base placeholder:font-normal placeholder:text-muted disabled:opacity-60 ${
+            className={`h-12 w-full [appearance:textfield] rounded-2xl border-2 bg-surface-2 pl-2 pr-8 text-center font-display text-xl font-bold tabular-nums tracking-tight text-fg [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none outline-none transition-colors placeholder:font-ui placeholder:text-base placeholder:font-normal placeholder:text-muted disabled:opacity-60 ${
               outOfRange ? 'border-danger' : 'border-line-strong focus:border-brand'
             }`}
           />
-          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-caption font-bold text-muted">
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-caption font-bold text-muted">
             kg
           </span>
         </div>
@@ -99,7 +99,7 @@ export function WeighInField({
           type="button"
           onClick={() => nudge(0.1)}
           aria-label="Raise by 0.1 kg"
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-line-strong bg-surface-2 text-fg-2 transition-colors hover:text-fg active:scale-95"
+          className="flex h-12 w-11 shrink-0 items-center justify-center rounded-2xl border border-line-strong bg-surface-2 text-fg-2 transition-colors hover:text-fg active:scale-95"
         >
           <PlusIcon className="h-5 w-5" />
         </button>
@@ -108,7 +108,7 @@ export function WeighInField({
           type="button"
           onClick={save}
           disabled={!valid || alreadyLoggedToday}
-          className="h-12 shrink-0 rounded-2xl bg-brand px-4 text-base font-bold text-on-brand transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50 sm:px-5"
+          className="h-12 shrink-0 rounded-2xl bg-brand px-3.5 text-base font-bold text-on-brand transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50 sm:px-5"
         >
           Save
         </button>
