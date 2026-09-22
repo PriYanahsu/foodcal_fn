@@ -20,6 +20,7 @@ import { WakeUpBanner } from '@/features/backendStatus';
 /** Pages with their own public header/footer — no app sidebar, bell or push prompt. */
 const PUBLIC_PAGES = ['/login', '/signup', '/privacy', '/terms'];
 
+
 function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
