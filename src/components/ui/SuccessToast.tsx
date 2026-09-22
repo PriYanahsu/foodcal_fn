@@ -82,7 +82,7 @@ export function SuccessToast({
           }}
           className="fixed inset-x-3 bottom-[calc(68px+env(safe-area-inset-bottom)+0.75rem)] z-[200] font-ui md:inset-x-auto md:bottom-6 md:right-6 md:w-[22rem]"
         >
-          <div className="overflow-hidden rounded-2xl border border-line bg-surface-1 shadow-[0_18px_48px_rgba(0,0,0,0.45)]">
+          <div className="overflow-hidden rounded-2xl border border-line bg-surface-1 shadow-[var(--fc-shadow-pop)]">
             <div className="flex items-start gap-3 p-3.5">
               <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand text-on-brand">
                 <CheckIcon className="h-5 w-5" strokeWidth={2.5} />

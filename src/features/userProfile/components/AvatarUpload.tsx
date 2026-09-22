@@ -39,7 +39,7 @@ export default function AvatarUpload({
         />
       ) : (
         <div
-          className="rounded-full bg-[var(--primary)] flex items-center justify-center text-black font-bold border-2 border-[var(--card-border)] shadow-lg"
+          className="rounded-full bg-brand flex items-center justify-center text-on-brand font-bold border-2 border-[var(--card-border)] shadow-lg"
           style={{ height: size, width: size, fontSize: size * 0.36, maxWidth: '100%' }}
         >
           {initials || '?'}
@@ -50,7 +50,7 @@ export default function AvatarUpload({
         <div className="absolute bottom-1 right-1">
           <label
             htmlFor={fileInputId}
-            className="bg-[var(--card-bg)] p-1.5 rounded-full cursor-pointer hover:bg-gray-700 transition-colors border border-[var(--card-border)] shadow-md flex items-center justify-center"
+            className="bg-[var(--card-bg)] p-1.5 rounded-full cursor-pointer hover:bg-[var(--surface-strong)] transition-colors border border-[var(--card-border)] shadow-md flex items-center justify-center"
           >
             {uploading ? (
               <div className="animate-spin h-3.5 w-3.5 border-2 border-[var(--primary)] border-t-transparent rounded-full" />

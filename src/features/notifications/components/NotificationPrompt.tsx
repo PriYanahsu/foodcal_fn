@@ -58,7 +58,7 @@ export const NotificationPrompt: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-[2px]"
+            className="fixed inset-0 z-[100] bg-[var(--fc-scrim)] backdrop-blur-[2px]"
             onClick={handleDismiss}
           />
 
@@ -69,7 +69,7 @@ export const NotificationPrompt: React.FC = () => {
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             className="fixed z-[101] left-3 right-3 bottom-[max(1rem,env(safe-area-inset-bottom))] md:left-auto md:right-4 md:w-96 isolate"
           >
-            <div className="overflow-hidden rounded-3xl border border-line bg-surface-1 p-5 font-ui shadow-[0_24px_60px_rgba(0,0,0,0.5)]">
+            <div className="overflow-hidden rounded-3xl border border-line bg-surface-1 p-5 font-ui shadow-[var(--fc-shadow-pop)]">
               <div className="flex items-start gap-3.5">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand/15 text-brand-ink">
                   <BellIcon className="h-5 w-5" />

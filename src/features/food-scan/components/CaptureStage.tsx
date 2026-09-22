@@ -57,7 +57,7 @@ export const CaptureStage: React.FC<CaptureStageProps> = ({ onOpenCamera, onOpen
       onClick={onOpenCamera}
       className="group relative flex min-h-0 w-full flex-1 flex-col items-center justify-center overflow-hidden rounded-3xl border border-line bg-surface-1 p-4 text-center transition-transform active:scale-[0.99]"
     >
-      <span className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgb(118_185_0/0.12),transparent_62%)]" />
+      <span className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgb(var(--fc-brand-rgb)/0.12),transparent_62%)]" />
       <Reticle />
 
       <span className="relative flex flex-col items-center gap-3 short:gap-2">

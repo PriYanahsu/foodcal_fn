@@ -28,9 +28,9 @@ export default function DeleteAccountDialog({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/70 p-4 backdrop-blur-sm sm:items-center">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-[var(--fc-scrim)] p-4 backdrop-blur-sm sm:items-center">
       <button type="button" aria-label="Close" className="absolute inset-0" onClick={onClose} />
-      <section className="relative flex w-full max-w-md flex-col gap-4 rounded-3xl border border-line bg-surface-1 p-6 font-ui text-fg shadow-[0_32px_80px_rgba(0,0,0,0.55)]">
+      <section className="relative flex w-full max-w-md flex-col gap-4 rounded-3xl border border-line bg-surface-1 p-6 font-ui text-fg shadow-[var(--fc-shadow-pop)]">
         <div className="flex items-center gap-3">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-danger/15 text-danger">
             <TrashIcon className="h-5 w-5" />

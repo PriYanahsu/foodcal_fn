@@ -77,7 +77,7 @@ export const NotificationToast = () => {
           onClick={handleClick}
           className="group fixed left-3 right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-[100] isolate cursor-pointer md:left-auto md:right-6 md:w-full md:max-w-sm"
         >
-          <div className="relative overflow-hidden rounded-3xl border border-line bg-surface-1 font-ui shadow-[0_24px_60px_rgba(0,0,0,0.5)]">
+          <div className="relative overflow-hidden rounded-3xl border border-line bg-surface-1 font-ui shadow-[var(--fc-shadow-pop)]">
             <div className="flex items-start gap-3 p-4">
               <span
                 className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${tone}`}

@@ -12,7 +12,7 @@ export function HeroVisual() {
       className="relative mx-auto h-[440px] w-full max-w-[460px] select-none sm:h-[460px]"
     >
       {/* Phone */}
-      <div className="absolute right-0 top-0 w-[236px] rounded-[34px] border border-line-strong bg-canvas-2 p-2 shadow-[0_24px_64px_rgba(0,0,0,0.45)] sm:right-2 sm:w-[260px]">
+      <div className="absolute right-0 top-0 w-[236px] rounded-[34px] border border-line-strong bg-canvas-2 p-2 shadow-[var(--fc-shadow-pop)] sm:right-2 sm:w-[260px]">
         <div className="overflow-hidden rounded-[26px] bg-surface-1">
           <div className="relative h-[124px]" style={MEAL_PHOTO_STYLE}>
             <span className="absolute left-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-black/45 text-white">
@@ -71,7 +71,7 @@ export function HeroVisual() {
       </div>
 
       {/* Toast */}
-      <div className="absolute left-0 top-6 hidden items-center sm:flex gap-2.5 rounded-2xl border border-line-strong bg-surface-2 py-2.5 pl-2.5 pr-4 shadow-[0_12px_32px_rgba(0,0,0,0.35)] sm:left-4">
+      <div className="absolute left-0 top-6 hidden items-center sm:flex gap-2.5 rounded-2xl border border-line-strong bg-surface-2 py-2.5 pl-2.5 pr-4 shadow-[var(--fc-shadow-pop)] sm:left-4">
         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-on-brand">
           <CheckIcon className="h-4 w-4" />
         </span>
@@ -82,7 +82,7 @@ export function HeroVisual() {
       </div>
 
       {/* Today card */}
-      <div className="absolute bottom-6 left-0 w-[200px] rounded-2xl sm:bottom-0 sm:w-[280px] border border-line-strong bg-surface-1 p-3.5 shadow-[0_24px_64px_rgba(0,0,0,0.45)]">
+      <div className="absolute bottom-6 left-0 w-[200px] rounded-2xl sm:bottom-0 sm:w-[280px] border border-line-strong bg-surface-1 p-3.5 shadow-[var(--fc-shadow-pop)]">
         <div className="mb-3 flex items-center justify-between text-xs">
           <span className="font-bold uppercase tracking-[0.06em] text-muted">Today</span>
           <span className="text-muted">{SAMPLE_DAY.label}</span>

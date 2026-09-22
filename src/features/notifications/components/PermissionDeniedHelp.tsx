@@ -22,7 +22,7 @@ export const PermissionDeniedHelp: React.FC<PermissionDeniedHelpProps> = ({ isOp
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/70 z-[110]"
+        className="fixed inset-0 bg-[var(--fc-scrim)] z-[110]"
         onClick={onClose}
       />
 
@@ -33,11 +33,11 @@ export const PermissionDeniedHelp: React.FC<PermissionDeniedHelpProps> = ({ isOp
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
         className="fixed z-[111] left-3 right-3 bottom-[max(1rem,env(safe-area-inset-bottom))] md:left-auto md:right-4 md:w-96 max-h-[80vh] isolate"
       >
-        <div className="overflow-hidden overflow-y-auto max-h-[80vh] rounded-2xl border border-red-500/30 p-5 shadow-2xl bg-[var(--card-bg)] backdrop-blur-xl">
+        <div className="overflow-hidden overflow-y-auto max-h-[80vh] rounded-2xl border border-danger/30 p-5 shadow-2xl bg-[var(--card-bg)] backdrop-blur-xl">
           <div className="flex items-start gap-4">
             <div className="flex-shrink-0">
-              <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center">
-                <DevicePhoneMobileIcon className="w-6 h-6 text-red-400" />
+              <div className="w-12 h-12 rounded-full bg-danger/15 flex items-center justify-center">
+                <DevicePhoneMobileIcon className="w-6 h-6 text-danger" />
               </div>
             </div>
             <div className="flex-1 min-w-0">

@@ -102,7 +102,7 @@ export function WakeUpBanner({ hasTabBar = false }: { hasTabBar?: boolean }) {
         >
           <motion.div
             layout={!reduceMotion}
-            className={`pointer-events-auto w-full max-w-sm overflow-hidden rounded-2xl border bg-surface-1/95 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.55)] backdrop-blur-xl md:w-92 md:max-w-none ${toneBorder(status)}`}
+            className={`pointer-events-auto w-full max-w-sm overflow-hidden rounded-2xl border bg-surface-1/95 shadow-[var(--fc-shadow-pop)] backdrop-blur-xl md:w-92 md:max-w-none ${toneBorder(status)}`}
           >
             <div className="flex items-center gap-1 py-2 pl-2.5 pr-1.5">
               <button

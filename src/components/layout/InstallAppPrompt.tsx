@@ -89,7 +89,7 @@ export function InstallAppPrompt() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={handleDismiss}
-            className="absolute inset-0 bg-black/60 pointer-events-auto backdrop-blur-sm"
+            className="absolute inset-0 bg-[var(--fc-scrim)] pointer-events-auto backdrop-blur-sm"
           />
 
           {/* Modal */}

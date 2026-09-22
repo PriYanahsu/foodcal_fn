@@ -142,7 +142,7 @@ export function LandingPage({ onSignIn, onGetStarted, authPanel }: LandingPagePr
         <section className="relative flex min-h-[calc(100svh-4rem)] items-center overflow-hidden border-b border-line md:min-h-[calc(100svh-4.5rem)]">
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_60%_at_20%_0%,rgb(118_185_0/0.14),transparent_70%),radial-gradient(45%_55%_at_85%_60%,rgb(118_185_0/0.08),transparent_70%)]"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_60%_at_20%_0%,rgb(var(--fc-brand-rgb)/0.14),transparent_70%),radial-gradient(45%_55%_at_85%_60%,rgb(var(--fc-brand-rgb)/0.08),transparent_70%)]"
           />
           <div
             className={`${CONTAINER} relative grid items-center gap-12 py-10 md:py-14 lg:grid-cols-[1.25fr_1fr] lg:gap-10`}
@@ -354,7 +354,7 @@ export function LandingPage({ onSignIn, onGetStarted, authPanel }: LandingPagePr
 
         {/* Final CTA */}
         <section className={`${CONTAINER} py-16 md:py-24`}>
-          <div className="flex flex-col items-center gap-5 rounded-[28px] border border-brand/35 bg-[linear-gradient(160deg,rgb(118_185_0/0.16),rgb(118_185_0/0.04)_60%)] px-5 py-14 text-center md:py-20">
+          <div className="flex flex-col items-center gap-5 rounded-[28px] border border-brand/35 bg-[linear-gradient(160deg,rgb(var(--fc-brand-rgb)/0.16),rgb(var(--fc-brand-rgb)/0.04)_60%)] px-5 py-14 text-center md:py-20">
             <LogoMark className="h-11 w-11 text-brand" />
             <h2 className="font-display text-[32px] font-bold leading-tight tracking-[-0.02em] text-fg md:text-[44px]">
               Start with one photo.

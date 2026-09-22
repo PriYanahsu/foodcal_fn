@@ -114,7 +114,7 @@ export default function WeekStrip({ selectedDate, onSelect, compact = false }: W
                 compact ? 'h-14 gap-0.5 short:h-12' : 'h-[72px] gap-1'
               } ${
                 isSelected
-                  ? 'border-brand bg-brand text-on-brand shadow-[0_8px_24px_-10px_rgb(118_185_0/0.7)]'
+                  ? 'border-brand bg-brand text-on-brand shadow-[0_8px_24px_-10px_rgb(var(--fc-brand-rgb)/0.7)]'
                   : isFuture
                     ? 'cursor-not-allowed border-transparent text-muted/40'
                     : 'border-line bg-surface-1 text-fg hover:-translate-y-0.5 hover:border-line-strong hover:bg-surface-2'

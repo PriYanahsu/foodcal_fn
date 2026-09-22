@@ -30,7 +30,7 @@ export function AuthPanel({ view, onClose, variant = 'card', children }: AuthPan
       aria-label={heading?.title ?? 'Account created'}
       className={
         isCard
-          ? 'relative mx-auto w-full max-w-[440px] rounded-[28px] border border-line bg-surface-1 p-6 shadow-[0_24px_64px_rgba(0,0,0,0.4)] sm:p-8'
+          ? 'relative mx-auto w-full max-w-[440px] rounded-[28px] border border-line bg-surface-1 p-6 shadow-[var(--fc-shadow-pop)] sm:p-8'
           : 'relative w-full'
       }
     >

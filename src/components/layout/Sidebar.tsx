@@ -293,7 +293,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm md:hidden"
+              className="fixed inset-0 z-[100] bg-[var(--fc-scrim)] backdrop-blur-sm md:hidden"
               onClick={() => setIsOpen(false)}
             />
             <motion.aside
@@ -310,7 +310,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
               aria-label="Menu"
               aria-modal="true"
               role="dialog"
-              className="fixed inset-x-0 bottom-0 z-[110] flex max-h-[88dvh] flex-col rounded-t-[28px] border-t border-line-strong bg-canvas-2 pb-[env(safe-area-inset-bottom)] shadow-[0_-24px_64px_rgba(0,0,0,0.5)] md:hidden"
+              className="fixed inset-x-0 bottom-0 z-[110] flex max-h-[88dvh] flex-col rounded-t-[28px] border-t border-line-strong bg-canvas-2 pb-[env(safe-area-inset-bottom)] shadow-[var(--fc-shadow-sheet)] md:hidden"
             >
               {/* Drag handle: swipe down to close. */}
               <div className="flex shrink-0 justify-center pb-1 pt-3" aria-hidden="true">

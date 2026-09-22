@@ -92,7 +92,7 @@ export default function CalendarPopover({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -6, scale: 0.97 }}
           transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-          className="absolute right-0 top-full z-50 mt-2 w-[min(320px,calc(100vw-2rem))] origin-top-right rounded-3xl border border-line-strong bg-surface-1 p-4 shadow-[0_24px_64px_rgba(0,0,0,0.45)]"
+          className="absolute right-0 top-full z-50 mt-2 w-[min(320px,calc(100vw-2rem))] origin-top-right rounded-3xl border border-line-strong bg-surface-1 p-4 shadow-[var(--fc-shadow-pop)]"
         >
           <div className="mb-3 flex items-center justify-between">
             <button

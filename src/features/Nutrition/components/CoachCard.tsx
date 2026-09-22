@@ -15,7 +15,7 @@ export default function CoachCard({ hasPlan, objective, advice, onSetUpPlan }: C
   return (
     <section
       aria-label="Coach"
-      className="flex flex-col gap-4 rounded-3xl border border-brand/35 bg-[linear-gradient(160deg,rgb(118_185_0/0.18),rgb(118_185_0/0.04)_65%)] p-5 md:p-6"
+      className="flex flex-col gap-4 rounded-3xl border border-brand/35 bg-[linear-gradient(160deg,rgb(var(--fc-brand-rgb)/0.18),rgb(var(--fc-brand-rgb)/0.04)_65%)] p-5 md:p-6"
     >
       <div className="flex items-center gap-3">
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand text-on-brand">

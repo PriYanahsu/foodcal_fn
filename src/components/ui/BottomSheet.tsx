@@ -55,7 +55,7 @@ export function BottomSheet({ open, onClose, label, children }: BottomSheetProps
             animate={{ opacity: 1, transition: { duration: 0.25 } }}
             exit={{ opacity: 0, transition: { duration: 0.2 } }}
             onClick={onClose}
-            className="fixed inset-0 z-[100] bg-black/55 backdrop-blur-[2px]"
+            className="fixed inset-0 z-[100] bg-[var(--fc-scrim)] backdrop-blur-[2px]"
           />
           <motion.div
             key="sheet"
@@ -78,7 +78,7 @@ export function BottomSheet({ open, onClose, label, children }: BottomSheetProps
             onDragEnd={(_, info) => {
               if (info.offset.y > 100 || info.velocity.y > 450) onClose();
             }}
-            className="fixed inset-x-0 bottom-0 z-[110] flex max-h-[88dvh] flex-col rounded-t-[28px] border-t border-line-strong bg-surface-1 pb-[max(1rem,env(safe-area-inset-bottom))] font-ui text-fg shadow-[0_-24px_64px_rgba(0,0,0,0.5)] outline-none"
+            className="fixed inset-x-0 bottom-0 z-[110] flex max-h-[88dvh] flex-col rounded-t-[28px] border-t border-line-strong bg-surface-1 pb-[max(1rem,env(safe-area-inset-bottom))] font-ui text-fg shadow-[var(--fc-shadow-sheet)] outline-none"
           >
             {/* Grabber row — swipe down from here to close. */}
             <div

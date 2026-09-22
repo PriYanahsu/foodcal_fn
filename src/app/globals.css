@@ -52,6 +52,7 @@
   --fc-fg-2: #c9d0c0;
   --fc-muted: #98a18e;
   --fc-brand: #76b900;
+  --fc-brand-rgb: 118 185 0;
   --fc-brand-hover: #86cc0a;
   --fc-brand-ink: #93d42a;
   --fc-on-brand: #0b0d0a;
@@ -61,12 +62,19 @@
   --fc-danger: #ff6b6b;
   --fc-warn: #f2b94b;
   --fc-info: #7fb2ff;
+
+  --fc-shadow-card: none;
+  --fc-shadow-pop: 0 24px 64px rgba(0, 0, 0, 0.5);
+  --fc-shadow-sheet: 0 -24px 64px rgba(0, 0, 0, 0.5);
+  --fc-scrollbar-thumb: #ffffff;
+  --fc-scrim: rgba(0, 0, 0, 0.6);
 }
 
 [data-theme='light'] {
-  /* Light Theme — light surfaces, black text */
-  --background: #f2f2f2;
-  --foreground: #0a0a0a;
+  /* Light Theme — premium: muted mint canvas (never plain white), near-white cards with a hairline
+     highlight + layered soft shadow, green-tinted ink, and a deeper leaf green so fills carry white text */
+  --background: #eef3e9;
+  --foreground: #0f1a0c;
 
   /* Brand green — unchanged */
   --primary: #76b900;
@@ -86,39 +94,48 @@
   --sidebar-surface: rgba(255, 255, 255, 0.06);
   --sidebar-surface-strong: rgba(255, 255, 255, 0.12);
 
-  /* Soft light surfaces + light-black text accents */
-  --card-bg: #ffffff;
-  --card-border: #d4d4d4;
-  --surface: rgba(0, 0, 0, 0.04);
-  --surface-strong: rgba(0, 0, 0, 0.08);
-  --overlay: rgba(0, 0, 0, 0.45);
+  /* Legacy surfaces, matched to the v2 light palette */
+  --card-bg: #fdfefb;
+  --card-border: #dbe4d3;
+  --surface: rgba(20, 30, 10, 0.04);
+  --surface-strong: rgba(20, 30, 10, 0.09);
+  --overlay: rgba(17, 20, 14, 0.4);
 
-  --text-muted: #525252;
+  --text-muted: #5b6a52;
 
-  --input-bg: #ffffff;
-  --input-border: #d4d4d4;
+  --input-bg: #fdfefb;
+  --input-border: #c3d0b8;
 
   /* FoodCal v2 tokens (redesign) */
-  --fc-bg: #f5f6f0;
-  --fc-bg-2: #eef0e8;
-  --fc-surface-1: #ffffff;
-  --fc-surface-2: #f3f4ee;
-  --fc-surface-3: #e7eadf;
-  --fc-line: #e0e3d8;
-  --fc-line-strong: #c9cebe;
-  --fc-fg: #141711;
-  --fc-fg-2: #3e4537;
-  --fc-muted: #5d6554;
-  --fc-brand: #76b900;
-  --fc-brand-hover: #6aa700;
-  --fc-brand-ink: #3d6d00;
-  --fc-on-brand: #0b0d0a;
-  --fc-protein: #d9543a;
-  --fc-carbs: #b27a00;
-  --fc-fat: #4a6fe0;
+  --fc-bg: #eef3e9;
+  --fc-bg-2: #e4ecdd;
+  --fc-surface-1: #fdfefb;
+  --fc-surface-2: #f2f6ee;
+  --fc-surface-3: #e2eadb;
+  --fc-line: #dbe4d3;
+  --fc-line-strong: #c3d0b8;
+  --fc-fg: #0f1a0c;
+  --fc-fg-2: #34422d;
+  --fc-muted: #5b6a52;
+  --fc-brand: #4f8a00;
+  --fc-brand-rgb: 79 138 0;
+  --fc-brand-hover: #467c00;
+  --fc-brand-ink: #3a6a00;
+  --fc-on-brand: #ffffff;
+  --fc-protein: #d4513a;
+  --fc-carbs: #a87200;
+  --fc-fat: #4468dc;
   --fc-danger: #d23b3b;
   --fc-warn: #9a6a00;
   --fc-info: #2f64d6;
+
+  /* Light mode has no dark canvas to separate layers, so depth comes from shadows */
+  --fc-shadow-card: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 1px 2px rgb(15 26 12 / 0.05),
+    0 8px 24px -12px rgb(15 26 12 / 0.12);
+  --fc-shadow-pop: 0 1px 3px rgb(15 26 12 / 0.06), 0 24px 56px -12px rgb(15 26 12 / 0.22);
+  --fc-shadow-sheet: 0 -12px 40px -8px rgb(15 26 12 / 0.18);
+  --fc-scrollbar-thumb: #c3d0b8;
+  --fc-scrim: rgb(15 26 12 / 0.38);
 }
 
 /* v2 tokens as Tailwind utilities: bg-surface-1, text-brand-ink, border-line, font-display … */
@@ -302,7 +319,7 @@ body {
   /* Light/white scrollbar for dense inputs (scan prompt, etc.) */
   .scrollbar-theme {
     scrollbar-width: thin;
-    scrollbar-color: #ffffff var(--surface);
+    scrollbar-color: var(--fc-scrollbar-thumb) var(--surface);
   }
 
   .scrollbar-theme::-webkit-scrollbar {
@@ -315,13 +332,13 @@ body {
   }
 
   .scrollbar-theme::-webkit-scrollbar-thumb {
-    background: #ffffff;
+    background: var(--fc-scrollbar-thumb);
     border-radius: 999px;
     border: 1px solid var(--card-border);
   }
 
   .scrollbar-theme::-webkit-scrollbar-thumb:hover {
-    background: color-mix(in srgb, #ffffff 70%, var(--primary));
+    background: color-mix(in srgb, var(--fc-scrollbar-thumb) 70%, var(--primary));
     border-color: var(--primary);
   }
 
@@ -382,6 +399,14 @@ html:has(.hide-page-scrollbar)::-webkit-scrollbar {
 a,
 button {
   touch-action: manipulation;
+}
+
+/* Light mode: cards sit on a near-white canvas, so a flat border alone reads as washed
+   out. Give every rounded card surface a soft lift; anything that sets its own shadow
+   keeps it. Dark mode's --fc-shadow-card is `none`, so this is light-only. */
+[data-theme='light']
+  .bg-surface-1:is(.rounded-2xl, .rounded-3xl, [class*='rounded-[2']):not([class*='shadow-']) {
+  box-shadow: var(--fc-shadow-card);
 }
 
 /* ------------------------------------------------------------ loading --- */

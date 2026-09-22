@@ -230,8 +230,8 @@ export default function FitnessSetupWizard({
 
   return (
     <>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-        <section className="flex max-h-[88vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-line bg-surface-1 font-ui text-fg shadow-[0_32px_80px_rgba(0,0,0,0.55)]">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[var(--fc-scrim)] p-4 backdrop-blur-sm">
+        <section className="flex max-h-[88vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-line bg-surface-1 font-ui text-fg shadow-[var(--fc-shadow-pop)]">
           {frame}
         </section>
       </div>

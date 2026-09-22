@@ -120,7 +120,7 @@ export default function UserProfile() {
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             role="status"
-            className={`fixed left-1/2 top-[max(1rem,env(safe-area-inset-top))] z-[120] w-[min(92vw,420px)] -translate-x-1/2 rounded-2xl border px-4 py-3 text-subhead font-bold shadow-[0_18px_40px_rgba(0,0,0,0.35)] ${
+            className={`fixed left-1/2 top-[max(1rem,env(safe-area-inset-top))] z-[120] w-[min(92vw,420px)] -translate-x-1/2 rounded-2xl border px-4 py-3 text-subhead font-bold shadow-[var(--fc-shadow-pop)] ${
               feedback.type === 'success'
                 ? 'border-brand/40 bg-surface-1 text-brand-ink'
                 : 'border-danger/40 bg-surface-1 text-danger'

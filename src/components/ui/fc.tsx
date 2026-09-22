@@ -14,7 +14,7 @@ const BUTTON_BASE =
   'inline-flex items-center justify-center gap-2 whitespace-nowrap font-bold transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/30 disabled:cursor-not-allowed disabled:opacity-60';
 
 const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
-  primary: 'bg-brand text-on-brand shadow-[0_6px_20px_-8px_rgb(118_185_0/0.6)] hover:bg-brand-hover',
+  primary: 'bg-brand text-on-brand shadow-[0_6px_20px_-8px_rgb(var(--fc-brand-rgb)/0.6)] hover:bg-brand-hover',
   secondary: 'border border-line-strong bg-surface-2 text-fg hover:bg-surface-3',
   ghost: 'text-fg-2 hover:bg-surface-2 hover:text-fg',
 };

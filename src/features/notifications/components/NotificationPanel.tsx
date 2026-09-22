@@ -135,7 +135,7 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, on
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={onClose}
-                className="fixed inset-0 z-[55] bg-black/50 backdrop-blur-[2px]"
+                className="fixed inset-0 z-[55] bg-[var(--fc-scrim)] backdrop-blur-[2px]"
               />
               <motion.div
                 key="panel"
@@ -143,7 +143,7 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ isOpen, on
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 8, scale: 0.98 }}
                 transition={{ type: 'spring', damping: 28, stiffness: 380 }}
-                className="absolute right-0 top-full z-[70] mt-3 flex max-h-[min(80vh,560px)] w-96 origin-top-right flex-col overflow-hidden rounded-3xl border border-line bg-surface-1 shadow-[0_32px_80px_rgba(0,0,0,0.55)]"
+                className="absolute right-0 top-full z-[70] mt-3 flex max-h-[min(80vh,560px)] w-96 origin-top-right flex-col overflow-hidden rounded-3xl border border-line bg-surface-1 shadow-[var(--fc-shadow-pop)]"
               >
                 {body}
               </motion.div>

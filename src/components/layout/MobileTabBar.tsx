@@ -89,7 +89,7 @@ export function MobileTabBar({ onOpenMore }: { onOpenMore: () => void }) {
               href="/scan"
               aria-label="Log a meal"
               aria-current={scanActive ? 'page' : undefined}
-              className={`-mt-7 flex h-16 w-16 items-center justify-center rounded-full bg-brand text-on-brand shadow-[0_12px_28px_-8px_rgb(118_185_0/0.75)] ring-[6px] ring-canvas transition-transform active:scale-95 ${
+              className={`-mt-7 flex h-16 w-16 items-center justify-center rounded-full bg-brand text-on-brand shadow-[0_12px_28px_-8px_rgb(var(--fc-brand-rgb)/0.75)] ring-[6px] ring-canvas transition-transform active:scale-95 ${
                 scanActive ? 'scale-105' : ''
               }`}
             >
