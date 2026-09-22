@@ -76,6 +76,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
 }
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -97,7 +98,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         <NotificationProvider>
           {isFeatureEnabled('steps') ? <StepTrackerProvider>{shell}</StepTrackerProvider> : shell}
 
-          <WakeUpBanner />
+          <WakeUpBanner hasTabBar={!PUBLIC_PAGES.includes(pathname)} />
           <InstallAppPrompt />
         </NotificationProvider>
       </ThemeProvider>

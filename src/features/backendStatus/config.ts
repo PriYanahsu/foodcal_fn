@@ -17,14 +17,28 @@ export const IS_CONFIGURED = RAW_URL.length > 0;
 /** Public, auth-free, and cheap: the JVM answering it at all is the signal. */
 export const PING_URL = `${RAW_URL}/api/v1/auth/test`;
 
-/** A single ping is abandoned after this long; the next attempt takes over. */
-export const PING_TIMEOUT_MS = 20_000;
+/**
+ * Render holds a request open while the instance boots and answers it the moment
+ * the JVM is up, so a pending ping is the fastest possible "ready" signal. Keep it
+ * long: aborting early throws that away and leaves a gap until the next attempt.
+ */
+export const PING_TIMEOUT_MS = 60_000;
 
-/** Breather between attempts, so a booting instance isn't hammered. */
-export const RETRY_DELAY_MS = 3_000;
+/** Breather after a ping that failed fast (network error, 502), so a booting instance isn't hammered. */
+export const RETRY_DELAY_MS = 2_000;
 
-/** Total time we keep trying before showing the retry card. */
+/** After the budget runs out we keep pinging, just less often, so a late boot still flips the UI to ready. */
+export const SLOW_RETRY_DELAY_MS = 10_000;
+
+/** Time before the "taking longer than usual" card replaces the progress card. Pinging continues. */
 export const WAKE_BUDGET_MS = 180_000;
+
+/**
+ * API calls wait for the server up to this long, then are released to fail with
+ * a real error rather than hang. Longer than the budget, so a slow-but-normal
+ * cold start still lets the queued calls go straight through once it answers.
+ */
+export const GATE_HOLD_MS = 360_000;
 
 /** Typical cold start — drives the progress bar, not the giving-up decision. */
 export const EXPECTED_WAKE_MS = 90_000;

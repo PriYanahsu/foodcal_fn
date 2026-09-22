@@ -9,11 +9,13 @@
 
 import {
   COLD_START_STATUSES,
+  GATE_HOLD_MS,
   IS_CONFIGURED,
   REWAKE_AFTER_MS,
   PING_TIMEOUT_MS,
   PING_URL,
   RETRY_DELAY_MS,
+  SLOW_RETRY_DELAY_MS,
   WAKE_BUDGET_MS,
 } from './config';
 
@@ -40,9 +42,9 @@ function publish(next: Partial<WakeState>) {
 
 /**
  * While the backend is cold, API calls wait here instead of firing into a 502.
- * Both outcomes open the gate: on success the queue drains into a live server,
- * and on failure it drains anyway, so calls surface a real error rather than
- * hanging on a promise nothing will ever resolve.
+ * The gate opens when a ping lands, so the queue drains into a live server — or
+ * after GATE_HOLD_MS, so calls surface a real error rather than hanging on a
+ * promise nothing will ever resolve.
  */
 let gateOpen = false;
 let queued: Array<() => void> = [];
@@ -65,10 +67,25 @@ export function waitForBackend(): Promise<void> {
 
 /* ----------------------------------------------------------------- ping --- */
 
-const sleep = (ms: number) => new Promise((resume) => setTimeout(resume, ms));
+/** Resolves the loop's current pause early — used by retry and by returning to the tab. */
+let cutSleepShort: (() => void) | null = null;
 
-/** One attempt. False on timeout, network error, or a cold-start status. */
-async function pingOnce(): Promise<boolean> {
+function sleep(ms: number) {
+  return new Promise<void>((resume) => {
+    const done = () => {
+      clearTimeout(timer);
+      cutSleepShort = null;
+      resume();
+    };
+    const timer = setTimeout(done, ms);
+    cutSleepShort = done;
+  });
+}
+
+type PingResult = 'up' | 'down' | 'timeout';
+
+/** One attempt. 'timeout' means the request was held open the whole time, not refused. */
+async function pingOnce(): Promise<PingResult> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), PING_TIMEOUT_MS);
   try {
@@ -80,9 +97,9 @@ async function pingOnce(): Promise<boolean> {
     });
     // Anything that isn't the proxy's boot response means the JVM is serving —
     // a 401 still proves it's up, so don't read non-2xx as asleep.
-    return !COLD_START_STATUSES.includes(res.status);
+    return COLD_START_STATUSES.includes(res.status) ? 'down' : 'up';
   } catch {
-    return false;
+    return controller.signal.aborted ? 'timeout' : 'down';
   } finally {
     clearTimeout(timeout);
   }
@@ -131,7 +148,7 @@ async function runQuietCheck() {
   running = true;
   openGate();
   publish({ status: 'ready' });
-  const alive = await pingOnce();
+  const alive = (await pingOnce()) === 'up';
   running = false;
   if (alive) {
     markBackendAlive();
@@ -145,23 +162,28 @@ async function runWakeLoop() {
   gateOpen = false;
   publish({ status: 'waking', startedAt: Date.now() });
 
-  const deadline = Date.now() + WAKE_BUDGET_MS;
-  while (Date.now() < deadline) {
-    if (await pingOnce()) {
+  // Never gives up on its own: a boot that outlasts the budget still flips the UI
+  // to ready the moment it answers, instead of stranding the user on the retry card.
+  for (;;) {
+    const result = await pingOnce();
+    if (result === 'up') {
       markBackendAlive();
       openGate();
       publish({ status: 'ready' });
       running = false;
       return;
     }
-    await sleep(RETRY_DELAY_MS);
-  }
 
-  // Out of budget. Open the gate anyway: a request that fails with a real error
-  // is recoverable, one that waits forever is not.
-  openGate();
-  publish({ status: 'failed' });
-  running = false;
+    const elapsed = Date.now() - state.startedAt;
+    if (state.status === 'waking' && elapsed >= WAKE_BUDGET_MS) publish({ status: 'failed' });
+    // A request that fails with a real error is recoverable, one that waits forever is not.
+    if (!gateOpen && elapsed >= GATE_HOLD_MS) openGate();
+
+    // A timed-out ping was held by the proxy the whole time, so the instance is
+    // booting — go again at once rather than leave a window with nothing pending.
+    if (result === 'timeout') continue;
+    await sleep(state.status === 'failed' ? SLOW_RETRY_DELAY_MS : RETRY_DELAY_MS);
+  }
 }
 
 /** Idempotent: starts the loop once, and is a no-op while one is in flight. */
@@ -181,10 +203,21 @@ export function startWake() {
   void runWakeLoop();
 }
 
-/** User-triggered retry, and the refocus re-ping. */
+/**
+ * User-triggered retry, and the refocus re-ping. While the loop is already
+ * running this restarts the attempt (fresh progress bar, requests held again)
+ * and pings immediately instead of waiting out the current pause.
+ */
 export function retryWake() {
-  if (running) return;
-  startWake();
+  if (!running) {
+    startWake();
+    return;
+  }
+  if (state.status === 'failed') {
+    gateOpen = false;
+    publish({ status: 'waking', startedAt: Date.now() });
+  }
+  cutSleepShort?.();
 }
 
 /**
@@ -200,6 +233,12 @@ function watchRefocus() {
 
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState !== 'visible') return;
+    // Background tabs throttle timers hard, so a loop still in flight may be
+    // sitting in a long pause — ping now so the UI catches up on return.
+    if (running) {
+      cutSleepShort?.();
+      return;
+    }
     if (aliveAt === 0 || recentlyAlive()) return;
     retryWake();
   });
