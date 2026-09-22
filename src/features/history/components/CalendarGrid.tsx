@@ -174,7 +174,7 @@ export default function CalendarGrid({
                   {!isFuture && (
                     <span className="mt-auto flex w-full flex-col gap-1 md:gap-1.5">
                       {loading ? (
-                        <span className="mx-auto h-3 w-3/4 animate-pulse rounded bg-surface-3 md:mx-0" />
+                        <span className="mx-auto h-3 w-3/4 fc-skeleton rounded md:mx-0" />
                       ) : style ? (
                         <span className="text-center text-caption font-semibold tabular-nums text-fg-2 md:text-left md:text-[13px]">
                           <span className="md:hidden">{compactKcal(calories)}</span>

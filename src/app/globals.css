@@ -383,3 +383,81 @@ a,
 button {
   touch-action: manipulation;
 }
+
+/* ------------------------------------------------------------ loading --- */
+
+/* Skeleton placeholders: a soft highlight sweeps across a surface-coloured block.
+   Built from the theme's surface tokens, so it matches light and dark without
+   per-theme rules. `background-attachment: fixed` lines every block up on one
+   shared sweep, so a whole page shimmers as a single wave instead of each
+   block flickering on its own. */
+.fc-skeleton {
+  display: block;
+  background-color: var(--fc-surface-3);
+  background-image: linear-gradient(
+    100deg,
+    transparent 30%,
+    color-mix(in srgb, var(--fc-fg) 7%, transparent) 50%,
+    transparent 70%
+  );
+  background-size: 200vw 100%;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  animation: fc-shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes fc-shimmer {
+  from {
+    background-position: 100vw 0;
+  }
+  to {
+    background-position: -100vw 0;
+  }
+}
+
+/* Loaders fade in after a beat, so a fast load never flashes a placeholder. */
+.fc-loader-delay {
+  animation: fc-loader-in 0.3s ease-out 0.15s both;
+}
+
+@keyframes fc-loader-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Indeterminate top bar for route changes. */
+.fc-progress-bar {
+  animation: fc-progress 1.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes fc-progress {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-skeleton {
+    background-image: none;
+    animation: fc-skeleton-breathe 2s ease-in-out infinite;
+  }
+  .fc-progress-bar {
+    animation: none;
+    transform: none;
+    width: 100%;
+    opacity: 0.6;
+  }
+}
+
+@keyframes fc-skeleton-breathe {
+  50% {
+    opacity: 0.55;
+  }
+}

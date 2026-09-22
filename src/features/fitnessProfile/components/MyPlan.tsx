@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { ArrowRightIcon, SparklesIcon } from '@heroicons/react/24/outline';
-import { Spinner } from '@/components/ui/fc';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { PHONE_QUERY, useMediaQuery } from '@/hooks/useMediaQuery';
 import FitnessSetupWizard from './FitnessSetupWizard';
@@ -12,6 +11,7 @@ import TargetsCard from './plan/TargetsCard';
 import CoachCard from './plan/CoachCard';
 import BodyStatsCard from './plan/BodyStatsCard';
 import { useFitnessHub } from '../hooks/useFitnessHub';
+import PlanSkeleton from './PlanSkeleton';
 
 export default function MyPlan() {
   const { user } = useAuth();
@@ -30,15 +30,7 @@ export default function MyPlan() {
   } = useFitnessHub(user);
 
   if (loading) {
-    return (
-      <div
-        className="flex min-h-[70vh] items-center justify-center bg-canvas text-brand"
-        role="status"
-      >
-        <Spinner className="h-10 w-10" />
-        <span className="sr-only">Loading your plan…</span>
-      </div>
-    );
+    return <PlanSkeleton />;
   }
 
   const weeksLeft = daysLeft !== null ? Math.max(0, Math.ceil(daysLeft / 7)) : null;

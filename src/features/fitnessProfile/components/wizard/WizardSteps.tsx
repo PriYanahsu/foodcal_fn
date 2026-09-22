@@ -76,9 +76,9 @@ export function AboutYouStep({
   if (prefillLoading) {
     return (
       <div className="flex flex-col gap-3">
-        <div className="h-12 animate-pulse rounded-2xl bg-surface-2" />
-        <div className="h-24 animate-pulse rounded-2xl bg-surface-2" />
-        <div className="h-40 animate-pulse rounded-2xl bg-surface-2" />
+        <div className="h-12 fc-skeleton rounded-2xl" />
+        <div className="h-24 fc-skeleton rounded-2xl" />
+        <div className="h-40 fc-skeleton rounded-2xl" />
       </div>
     );
   }

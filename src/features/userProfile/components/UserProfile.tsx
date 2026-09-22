@@ -3,7 +3,6 @@
 import React, { useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Spinner } from '@/components/ui/fc';
 import { PHONE_QUERY, useMediaQuery } from '@/hooks/useMediaQuery';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import FitnessSetupWizard from '@/features/fitnessProfile/components/FitnessSetupWizard';
@@ -13,6 +12,7 @@ import { useUserProfile } from '../hooks/useUserProfile';
 import { useFitnessProfile } from '../hooks/useFitnessProfile';
 import { getMissingFields, deriveGoal } from '../utils/helper';
 import { ProfileViewProps } from '../type';
+import ProfileSkeleton from './ProfileSkeleton';
 
 export const dynamic = 'force-dynamic';
 
@@ -74,15 +74,7 @@ export default function UserProfile() {
   };
 
   if (!mounted || loading) {
-    return (
-      <div
-        className="flex min-h-[70vh] items-center justify-center bg-canvas text-brand"
-        role="status"
-      >
-        <Spinner className="h-10 w-10" />
-        <span className="sr-only">Loading your profile…</span>
-      </div>
-    );
+    return <ProfileSkeleton />;
   }
 
   const missingFields = getMissingFields(profile, fitness);

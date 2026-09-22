@@ -4,7 +4,6 @@ import { motion, MotionConfig } from 'framer-motion';
 import FitnessSetupWizard from '@/features/fitnessProfile/components/FitnessSetupWizard';
 import { StepTracker } from '@/features/activity/components/StepTracker';
 import { isFeatureEnabled } from '@/config/features';
-import { Spinner } from '@/components/ui/fc';
 import { useNutrition } from '../hooks/useNutrition';
 import NutritionHeader from './NutritionHeader';
 import WeekStrip from './WeekStrip';
@@ -14,6 +13,7 @@ import CoachCard from './CoachCard';
 import WaterCard from './WaterCard';
 import WeightCard from './WeightCard';
 import MobileDashboard from './MobileDashboard';
+import DashboardSkeleton from './DashboardSkeleton';
 
 /** Cards rise in one after another on first load. */
 const REVEAL = {
@@ -41,15 +41,7 @@ export default function Nutrition() {
   } = useNutrition();
 
   if (!initialReady) {
-    return (
-      <div
-        className="flex min-h-[70vh] items-center justify-center bg-canvas text-brand"
-        role="status"
-      >
-        <Spinner className="h-10 w-10" />
-        <span className="sr-only">Loading your day…</span>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   const openWizard = () => setShowWizard(true);

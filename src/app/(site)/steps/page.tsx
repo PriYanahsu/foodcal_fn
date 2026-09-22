@@ -66,9 +66,9 @@ export default function StepHistoryPage() {
 
         <div className="p-4 space-y-3 max-h-[600px] overflow-y-auto custom-scrollbar">
           {loading ? (
-            <div className="space-y-3 animate-pulse">
+            <div className="space-y-3" aria-hidden="true">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-20 bg-[var(--surface)] rounded-2xl" />
+                <div key={i} className="fc-skeleton h-20 rounded-2xl" />
               ))}
             </div>
           ) : logs.length === 0 ? (

@@ -324,7 +324,11 @@ function Steps({ elapsedMs, isLocal }: { elapsedMs: number; isLocal: boolean }) 
           <li key={phase.label} className="flex items-center gap-2.5 text-[13px]">
             <span
               className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full ${
-                done ? 'bg-brand text-on-brand' : active ? 'border-2 border-brand' : 'border-2 border-line-strong'
+                done
+                  ? 'bg-brand text-on-brand'
+                  : active
+                    ? 'border-2 border-brand'
+                    : 'border-2 border-line-strong'
               }`}
             >
               {done && (
@@ -343,7 +347,9 @@ function Steps({ elapsedMs, isLocal }: { elapsedMs: number; isLocal: boolean }) 
                 </svg>
               )}
             </span>
-            <span className={done ? 'text-muted' : active ? 'font-medium text-fg' : 'text-muted/70'}>
+            <span
+              className={done ? 'text-muted' : active ? 'font-medium text-fg' : 'text-muted/70'}
+            >
               {phase.label}
               {active && <span className="sr-only"> (in progress)</span>}
             </span>

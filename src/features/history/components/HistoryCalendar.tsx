@@ -42,7 +42,7 @@ function SummaryTile({ stat, loading }: { stat: Stat; loading: boolean }) {
     <div className="min-w-0 rounded-3xl border border-line bg-surface-1 px-5 py-4">
       <p className="truncate text-[13px] font-semibold text-muted">{stat.label}</p>
       {loading ? (
-        <div className="mt-1.5 h-8 w-20 animate-pulse rounded-lg bg-surface-2" />
+        <div className="mt-1.5 h-8 w-20 fc-skeleton rounded-lg" />
       ) : (
         <p className="mt-0.5 truncate font-display text-[28px] font-bold leading-tight tabular-nums text-fg">
           {stat.value}
@@ -63,7 +63,7 @@ function SummaryStrip({ stats, loading }: { stats: Stat[]; loading: boolean }) {
           className="flex min-w-0 flex-col items-center gap-0.5 px-1 text-center"
         >
           {loading ? (
-            <span className="my-0.5 h-5 w-9 animate-pulse rounded-md bg-surface-2" />
+            <span className="my-0.5 h-5 w-9 fc-skeleton rounded-md" />
           ) : (
             <span className="font-display text-[19px] font-bold leading-tight tabular-nums text-fg">
               {stat.value}

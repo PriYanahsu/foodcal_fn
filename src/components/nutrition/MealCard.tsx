@@ -53,13 +53,13 @@ export function MealCard({ meal, onOpen }: { meal: FoodLog; onOpen: () => void }
 export function MealCardSkeleton() {
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-line bg-surface-2 p-2.5 pr-3">
-      <span className="h-14 w-14 shrink-0 animate-pulse rounded-xl bg-surface-3" />
+      <span className="h-14 w-14 shrink-0 fc-skeleton rounded-xl" />
       <span className="flex flex-1 flex-col gap-2">
-        <span className="h-2.5 w-20 animate-pulse rounded bg-surface-3" />
-        <span className="h-3.5 w-3/4 animate-pulse rounded bg-surface-3" />
-        <span className="h-2.5 w-24 animate-pulse rounded bg-surface-3" />
+        <span className="h-2.5 w-20 fc-skeleton rounded" />
+        <span className="h-3.5 w-3/4 fc-skeleton rounded" />
+        <span className="h-2.5 w-24 fc-skeleton rounded" />
       </span>
-      <span className="h-5 w-10 animate-pulse rounded bg-surface-3" />
+      <span className="h-5 w-10 fc-skeleton rounded" />
     </div>
   );
 }

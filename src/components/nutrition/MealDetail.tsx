@@ -86,9 +86,9 @@ export default function MealDetail({ meal, meals, target, onSelectMeal }: MealDe
     return (
       <div className="flex flex-col gap-4" aria-busy="true">
         {toolbar}
-        <div className="aspect-[4/3] animate-pulse rounded-2xl bg-surface-2" />
-        <div className="h-7 w-2/3 animate-pulse rounded-lg bg-surface-2" />
-        <div className="h-32 animate-pulse rounded-2xl bg-surface-2" />
+        <div className="aspect-[4/3] fc-skeleton rounded-2xl" />
+        <div className="h-7 w-2/3 fc-skeleton rounded-lg" />
+        <div className="h-32 fc-skeleton rounded-2xl" />
       </div>
     );
   }
