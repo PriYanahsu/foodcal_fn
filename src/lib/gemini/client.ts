@@ -97,37 +97,6 @@ export function isTlsCertError(error: unknown): boolean {
   );
 }
 
-/** Errors that mean "this model won't work, try the next one". */
-export function isRetryableModelError(error: unknown): boolean {
-  const message = getErrorMessage(error).toLowerCase();
-  const status =
-    typeof error === 'object' &&
-    error !== null &&
-    'status' in error &&
-    typeof (error as { status: unknown }).status === 'number'
-      ? (error as { status: number }).status
-      : undefined;
-
-  return (
-    status === 404 ||
-    status === 429 ||
-    status === 500 ||
-    status === 503 ||
-    message.includes('404') ||
-    message.includes('429') ||
-    message.includes('503') ||
-    message.includes('not found') ||
-    message.includes('quota') ||
-    message.includes('rate limit') ||
-    message.includes('resource_exhausted') ||
-    message.includes('deprecated') ||
-    message.includes('no longer available') ||
-    message.includes('not supported') ||
-    message.includes('overloaded') ||
-    message.includes('unavailable')
-  );
-}
-
 function modelGeneration(name: string): number {
   const match = name.match(/gemini-(\d+(?:\.\d+)?)/);
   return match ? Number(match[1]) : 0;
