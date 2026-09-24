@@ -15,6 +15,10 @@ export const CameraOverlay = ({
   videoRef,
   canvasRef,
   error,
+  isReady = true,
+  isSwitching = false,
+  isMirrored = false,
+  canSwitchCamera = true,
 }: CameraOverlayProps) => {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -23,6 +27,15 @@ export const CameraOverlay = ({
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [onClose]);
+
+  // Stop the page behind the camera from scrolling on touch devices.
+  useEffect(() => {
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, []);
 
   return (
     <div
@@ -36,18 +49,24 @@ export const CameraOverlay = ({
           <XMarkIcon className="h-5 w-5" />
         </button>
         <p className="font-display text-base font-bold tracking-[-0.01em]">Take a photo</p>
-        <button
-          type="button"
-          onClick={onSwitchCamera}
-          aria-label="Switch camera"
-          className={CHROME_BUTTON}
-        >
-          <ArrowPathRoundedSquareIcon className="h-5 w-5" />
-        </button>
+        {/* Keeps the title centred now that switching lives next to the shutter. */}
+        <span aria-hidden="true" className="h-11 w-11" />
       </header>
 
       <div className="relative min-h-0 flex-1 overflow-hidden">
-        <video ref={videoRef} className="h-full w-full object-cover" autoPlay playsInline muted />
+        <video
+          ref={videoRef}
+          className={`h-full w-full object-cover md:object-contain ${isMirrored ? '-scale-x-100' : ''}`}
+          autoPlay
+          playsInline
+          muted
+        />
+
+        {!isReady && !error && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+          </div>
+        )}
 
         {/* Framing guide — brackets only, so nothing covers the food. */}
         <div aria-hidden="true" className="pointer-events-none absolute inset-6 md:inset-[12%]">
@@ -93,8 +112,9 @@ export const CameraOverlay = ({
         <button
           type="button"
           onClick={onCapture}
+          disabled={!isReady || isSwitching}
           aria-label="Take photo"
-          className="flex h-[74px] w-[74px] items-center justify-center rounded-full border-[3px] border-white transition-transform active:scale-90"
+          className="flex h-[74px] w-[74px] items-center justify-center rounded-full border-[3px] border-white transition-transform active:scale-90 disabled:opacity-50"
         >
           <span className="h-[58px] w-[58px] rounded-full bg-white" />
         </button>
@@ -102,10 +122,11 @@ export const CameraOverlay = ({
         <button
           type="button"
           onClick={onSwitchCamera}
+          disabled={isSwitching}
           aria-label="Switch camera"
-          className={`${CHROME_BUTTON} rounded-full`}
+          className={`${CHROME_BUTTON} rounded-full disabled:opacity-50 ${canSwitchCamera ? '' : 'invisible'}`}
         >
-          <ArrowPathRoundedSquareIcon className="h-5 w-5" />
+          <ArrowPathRoundedSquareIcon className={`h-5 w-5 ${isSwitching ? 'animate-spin' : ''}`} />
         </button>
       </div>
 

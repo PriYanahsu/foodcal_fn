@@ -17,6 +17,10 @@ export const CameraInput: React.FC<CameraInputProps> = ({
     closeCamera,
     switchCamera,
     error,
+    isReady,
+    isSwitching,
+    isMirrored,
+    canSwitchCamera,
     captureImage,
     videoRef,
     canvasRef,
@@ -81,6 +85,10 @@ export const CameraInput: React.FC<CameraInputProps> = ({
           videoRef={videoRef}
           canvasRef={canvasRef}
           error={error}
+          isReady={isReady}
+          isSwitching={isSwitching}
+          isMirrored={isMirrored}
+          canSwitchCamera={canSwitchCamera}
         />
       )}
     </div>
