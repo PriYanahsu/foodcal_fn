@@ -16,7 +16,7 @@ import { ThemeProvider } from '@/features/theme/context/ThemeContext';
 import { isFeatureEnabled } from '@/config/features';
 import { InstallAppPrompt } from './InstallAppPrompt';
 import { WakeUpBanner } from '@/features/backendStatus';
-import { useOnboarding } from '@/features/onboarding';
+import { PlanGateProvider, useOnboarding } from '@/features/onboarding';
 
 /** Pages with their own public header/footer — no app sidebar, bell or push prompt. */
 const PUBLIC_PAGES = ['/login', '/signup', '/privacy', '/terms'];
@@ -97,7 +97,11 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       })
   );
 
-  const shell = <AppShell>{children}</AppShell>;
+  const shell = (
+    <PlanGateProvider>
+      <AppShell>{children}</AppShell>
+    </PlanGateProvider>
+  );
 
   return (
     <QueryClientProvider client={queryClient}>

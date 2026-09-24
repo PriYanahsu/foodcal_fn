@@ -12,6 +12,7 @@ import {
   PlanRequiredHero,
   START_PARAM,
   useOnboarding,
+  usePlanGate,
 } from '@/features/onboarding';
 import { PHONE_QUERY, useMediaQuery } from '@/hooks/useMediaQuery';
 import { useNutrition } from '../hooks/useNutrition';
@@ -50,16 +51,12 @@ export default function Nutrition() {
   const router = useRouter();
   const { needsWelcome, loggingLocked } = useOnboarding();
   const isPhone = useMediaQuery(PHONE_QUERY);
+  const { showPlanWarning: showWarning } = usePlanGate();
   // No plan: phones get the warning as soon as the dashboard opens (desktop shows the big
-  // card instead), and on any screen, tapping a date or a locked tile brings it back.
+  // card instead). Tapping a date or a locked tile raises the app-wide one again.
   const [warningDismissed, setWarningDismissed] = useState(false);
-  const [warningRequested, setWarningRequested] = useState(false);
-  const warningOpen = loggingLocked && ((isPhone && !warningDismissed) || warningRequested);
-  const closeWarning = () => {
-    setWarningDismissed(true);
-    setWarningRequested(false);
-  };
-  const showWarning = () => setWarningRequested(true);
+  const warningOpen = loggingLocked && isPhone && !warningDismissed;
+  const closeWarning = () => setWarningDismissed(true);
 
   // A first-time user (no plan yet) gets the guided setup instead of an empty dashboard.
   useEffect(() => {

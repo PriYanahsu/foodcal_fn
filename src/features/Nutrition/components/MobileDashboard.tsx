@@ -300,7 +300,7 @@ export default function MobileDashboard({
             icon={<BeakerIcon className="h-4 w-4" />}
             onOpen={() => openPanel('water')}
             footer={
-              hasPlan && (
+              water.canLog && (
                 <button
                   type="button"
                   onClick={water.addGlass}

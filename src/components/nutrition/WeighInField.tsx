@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { CheckCircleIcon, MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { PlanRequired } from '@/features/onboarding/components/PlanRequired';
-import { useOnboarding } from '@/features/onboarding/hooks/useOnboarding';
+import { usePlanGate } from '@/features/onboarding/context/PlanGateContext';
 
 const longDate = (iso: string) =>
   new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
@@ -25,7 +25,7 @@ export function WeighInField({
 }: WeighInFieldProps) {
   const [typed, setTyped] = useState<string | null>(null);
   const [justSaved, setJustSaved] = useState<number | null>(null);
-  const { loggingLocked } = useOnboarding();
+  const { canLog } = usePlanGate();
 
   // A zero-filled profile weight means "not set": show the placeholder, not "0".
   const draft = typed ?? (current ? String(current) : '');
@@ -51,7 +51,7 @@ export function WeighInField({
     setJustSaved(parsed);
   };
 
-  if (loggingLocked) return <PlanRequired what="your weight" />;
+  if (!canLog) return <PlanRequired what="your weight" />;
 
   return (
     <div className="flex flex-col gap-3">

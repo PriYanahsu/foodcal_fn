@@ -1,6 +1,7 @@
 'use client';
 
 import { getLocal, setLocal, useLocalValue } from '@/lib/local-store';
+import { usePlanGate } from '@/features/onboarding/context/PlanGateContext';
 import { WATER_GLASS_ML, WATER_GOAL_ML } from '../utils/Constants';
 
 const waterKey = (userId: string, date: string) => `water_${userId}_${date}`;
@@ -12,9 +13,11 @@ const waterKey = (userId: string, date: string) => `water_${userId}_${date}`;
 export function useWaterIntake(userId: string | undefined, date: string) {
   const key = userId ? waterKey(userId, date) : null;
   const ml = useLocalValue<number>(key, 0);
+  const { canLog } = usePlanGate();
 
   const change = (deltaMl: number) => {
-    if (!key) return;
+    // Water is logged against the plan's goal, so nothing is saved without one.
+    if (!key || !canLog) return;
     // Read the stored value, not the render's, so fast repeat taps all count.
     const current = getLocal<number>(key) ?? 0;
     setLocal(key, Math.max(0, current + deltaMl));
@@ -22,6 +25,7 @@ export function useWaterIntake(userId: string | undefined, date: string) {
 
   return {
     ml,
+    canLog,
     goalMl: WATER_GOAL_ML,
     addGlass: () => change(WATER_GLASS_ML),
     removeGlass: () => change(-WATER_GLASS_ML),

@@ -5,6 +5,7 @@ import { PlusIcon } from '@heroicons/react/24/outline';
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 import { buttonClass } from '@/components/ui/fc';
 import { ROUTES } from '@/constants/routes';
+import { usePlanGate } from '@/features/onboarding';
 import { formatLongDate, greetingFor } from '../utils/toLocalDate';
 
 interface NutritionHeaderProps {
@@ -14,6 +15,7 @@ interface NutritionHeaderProps {
 
 export default function NutritionHeader({ userName, selectedDate }: NutritionHeaderProps) {
   const firstName = userName.split(' ')[0];
+  const { canLog, showPlanWarning } = usePlanGate();
 
   return (
     <header className="flex items-end justify-between gap-4">
@@ -27,7 +29,15 @@ export default function NutritionHeader({ userName, selectedDate }: NutritionHea
       {/* Phones get the bell in the app's top bar and "Log a meal" in the bottom tab bar. */}
       <div className="hidden items-center gap-3 md:flex">
         <NotificationBell />
-        <Link href={ROUTES.SCAN} className={buttonClass('primary', 'md')}>
+        <Link
+          href={ROUTES.SCAN}
+          onClick={(e) => {
+            if (canLog) return;
+            e.preventDefault();
+            showPlanWarning();
+          }}
+          className={buttonClass('primary', 'md')}
+        >
           <PlusIcon className="h-5 w-5" strokeWidth={2} />
           Log a meal
         </Link>
