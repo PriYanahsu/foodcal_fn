@@ -63,6 +63,8 @@ interface MobileDashboardProps {
   refreshing: boolean;
   isToday: boolean;
   onSetUpPlan: () => void;
+  /** No plan yet: tiles don't open, they explain why instead. */
+  onLocked: () => void;
 }
 
 const fmt = (n: number) => Math.round(n).toLocaleString('en-US');
@@ -147,10 +149,12 @@ export default function MobileDashboard({
   refreshing,
   isToday,
   onSetUpPlan,
+  onLocked,
 }: MobileDashboardProps) {
   const [panel, setPanel] = useState<Panel | null>(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const closePanel = useCallback(() => setPanel(null), []);
+  const openPanel = (next: Panel) => (hasPlan ? setPanel(next) : onLocked());
   const closeCalendar = useCallback(() => setCalendarOpen(false), []);
   const loggedDays = useLoggedDays();
   const water = useWaterIntake(userId, selectedDate);
@@ -215,7 +219,7 @@ export default function MobileDashboard({
             label="Calories"
             tone="neutral"
             icon={<FireIcon className="h-4 w-4" />}
-            onOpen={() => setPanel('calories')}
+            onOpen={() => openPanel('calories')}
             hideLabelWhenShort
             className="shrink-0"
           >
@@ -250,7 +254,7 @@ export default function MobileDashboard({
             </span>
           </Tile>
         ) : (
-          <PlanSetupCard onSetUpPlan={onSetUpPlan} compact />
+          <PlanSetupCard onSetUpPlan={onSetUpPlan} />
         )}
 
         <div className="grid min-h-0 flex-1 grid-cols-2 grid-rows-2 gap-3 short:gap-2.5">
@@ -258,7 +262,7 @@ export default function MobileDashboard({
             label="Meals"
             tone="meals"
             icon={<CameraIcon className="h-4 w-4" />}
-            onOpen={() => setPanel('meals')}
+            onOpen={() => openPanel('meals')}
           >
             <span className="mt-auto flex min-w-0 flex-col gap-1">
               <Figure
@@ -281,7 +285,7 @@ export default function MobileDashboard({
             label="Coach"
             tone="coach"
             icon={<SparklesIcon className="h-4 w-4" />}
-            onOpen={() => setPanel('coach')}
+            onOpen={() => openPanel('coach')}
           >
             <span className="mt-auto line-clamp-4 text-[13px] leading-snug text-fg-2 short:line-clamp-3">
               {hasPlan
@@ -294,7 +298,7 @@ export default function MobileDashboard({
             label="Water"
             tone="water"
             icon={<BeakerIcon className="h-4 w-4" />}
-            onOpen={() => setPanel('water')}
+            onOpen={() => openPanel('water')}
             footer={
               hasPlan && (
                 <button
@@ -329,7 +333,7 @@ export default function MobileDashboard({
             label="Weight"
             tone="weight"
             icon={<ScaleIcon className="h-4 w-4" />}
-            onOpen={() => setPanel('weight')}
+            onOpen={() => openPanel('weight')}
           >
             <span className="mt-auto flex min-w-0 flex-col gap-1.5">
               {weight.points.length >= 2 && (

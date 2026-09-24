@@ -27,7 +27,8 @@ export function WeighInField({
   const [justSaved, setJustSaved] = useState<number | null>(null);
   const { loggingLocked } = useOnboarding();
 
-  const draft = typed ?? (current !== null ? String(current) : '');
+  // A zero-filled profile weight means "not set": show the placeholder, not "0".
+  const draft = typed ?? (current ? String(current) : '');
   const parsed = parseFloat(draft);
   const valid = Number.isFinite(parsed) && parsed >= 20 && parsed <= 400;
   const outOfRange = draft.trim() !== '' && Number.isFinite(parsed) && !valid;
@@ -39,7 +40,7 @@ export function WeighInField({
   }, [justSaved]);
 
   const nudge = (by: number) => {
-    const base = Number.isFinite(parsed) ? parsed : (current ?? 70);
+    const base = Number.isFinite(parsed) ? parsed : current || 70;
     setTyped((Math.round((base + by) * 10) / 10).toFixed(1));
   };
 

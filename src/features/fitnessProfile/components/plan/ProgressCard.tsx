@@ -35,12 +35,18 @@ export default function ProgressCard({
   createdAt?: string | null;
   onLogged?: () => void;
 }) {
-  const { startPoint, points, current, start, startedOn, lastLoggedOn, loggedToday, change, progress, logWeight } = useWeightLog(
-    userId,
-    profileWeight,
-    targetWeight,
-    createdAt
-  );
+  const {
+    startPoint,
+    points,
+    current,
+    start,
+    startedOn,
+    lastLoggedOn,
+    loggedToday,
+    change,
+    progress,
+    logWeight,
+  } = useWeightLog(userId, profileWeight, targetWeight, createdAt);
   // Read the clock once per mount rather than on every render.
   const [now] = useState(() => Date.now());
 
