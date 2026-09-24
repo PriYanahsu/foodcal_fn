@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
+import { hasNutritionPlan } from '@/features/Nutrition/utils/deriveNutritionGoals';
 import { ChevronRightIcon, FireIcon, SparklesIcon, UserIcon } from '@heroicons/react/24/outline';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { WeighInField } from '@/components/nutrition/WeighInField';
@@ -82,12 +83,8 @@ export default function MobilePlan({
 }) {
   const [sheet, setSheet] = useState<Sheet | null>(null);
   const targetWeight = fitness?.targetWeightKg ?? null;
-  const { startPoint, points, current, start, lastLoggedOn, loggedToday, change, logWeight } = useWeightLog(
-    userId,
-    fitness?.weight ?? null,
-    targetWeight,
-    fitness?.createdAt ?? null
-  );
+  const { startPoint, points, current, start, lastLoggedOn, loggedToday, change, logWeight } =
+    useWeightLog(userId, fitness?.weight ?? null, targetWeight, fitness?.createdAt ?? null);
 
   const losing = targetWeight !== null && current !== null && targetWeight < current;
   const moved = change === null ? null : losing ? -change : change;
@@ -113,7 +110,7 @@ export default function MobilePlan({
           className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-brand px-4 text-sm font-bold text-on-brand transition-transform active:scale-95"
         >
           <SparklesIcon className="h-4 w-4" />
-          {fitness?.objective ? 'Update' : 'Create'}
+          {hasNutritionPlan(fitness) ? 'Update' : 'Create'}
         </button>
       </header>
 
@@ -141,7 +138,12 @@ export default function MobilePlan({
 
         {points.length >= 2 ? (
           <div className="min-h-0 flex-1">
-            <ProgressChart startPoint={startPoint} points={points} target={targetWeight} className="h-full w-full" />
+            <ProgressChart
+              startPoint={startPoint}
+              points={points}
+              target={targetWeight}
+              className="h-full w-full"
+            />
           </div>
         ) : (
           <div className="flex min-h-0 flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-line-strong p-4 text-center">

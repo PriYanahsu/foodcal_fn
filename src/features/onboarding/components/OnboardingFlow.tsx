@@ -75,7 +75,7 @@ function StageTrack({ stage, vertical = false }: { stage: Stage; vertical?: bool
 export default function OnboardingFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { profile } = useUserProfile();
   const { planKnown, hasPlan, fitness, markWelcomeSeen } = useOnboarding();
   const [stage, setStage] = useState<Stage>(
@@ -89,24 +89,26 @@ export default function OnboardingFlow() {
 
   const firstName = (profile.fullName || user?.name || '').split(' ')[0];
 
-  const skip = () => {
-    markWelcomeSeen();
-    router.replace(ROUTES.HOME);
+  // The plan can't be skipped: nothing in the app works without it. Logging out is the
+  // only other way off this screen.
+  const logOut = async () => {
+    await logout();
+    router.replace(ROUTES.LOGIN);
   };
 
-  const skipButton = (
+  const logOutButton = (
     <button
       type="button"
-      onClick={skip}
+      onClick={logOut}
       className="h-10 shrink-0 rounded-xl px-3 text-sm font-semibold text-muted transition-colors hover:bg-surface-2 hover:text-fg"
     >
-      Skip for now
+      Log out
     </button>
   );
 
   return (
     <div className="flex h-dvh flex-col bg-canvas font-ui text-fg md:h-auto md:min-h-dvh">
-      {/* On phones the wizard's own header carries Skip, so this bar steps aside for it. */}
+      {/* On phones the wizard's own header carries Log out, so this bar steps aside for it. */}
       <header
         className={`flex h-14 shrink-0 items-center justify-between gap-3 px-4 md:h-20 md:px-8 ${
           stage === 'plan' ? 'max-md:hidden' : ''
@@ -118,13 +120,13 @@ export default function OnboardingFlow() {
           <div className={stage === 'plan' ? 'lg:hidden' : ''}>
             <StageTrack stage={stage} />
           </div>
-          {stage !== 'ready' && skipButton}
+          {stage !== 'ready' && logOutButton}
         </div>
       </header>
 
       {stage === 'intro' && (
         <div className="flex min-h-0 flex-1 flex-col px-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:mx-auto md:w-full md:max-w-6xl md:justify-center md:px-8 md:pb-16">
-          <WelcomeIntro firstName={firstName} onStart={() => setStage('plan')} onSkip={skip} />
+          <WelcomeIntro firstName={firstName} onStart={() => setStage('plan')} />
         </div>
       )}
 
@@ -139,6 +141,13 @@ export default function OnboardingFlow() {
                 date set how far to move from that. Nothing is shared outside your account.
               </p>
             </div>
+            <div className="rounded-2xl border border-brand/30 bg-brand/10 p-4">
+              <p className="text-sm font-bold text-fg">This is your profile too</p>
+              <p className="mt-1 text-sm leading-relaxed text-muted">
+                Everything you answer here is saved to your profile, so you won&apos;t fill it in
+                twice. Only your photo is left to add in Profile.
+              </p>
+            </div>
           </aside>
           <FitnessSetupWizard
             userId={user.id}
@@ -147,7 +156,7 @@ export default function OnboardingFlow() {
               markWelcomeSeen();
               setStage('ready');
             }}
-            headerAction={<span className="md:hidden">{skipButton}</span>}
+            headerAction={<span className="md:hidden">{logOutButton}</span>}
             className="min-h-0 flex-1 max-md:rounded-none max-md:border-0 max-md:bg-canvas md:max-h-[min(780px,calc(100dvh-9rem))] md:max-w-lg md:flex-none lg:max-w-none"
           />
         </div>
@@ -155,7 +164,7 @@ export default function OnboardingFlow() {
 
       {stage === 'ready' && (
         <div className="flex min-h-0 flex-1 flex-col px-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:justify-center md:px-8 md:pb-16">
-          <PlanReady fitness={fitness} />
+          <PlanReady fitness={fitness} hasPhoto={!!profile.avatar_url} />
         </div>
       )}
     </div>

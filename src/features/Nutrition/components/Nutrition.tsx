@@ -1,12 +1,20 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, MotionConfig } from 'framer-motion';
 import { StepTracker } from '@/features/activity/components/StepTracker';
 import { isFeatureEnabled } from '@/config/features';
 import { ROUTES } from '@/constants/routes';
-import { GettingStartedCard, START_PARAM, useOnboarding } from '@/features/onboarding';
+import {
+  GettingStartedCard,
+  PlanRequiredDialog,
+  PlanRequiredHero,
+  START_PARAM,
+  useOnboarding,
+  usePlanGate,
+} from '@/features/onboarding';
+import { PHONE_QUERY, useMediaQuery } from '@/hooks/useMediaQuery';
 import { useNutrition } from '../hooks/useNutrition';
 import NutritionHeader from './NutritionHeader';
 import WeekStrip from './WeekStrip';
@@ -41,7 +49,14 @@ export default function Nutrition() {
     isToday,
   } = useNutrition();
   const router = useRouter();
-  const { needsWelcome } = useOnboarding();
+  const { needsWelcome, loggingLocked } = useOnboarding();
+  const isPhone = useMediaQuery(PHONE_QUERY);
+  const { showPlanWarning: showWarning } = usePlanGate();
+  // No plan: phones get the warning as soon as the dashboard opens (desktop shows the big
+  // card instead). Tapping a date or a locked tile raises the app-wide one again.
+  const [warningDismissed, setWarningDismissed] = useState(false);
+  const warningOpen = loggingLocked && isPhone && !warningDismissed;
+  const closeWarning = () => setWarningDismissed(true);
 
   // A first-time user (no plan yet) gets the guided setup instead of an empty dashboard.
   useEffect(() => {
@@ -53,6 +68,7 @@ export default function Nutrition() {
   }
 
   const openWizard = () => router.push(`${ROUTES.WELCOME}?${START_PARAM}=plan`);
+  const selectDate = (date: string) => (loggingLocked ? showWarning() : setSelectedDate(date));
   const showWeightCard = () =>
     document.getElementById('weight-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
@@ -66,7 +82,7 @@ export default function Nutrition() {
           userName={userName}
           fitness={fitness}
           selectedDate={selectedDate}
-          onSelectDate={setSelectedDate}
+          onSelectDate={selectDate}
           stats={stats}
           goals={goals}
           hasPlan={hasPlan}
@@ -75,6 +91,7 @@ export default function Nutrition() {
           refreshing={refreshing}
           isToday={isToday}
           onSetUpPlan={openWizard}
+          onLocked={showWarning}
         />
       </div>
 
@@ -90,57 +107,65 @@ export default function Nutrition() {
         </motion.div>
 
         <motion.div variants={REVEAL} className="relative z-20">
-          <WeekStrip selectedDate={selectedDate} onSelect={setSelectedDate} />
+          <WeekStrip selectedDate={selectedDate} onSelect={selectDate} />
         </motion.div>
 
-        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-          <div className="flex min-w-0 flex-col gap-6">
-            <motion.div variants={REVEAL}>
-              <CaloriesCard
-                stats={stats}
-                goals={goals}
-                hasPlan={hasPlan}
-                refreshing={refreshing}
-                onSetUpPlan={openWizard}
-              />
-            </motion.div>
-            <motion.div variants={REVEAL}>
-              <MealsCard
-                logs={recentLogs}
-                loading={loading}
-                refreshing={refreshing}
-                isToday={isToday}
-                target={hasPlan ? goals.calories : null}
-              />
-            </motion.div>
-          </div>
+        {loggingLocked ? (
+          <motion.div variants={REVEAL}>
+            <PlanRequiredHero />
+          </motion.div>
+        ) : (
+          <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+            <div className="flex min-w-0 flex-col gap-6">
+              <motion.div variants={REVEAL}>
+                <CaloriesCard
+                  stats={stats}
+                  goals={goals}
+                  hasPlan={hasPlan}
+                  refreshing={refreshing}
+                  onSetUpPlan={openWizard}
+                />
+              </motion.div>
+              <motion.div variants={REVEAL}>
+                <MealsCard
+                  logs={recentLogs}
+                  loading={loading}
+                  refreshing={refreshing}
+                  isToday={isToday}
+                  target={hasPlan ? goals.calories : null}
+                />
+              </motion.div>
+            </div>
 
-          <div className="flex flex-col gap-6">
-            <GettingStartedCard onWeighIn={showWeightCard} />
-            <motion.div variants={REVEAL}>
-              <CoachCard
-                hasPlan={hasPlan}
-                objective={fitness.objective}
-                advice={fitness.aiCoachAdvice}
-                onSetUpPlan={openWizard}
-              />
-            </motion.div>
-            <motion.div variants={REVEAL}>
-              <WaterCard userId={user?.id} date={selectedDate} />
-            </motion.div>
-            <motion.div variants={REVEAL} id="weight-card" className="scroll-mt-8">
-              <WeightCard
-                userId={user?.id}
-                profileWeight={fitness.weight}
-                targetWeight={fitness.targetWeightKg}
-                targetDate={fitness.targetDate}
-                createdAt={fitness.createdAt}
-              />
-            </motion.div>
-            {isFeatureEnabled('steps') && <StepTracker />}
+            <div className="flex flex-col gap-6">
+              <GettingStartedCard onWeighIn={showWeightCard} />
+              <motion.div variants={REVEAL}>
+                <CoachCard
+                  hasPlan={hasPlan}
+                  objective={fitness.objective}
+                  advice={fitness.aiCoachAdvice}
+                  onSetUpPlan={openWizard}
+                />
+              </motion.div>
+              <motion.div variants={REVEAL}>
+                <WaterCard userId={user?.id} date={selectedDate} />
+              </motion.div>
+              <motion.div variants={REVEAL} id="weight-card" className="scroll-mt-8">
+                <WeightCard
+                  userId={user?.id}
+                  profileWeight={fitness.weight}
+                  targetWeight={fitness.targetWeightKg}
+                  targetDate={fitness.targetDate}
+                  createdAt={fitness.createdAt}
+                />
+              </motion.div>
+              {isFeatureEnabled('steps') && <StepTracker />}
+            </div>
           </div>
-        </div>
+        )}
       </motion.div>
+
+      <PlanRequiredDialog open={warningOpen} onClose={closeWarning} />
     </MotionConfig>
   );
 }

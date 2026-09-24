@@ -8,6 +8,7 @@ import { MealCard, MealCardSkeleton } from '@/components/nutrition/MealCard';
 import MealDetail from '@/components/nutrition/MealDetail';
 import { MealDrillIn } from '@/components/nutrition/MealDrillIn';
 import { ROUTES } from '@/constants/routes';
+import { usePlanGate } from '@/features/onboarding';
 import type { FoodLog } from '../type';
 import { MAIN_MEALS } from '../utils/Constants';
 import { byLogTime } from '../utils/formatLogTime';
@@ -23,6 +24,7 @@ interface MealsCardProps {
 }
 
 export default function MealsCard({ logs, loading, refreshing, isToday, target }: MealsCardProps) {
+  const { requirePlan } = usePlanGate();
   const meals = [...logs].sort(byLogTime);
   // Tapping a meal opens it right here (same view as History) — no page change.
   const [openId, setOpenId] = useState<string | null>(null);
@@ -79,7 +81,11 @@ export default function MealsCard({ logs, loading, refreshing, isToday, target }
                 : 'Pick another day, or head to history for the full log.'}
             </p>
             {isToday && (
-              <Link href={ROUTES.SCAN} className={buttonClass('primary', 'md', 'mt-1')}>
+              <Link
+                href={ROUTES.SCAN}
+                onClick={requirePlan}
+                className={buttonClass('primary', 'md', 'mt-1')}
+              >
                 Scan a meal
               </Link>
             )}
@@ -100,6 +106,7 @@ export default function MealsCard({ logs, loading, refreshing, isToday, target }
               <Link
                 key={type}
                 href={ROUTES.SCAN}
+                onClick={requirePlan}
                 className="flex h-12 items-center justify-center gap-2 rounded-2xl border border-dashed border-line-strong text-sm font-semibold text-fg-2 transition-colors hover:border-brand/50 hover:bg-surface-2 hover:text-fg"
               >
                 <PlusIcon className="h-4 w-4" />

@@ -2,7 +2,14 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { BeakerIcon, CameraIcon, CheckIcon, ScaleIcon } from '@heroicons/react/24/outline';
+import {
+  BeakerIcon,
+  CameraIcon,
+  CheckIcon,
+  ChevronRightIcon,
+  ScaleIcon,
+  UserCircleIcon,
+} from '@heroicons/react/24/outline';
 import { buttonClass } from '@/components/ui/fc';
 import { CalorieRing, MacroBar } from '@/components/nutrition/macros';
 import { ROUTES } from '@/constants/routes';
@@ -22,7 +29,14 @@ const RISE = {
 const fmt = (n: number | null | undefined) => (n ? Math.round(n).toLocaleString('en-US') : '–');
 
 /** Shown once the plan is saved: the targets, the daily habits, and the first action. */
-export default function PlanReady({ fitness }: { fitness: FitnessDetails | null }) {
+export default function PlanReady({
+  fitness,
+  hasPhoto,
+}: {
+  fitness: FitnessDetails | null;
+  /** The plan fills in every profile field except the photo. */
+  hasPhoto: boolean;
+}) {
   const calories = fitness?.dailyCalorieTarget ?? 0;
   const protein = fitness?.dailyProteinTargetG ?? 0;
   const carbs = fitness?.dailyCarbsTargetG ?? 0;
@@ -66,6 +80,28 @@ export default function PlanReady({ fitness }: { fitness: FitnessDetails | null 
           <MacroBar macro="fat" value={fats} max={fats} unit="g" />
         </div>
       </motion.section>
+
+      <motion.div variants={RISE} className="shrink-0">
+        <Link
+          href={ROUTES.PROFILE}
+          className="flex items-center gap-3 rounded-2xl border border-line bg-surface-1 p-3 transition-colors hover:bg-surface-2 short:p-2.5"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand/15 text-brand-ink short:h-8 short:w-8">
+            <UserCircleIcon className="h-5 w-5" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-bold leading-tight text-fg">
+              {hasPhoto ? 'Your profile is complete' : 'Your profile is filled in'}
+            </span>
+            <span className="block truncate text-xs text-muted">
+              {hasPhoto
+                ? 'Edit your details any time in Profile'
+                : 'Add a photo in Profile to finish'}
+            </span>
+          </span>
+          <ChevronRightIcon className="h-4 w-4 shrink-0 text-muted" />
+        </Link>
+      </motion.div>
 
       <motion.div variants={RISE} className="flex shrink-0 flex-col gap-2">
         <h2 className="text-xs font-bold uppercase tracking-wide text-muted">Every day</h2>

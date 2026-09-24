@@ -6,13 +6,13 @@ import {
   CalendarDaysIcon,
   CameraIcon,
   FireIcon,
+  LockClosedIcon,
   PlusIcon,
   ScaleIcon,
   SparklesIcon,
 } from '@heroicons/react/24/outline';
 import { BottomSheet } from '@/components/ui/BottomSheet';
-import { buttonClass } from '@/components/ui/fc';
-import { GettingStartedButton } from '@/features/onboarding';
+import { GettingStartedButton, PlanLock } from '@/features/onboarding';
 import { CalorieRing, MacroBar } from '@/components/nutrition/macros';
 import type { FitnessDetails } from '@/features/userProfile';
 import type { DailyStats, FoodLog, NutritionGoals } from '../type';
@@ -29,6 +29,7 @@ import MealsCard from './MealsCard';
 import CoachCard from './CoachCard';
 import WaterCard from './WaterCard';
 import WeightCard, { TrendChart } from './WeightCard';
+import PlanSetupCard from './PlanSetupCard';
 
 type Panel = 'calories' | 'meals' | 'coach' | 'water' | 'weight';
 
@@ -63,6 +64,8 @@ interface MobileDashboardProps {
   refreshing: boolean;
   isToday: boolean;
   onSetUpPlan: () => void;
+  /** No plan yet: tiles don't open, they explain why instead. */
+  onLocked: () => void;
 }
 
 const fmt = (n: number) => Math.round(n).toLocaleString('en-US');
@@ -77,6 +80,7 @@ function Tile({
   tone,
   onOpen,
   footer,
+  locked = false,
   hideLabelWhenShort = false,
   className = '',
   children,
@@ -86,6 +90,8 @@ function Tile({
   tone: keyof typeof TONES;
   onOpen: () => void;
   footer?: ReactNode;
+  /** Needs a plan: shows a lock beside the label (the tap itself is handled by `onOpen`). */
+  locked?: boolean;
   /** On short phones, drop the label row to save height (content must still read on its own). */
   hideLabelWhenShort?: boolean;
   className?: string;
@@ -111,42 +117,18 @@ function Tile({
             {icon}
           </span>
           <span className="text-sm font-bold text-fg">{label}</span>
+          {locked && (
+            <LockClosedIcon
+              aria-label="Needs a plan"
+              className="ml-auto h-4 w-4 shrink-0 text-muted"
+              strokeWidth={2.5}
+            />
+          )}
         </span>
         {children}
       </button>
       {footer && <div className="px-3 pb-3 short:px-2.5 short:pb-2.5">{footer}</div>}
     </div>
-  );
-}
-
-/** Stands in for the calories tile until there's a plan: one clear next step, no empty ring. */
-function PlanCta({ onSetUpPlan }: { onSetUpPlan: () => void }) {
-  return (
-    <section
-      aria-label="Set up your plan"
-      className="flex shrink-0 flex-col gap-3 rounded-3xl border border-brand/35 bg-linear-160 from-brand/20 to-surface-1 to-70% p-4 short:gap-2.5 short:p-3"
-    >
-      <span className="flex items-center gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand text-on-brand">
-          <SparklesIcon className="h-5 w-5" />
-        </span>
-        <span className="min-w-0">
-          <span className="block text-base font-bold leading-tight text-fg">
-            Get your daily targets
-          </span>
-          <span className="block truncate text-xs text-muted">
-            A few questions · about 2 minutes
-          </span>
-        </span>
-      </span>
-      <button
-        type="button"
-        onClick={onSetUpPlan}
-        className={buttonClass('primary', 'md', 'w-full short:h-11')}
-      >
-        Set up my plan
-      </button>
-    </section>
   );
 }
 
@@ -178,10 +160,12 @@ export default function MobileDashboard({
   refreshing,
   isToday,
   onSetUpPlan,
+  onLocked,
 }: MobileDashboardProps) {
   const [panel, setPanel] = useState<Panel | null>(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const closePanel = useCallback(() => setPanel(null), []);
+  const openPanel = (next: Panel) => (hasPlan ? setPanel(next) : onLocked());
   const closeCalendar = useCallback(() => setCalendarOpen(false), []);
   const loggedDays = useLoggedDays();
   const water = useWaterIntake(userId, selectedDate);
@@ -246,7 +230,7 @@ export default function MobileDashboard({
             label="Calories"
             tone="neutral"
             icon={<FireIcon className="h-4 w-4" />}
-            onOpen={() => setPanel('calories')}
+            onOpen={() => openPanel('calories')}
             hideLabelWhenShort
             className="shrink-0"
           >
@@ -281,15 +265,16 @@ export default function MobileDashboard({
             </span>
           </Tile>
         ) : (
-          <PlanCta onSetUpPlan={onSetUpPlan} />
+          <PlanSetupCard onSetUpPlan={onSetUpPlan} />
         )}
 
         <div className="grid min-h-0 flex-1 grid-cols-2 grid-rows-2 gap-3 short:gap-2.5">
           <Tile
             label="Meals"
+            locked={!hasPlan}
             tone="meals"
             icon={<CameraIcon className="h-4 w-4" />}
-            onOpen={() => setPanel('meals')}
+            onOpen={() => openPanel('meals')}
           >
             <span className="mt-auto flex min-w-0 flex-col gap-1">
               <Figure
@@ -299,18 +284,21 @@ export default function MobileDashboard({
               <span className="truncate text-xs text-muted">
                 {lastMeal
                   ? `${fmt(eaten)} kcal · ${lastMeal.foodName}`
-                  : isToday
-                    ? 'Tap the camera to log one'
-                    : 'Nothing logged'}
+                  : !hasPlan
+                    ? 'Unlocks with your plan'
+                    : isToday
+                      ? 'Tap the camera to log one'
+                      : 'Nothing logged'}
               </span>
             </span>
           </Tile>
 
           <Tile
             label="Coach"
+            locked={!hasPlan}
             tone="coach"
             icon={<SparklesIcon className="h-4 w-4" />}
-            onOpen={() => setPanel('coach')}
+            onOpen={() => openPanel('coach')}
           >
             <span className="mt-auto line-clamp-4 text-[13px] leading-snug text-fg-2 short:line-clamp-3">
               {hasPlan
@@ -321,19 +309,22 @@ export default function MobileDashboard({
 
           <Tile
             label="Water"
+            locked={!hasPlan}
             tone="water"
             icon={<BeakerIcon className="h-4 w-4" />}
-            onOpen={() => setPanel('water')}
+            onOpen={() => openPanel('water')}
             footer={
-              <button
-                type="button"
-                onClick={water.addGlass}
-                aria-label={`Add a glass of water (${WATER_GLASS_ML} ml)`}
-                className="flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-info text-sm font-bold text-canvas transition-transform active:scale-95 short:h-9"
-              >
-                <PlusIcon className="h-4 w-4" strokeWidth={2.5} />
-                {WATER_GLASS_ML} ml
-              </button>
+              <PlanLock label="Add a glass of water" compact>
+                <button
+                  type="button"
+                  onClick={water.addGlass}
+                  aria-label={`Add a glass of water (${WATER_GLASS_ML} ml)`}
+                  className="flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-info text-sm font-bold text-canvas transition-transform active:scale-95 short:h-9"
+                >
+                  <PlusIcon className="h-4 w-4" strokeWidth={2.5} />
+                  {WATER_GLASS_ML} ml
+                </button>
+              </PlanLock>
             }
           >
             {/* Centered reading: litres, glasses bar */}
@@ -354,9 +345,10 @@ export default function MobileDashboard({
 
           <Tile
             label="Weight"
+            locked={!hasPlan}
             tone="weight"
             icon={<ScaleIcon className="h-4 w-4" />}
-            onOpen={() => setPanel('weight')}
+            onOpen={() => openPanel('weight')}
           >
             <span className="mt-auto flex min-w-0 flex-col gap-1.5">
               {weight.points.length >= 2 && (
@@ -370,7 +362,11 @@ export default function MobileDashboard({
               )}
               <Figure value={weight.current ?? '–'} unit="kg" />
               <span className="truncate text-xs text-muted">
-                {weight.progress !== null ? `${weight.progress}% to goal` : 'Add your weight'}
+                {!hasPlan
+                  ? 'Unlocks with your plan'
+                  : weight.progress !== null
+                    ? `${weight.progress}% to goal`
+                    : 'Add your weight'}
               </span>
             </span>
           </Tile>

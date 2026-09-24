@@ -33,6 +33,9 @@ export const calculateProfileCompletion = (
     targetDate,
   ];
 
-  const completedFields = fields.filter((val) => val !== null && val !== undefined && val !== '');
+  // Zero means "never set" (a new account's fitness row is zero-filled), not filled in.
+  const completedFields = fields.filter(
+    (val) => val !== null && val !== undefined && val !== '' && val !== 0
+  );
   return Math.round((completedFields.length / fields.length) * 100);
 };

@@ -3,6 +3,7 @@
 import { queryKeys } from '@/app/service';
 import { getWeights, logWeight as logWeightApi, type WeightPoint } from '@/app/service/weight.api';
 import { toLocalDate } from '@/features/Nutrition/utils/toLocalDate';
+import { usePlanGate } from '@/features/onboarding/context/PlanGateContext';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export type { WeightPoint };
@@ -14,11 +15,15 @@ function asDate(iso: string | null | undefined): string {
 
 export function useWeightLog(
   userId: string | undefined,
-  profileWeight: number | null,
-  targetWeight: number | null,
+  rawProfileWeight: number | null,
+  rawTargetWeight: number | null,
   createdAt?: string | null
 ) {
   const queryClient = useQueryClient();
+  const { canLog } = usePlanGate();
+  // A new account's fitness row is zero-filled: 0 kg means "not set", never a reading.
+  const profileWeight = rawProfileWeight || null;
+  const targetWeight = rawTargetWeight || null;
 
   const { data: raw = [] } = useQuery({
     queryKey: queryKeys.weights(userId ?? ''),
@@ -30,9 +35,7 @@ export function useWeightLog(
   const start = profileWeight ?? logs[0]?.weightKg ?? null;
   const current = logs.at(-1)?.weightKg ?? profileWeight ?? null;
   const startPoint: WeightPoint | null =
-    profileWeight != null
-      ? { weightKg: profileWeight, loggedOn: asDate(createdAt) }
-      : null;
+    profileWeight != null ? { weightKg: profileWeight, loggedOn: asDate(createdAt) } : null;
   const points = startPoint ? [startPoint, ...logs] : logs;
   const lastLoggedOn = logs.at(-1)?.loggedOn ?? null;
   const startedOn = startPoint?.loggedOn ?? logs[0]?.loggedOn ?? null;
@@ -57,9 +60,22 @@ export function useWeightLog(
   });
 
   const logWeight = (weight: number) => {
-    if (!Number.isFinite(weight)) return;
+    // Weigh-ins track progress toward the plan's target, so none are saved without one.
+    if (!Number.isFinite(weight) || !canLog) return;
     logWeightMutation.mutate(weight);
   };
 
-  return { startPoint, points, current, start, startedOn, lastLoggedOn, loggedToday, change, toGo, progress, logWeight };
+  return {
+    startPoint,
+    points,
+    current,
+    start,
+    startedOn,
+    lastLoggedOn,
+    loggedToday,
+    change,
+    toGo,
+    progress,
+    logWeight,
+  };
 }

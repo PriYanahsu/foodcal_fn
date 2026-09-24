@@ -37,18 +37,20 @@ export const useFitnessSetup = (userId: string, onComplete: () => void) => {
     prefillApplied.current = true;
 
     const data: FitnessDetails = existingFitness;
-    const weight = data.weight ?? '';
-    const targetWeight = data.targetWeightKg ?? '';
+    // A new account's fitness row comes back zero-filled; `||` turns those zeros into
+    // empty fields, so typing "3" gives 3 instead of "03".
+    const weight = data.weight || '';
+    const targetWeight = data.targetWeightKg || '';
     let objective = data.objective || '';
-    if (weight !== 0 && targetWeight !== 0) {
+    if (weight !== '' && targetWeight !== '') {
       if (weight > targetWeight) objective = 'Lose Weight';
       else if (weight < targetWeight) objective = 'Gain Muscle';
       else objective = 'Maintain Weight';
     }
     setStats({
       gender: data.gender ?? '',
-      age: data.age ?? '',
-      height: data.height ?? '',
+      age: data.age || '',
+      height: data.height || '',
       weight,
       activity_level: data.activityLevel || '',
     });

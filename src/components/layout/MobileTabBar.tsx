@@ -9,6 +9,7 @@ import {
   CameraIcon,
   ClockIcon,
   HomeIcon,
+  LockClosedIcon,
 } from '@heroicons/react/24/outline';
 import {
   ArrowTrendingUpIcon as ArrowTrendingUpSolid,
@@ -17,6 +18,7 @@ import {
 } from '@heroicons/react/24/solid';
 import { isFeatureEnabled, type FeatureKey } from '@/config/features';
 import { useNotifications } from '@/features/notifications/context/NotificationContext';
+import { usePlanGate } from '@/features/onboarding';
 
 type Icon = ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -71,6 +73,7 @@ export function MobileTabBar({ onOpenMore }: { onOpenMore: () => void }) {
   const pathname = usePathname();
   const { unreadCount } = useNotifications();
   const scanActive = isActive(pathname, '/scan');
+  const { canLog, requirePlan } = usePlanGate();
   const visible = (tabs: Tab[]) => tabs.filter((tab) => isFeatureEnabled(tab.feature));
 
   return (
@@ -87,13 +90,20 @@ export function MobileTabBar({ onOpenMore }: { onOpenMore: () => void }) {
           <div className="flex justify-center">
             <Link
               href="/scan"
-              aria-label="Log a meal"
+              aria-label={canLog ? 'Log a meal' : 'Log a meal (set up your plan first)'}
               aria-current={scanActive ? 'page' : undefined}
-              className={`-mt-7 flex h-16 w-16 items-center justify-center rounded-full bg-brand text-on-brand shadow-[0_12px_28px_-8px_rgb(var(--fc-brand-rgb)/0.75)] ring-[6px] ring-canvas transition-transform active:scale-95 ${
+              // No plan: explain instead of opening the scanner.
+              onClick={requirePlan}
+              className={`relative -mt-7 flex h-16 w-16 items-center justify-center rounded-full bg-brand text-on-brand shadow-[0_12px_28px_-8px_rgb(var(--fc-brand-rgb)/0.75)] ring-[6px] ring-canvas transition-transform active:scale-95 ${
                 scanActive ? 'scale-105' : ''
               }`}
             >
               <CameraIcon className="h-7 w-7" strokeWidth={2} />
+              {!canLog && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-surface-1 text-muted ring-2 ring-canvas">
+                  <LockClosedIcon className="h-3.5 w-3.5" strokeWidth={2.5} />
+                </span>
+              )}
             </Link>
           </div>
         )}

@@ -2,6 +2,8 @@
 
 import { useEffect, useState, type ComponentType, type SVGProps } from 'react';
 import Link from 'next/link';
+import { usePlanGate } from '@/features/onboarding';
+import { hasNutritionPlan } from '@/features/Nutrition/utils/deriveNutritionGoals';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -13,6 +15,7 @@ import {
   ClockIcon,
   Cog6ToothIcon,
   HomeIcon,
+  LockClosedIcon,
   MapIcon,
   MoonIcon,
   SunIcon,
@@ -73,16 +76,25 @@ function NavLink({
 }) {
   const active = isActive(pathname, item.path);
   const Icon = item.icon;
+  const { canLog, requirePlan } = usePlanGate();
+  // Scanning needs a plan: explain instead of opening the scanner.
+  const locked = item.path === '/scan' && !canLog;
 
   return (
     <Link
       href={item.path}
-      onClick={onNavigate}
+      onClick={(e) => {
+        if (locked) requirePlan(e);
+        onNavigate?.();
+      }}
       aria-current={active ? 'page' : undefined}
       className={`${ITEM_BASE} ${active ? ITEM_ACTIVE : ITEM_IDLE}`}
     >
       <Icon className="h-5 w-5 shrink-0" />
       <span className="flex-1 truncate">{item.name}</span>
+      {locked && (
+        <LockClosedIcon aria-label="Needs a plan" className="h-4 w-4 shrink-0 text-muted" />
+      )}
       {!!badge && (
         <span
           className={`flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-bold ${
@@ -133,7 +145,9 @@ function TodaySummary({ onNavigate }: { onNavigate?: () => void }) {
         />
       </div>
       <p className="truncate text-xs text-muted">
-        {fitness.objective ? `Plan: ${fitness.objective.toLowerCase()}` : 'No plan yet'}
+        {hasNutritionPlan(fitness) && fitness.objective
+          ? `Plan: ${fitness.objective.toLowerCase()}`
+          : 'No plan yet'}
       </p>
     </Link>
   );

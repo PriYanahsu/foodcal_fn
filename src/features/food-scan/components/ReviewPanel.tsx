@@ -19,9 +19,12 @@ const ValueInput: React.FC<{
     min={0}
     inputMode="numeric"
     aria-label={label}
-    value={Math.round(value)}
-    onChange={(e) => onChange(e.target.valueAsNumber)}
-    className={`w-full min-w-0 rounded-lg border border-line-strong bg-surface-2 px-2 py-1 font-display font-bold tabular-nums text-fg outline-none focus:border-brand [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none ${className}`}
+    // Zero shows as the placeholder, so typing replaces it rather than appending to it.
+    value={value ? Math.round(value) : ''}
+    placeholder="0"
+    onChange={(e) => onChange(Number.isFinite(e.target.valueAsNumber) ? e.target.valueAsNumber : 0)}
+    onFocus={(e) => e.currentTarget.select()}
+    className={`w-full min-w-0 rounded-lg border border-line-strong bg-surface-2 px-2 py-1 font-display font-bold tabular-nums text-fg outline-none placeholder:text-muted focus:border-brand [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none ${className}`}
   />
 );
 

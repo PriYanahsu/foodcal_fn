@@ -23,6 +23,7 @@ export default function BodyStatsCard({
     ['Target weight', fitness?.targetWeightKg ? `${fitness.targetWeightKg} kg` : '—'],
     ['Target date', fitness?.targetDate ? shortDate(fitness.targetDate) : '—'],
   ];
+  const hasData = rows.some(([label, value]) => label !== 'BMI' && value !== '—');
 
   return (
     <section className="flex flex-col gap-3 rounded-3xl border border-line bg-surface-1 p-5">
@@ -32,7 +33,7 @@ export default function BodyStatsCard({
           href="/profile"
           className="inline-flex items-center gap-1 text-sm font-bold text-brand-ink hover:underline"
         >
-          Edit
+          {hasData ? 'Edit' : 'Add'}
           <ArrowRightIcon className="h-3.5 w-3.5" />
         </Link>
       </div>

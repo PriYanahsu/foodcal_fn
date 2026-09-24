@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { ArrowRightIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { PlanRequired, PlanRequiredHero, useOnboarding } from '@/features/onboarding';
 import { PHONE_QUERY, useMediaQuery } from '@/hooks/useMediaQuery';
 import FitnessSetupWizard from './FitnessSetupWizard';
 import MobilePlan from './plan/MobilePlan';
@@ -11,11 +12,13 @@ import TargetsCard from './plan/TargetsCard';
 import CoachCard from './plan/CoachCard';
 import BodyStatsCard from './plan/BodyStatsCard';
 import { useFitnessHub } from '../hooks/useFitnessHub';
+import { hasNutritionPlan } from '@/features/Nutrition/utils/deriveNutritionGoals';
 import PlanSkeleton from './PlanSkeleton';
 
 export default function MyPlan() {
   const { user } = useAuth();
   const isPhone = useMediaQuery(PHONE_QUERY);
+  const { loggingLocked } = useOnboarding();
   const {
     fitnessProfile,
     showWizard,
@@ -31,6 +34,21 @@ export default function MyPlan() {
 
   if (loading) {
     return <PlanSkeleton />;
+  }
+
+  // No plan: nothing here (weigh-ins, targets, coach) works yet, so the page is one message.
+  if (loggingLocked) {
+    if (isPhone) {
+      return <PlanRequired what="your weight" title="Your plan starts here" />;
+    }
+    return (
+      <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-5 bg-canvas px-8 py-8 font-ui text-fg">
+        <h1 className="font-display text-large-title font-bold tracking-[-0.02em] text-fg">
+          My plan
+        </h1>
+        <PlanRequiredHero />
+      </div>
+    );
   }
 
   const weeksLeft = daysLeft !== null ? Math.max(0, Math.ceil(daysLeft / 7)) : null;
@@ -86,7 +104,7 @@ export default function MyPlan() {
           className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-on-brand transition-colors hover:bg-brand-hover"
         >
           <SparklesIcon className="h-4 w-4" />
-          {fitnessProfile?.objective ? 'Update plan' : 'Create plan'}
+          {hasNutritionPlan(fitnessProfile) ? 'Update plan' : 'Create plan'}
         </button>
       </header>
 

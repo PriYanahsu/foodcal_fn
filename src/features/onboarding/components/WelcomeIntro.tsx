@@ -14,7 +14,7 @@ const STEPS = [
   {
     icon: SparklesIcon,
     title: 'Build your plan',
-    detail: 'Answer a few questions and get daily calorie and macro targets.',
+    detail: 'A few questions set your daily targets and fill in your profile for you.',
     badge: '2 min',
   },
   {
@@ -66,14 +66,13 @@ function PreviewCard() {
 interface WelcomeIntroProps {
   firstName: string;
   onStart: () => void;
-  onSkip: () => void;
 }
 
 /**
  * The first screen a new account sees. Phones: everything on one screen with the
  * buttons pinned to the bottom, no scrolling. Large screens: steps beside a sample day.
  */
-export default function WelcomeIntro({ firstName, onStart, onSkip }: WelcomeIntroProps) {
+export default function WelcomeIntro({ firstName, onStart }: WelcomeIntroProps) {
   return (
     <div className="grid min-h-0 flex-1 items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)] lg:gap-16">
       <motion.div
@@ -90,7 +89,7 @@ export default function WelcomeIntro({ firstName, onStart, onSkip }: WelcomeIntr
             Here&apos;s how FoodCal works
           </h1>
           <p className="mt-1.5 text-[15px] text-fg-2 md:text-base">
-            Three steps. Only the first one needs a few minutes.
+            Three steps. Start with your plan: it sets up everything else.
           </p>
         </motion.header>
 
@@ -130,7 +129,7 @@ export default function WelcomeIntro({ firstName, onStart, onSkip }: WelcomeIntr
 
         <motion.div
           variants={RISE}
-          className="flex shrink-0 flex-col gap-1 md:flex-row md:items-center md:gap-3"
+          className="flex shrink-0 flex-col gap-2 md:flex-row md:items-center md:gap-4"
         >
           <button
             type="button"
@@ -139,13 +138,9 @@ export default function WelcomeIntro({ firstName, onStart, onSkip }: WelcomeIntr
           >
             Build my plan <ArrowRightIcon className="h-5 w-5" />
           </button>
-          <button
-            type="button"
-            onClick={onSkip}
-            className={buttonClass('ghost', 'md', 'w-full short:h-10 md:w-auto')}
-          >
-            I&apos;ll look around first
-          </button>
+          <p className="text-center text-xs text-muted md:text-left">
+            Required to start: meals, water and weigh-ins unlock once your plan is set.
+          </p>
         </motion.div>
       </motion.div>
 

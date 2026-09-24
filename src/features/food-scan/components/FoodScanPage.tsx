@@ -13,7 +13,8 @@ import { BottomSheet } from '@/components/ui/BottomSheet';
 import { SuccessToast } from '@/components/ui/SuccessToast';
 import { buttonClass } from '@/components/ui/fc';
 import { ROUTES } from '@/constants/routes';
-import { PlanFirstPrompt } from '@/features/onboarding';
+import { PlanRequired, useOnboarding, usePlanGate } from '@/features/onboarding';
+import { PageLoader } from '@/components/ui/PageLoader';
 import { useFoodScan } from '../hooks/useFoodScan';
 import { useScanDraft } from '../hooks/useScanDraft';
 import { AiScanOverlay } from './AiScanOverlay';
@@ -37,7 +38,17 @@ const TITLES: Record<Stage, string> = {
 /** `photo` and `context` are both step 1 — the photo isn't committed until the scan runs. */
 const STEP_OF: Record<Stage, number> = { photo: 0, context: 0, analyzing: 1, review: 1 };
 
+/** No plan, no scanning: a meal only means something against a daily target. */
 export const FoodScanPage: React.FC = () => {
+  const { loggingLocked } = useOnboarding();
+  const { canLog } = usePlanGate();
+  if (loggingLocked) return <PlanRequired what="meals" />;
+  // Still checking for a plan: wait, rather than let the scanner work for a moment.
+  if (!canLog) return <PageLoader />;
+  return <FoodScanner />;
+};
+
+const FoodScanner: React.FC = () => {
   const { scanImage, saveFoodLog, isLoading, isSaving, nutritionData, error, reset } =
     useFoodScan();
   const draft = useScanDraft(nutritionData);
@@ -295,9 +306,6 @@ export const FoodScanPage: React.FC = () => {
         actionHref={toast?.actionHref}
         onClose={clearToast}
       />
-
-      {/* No plan yet: suggest one first, since a meal means more against a target. */}
-      <PlanFirstPrompt />
     </MotionConfig>
   );
 };

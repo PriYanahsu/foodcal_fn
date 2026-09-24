@@ -16,7 +16,7 @@ import { ThemeProvider } from '@/features/theme/context/ThemeContext';
 import { isFeatureEnabled } from '@/config/features';
 import { InstallAppPrompt } from './InstallAppPrompt';
 import { WakeUpBanner } from '@/features/backendStatus';
-import { useOnboarding } from '@/features/onboarding';
+import { PlanGateProvider, PlanRouteGuard, useOnboarding } from '@/features/onboarding';
 
 /** Pages with their own public header/footer — no app sidebar, bell or push prompt. */
 const PUBLIC_PAGES = ['/login', '/signup', '/privacy', '/terms'];
@@ -39,7 +39,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
     document.body.scrollTop = 0;
   }, [pathname]);
 
-  return (
+  const shell = (
     // `min-h-dvh`, not `min-h-screen`: on a phone `100vh` is the tall viewport (URL bar
     // hidden) while the one-screen pages size themselves to `100dvh`. The difference is
     // exactly the URL bar, and it left every page scrollable by that much.
@@ -80,6 +80,10 @@ function AppShell({ children }: { children: React.ReactNode }) {
       {!isAuthPage && <MobileTabBar onOpenMore={() => setIsSidebarOpen(true)} />}
     </div>
   );
+
+  // Every signed-in app page (not login/legal, not the plan setup itself) is locked,
+  // nav included, until the AI plan exists.
+  return isAuthPage ? shell : <PlanRouteGuard>{shell}</PlanRouteGuard>;
 }
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
@@ -97,7 +101,11 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       })
   );
 
-  const shell = <AppShell>{children}</AppShell>;
+  const shell = (
+    <PlanGateProvider>
+      <AppShell>{children}</AppShell>
+    </PlanGateProvider>
+  );
 
   return (
     <QueryClientProvider client={queryClient}>
