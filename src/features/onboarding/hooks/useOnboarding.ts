@@ -4,14 +4,11 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { getFitness, queryKeys } from '@/app/service';
 import { getLocal, setLocal, useLocalValue } from '@/lib/local-store';
-import { toLocalDate } from '@/features/Nutrition/utils/toLocalDate';
 
 /** UI-only memory (this device). Whether a user *needs* onboarding comes from the server. */
 interface OnboardingFlags {
   welcomeSeen?: boolean;
   checklistDismissed?: boolean;
-  /** Day (`YYYY-MM-DD`) the user last chose to scan without a plan — we ask at most once a day. */
-  scanWithoutPlanOn?: string;
 }
 
 const onboardingKey = (userId: string) => `onboarding_${userId}`;
@@ -51,10 +48,12 @@ export function useOnboarding() {
     /** Signed-in user with no plan who hasn't finished or skipped the welcome flow. */
     needsWelcome: planKnown && !hasPlan && !flags.welcomeSeen,
     checklistDismissed: !!flags.checklistDismissed,
-    /** No plan yet, and they haven't already said "scan anyway" today. */
-    suggestPlanBeforeScan: planKnown && !hasPlan && flags.scanWithoutPlanOn !== toLocalDate(),
+    /**
+     * Meals, water and weigh-ins can't be logged until there's a plan to log them against.
+     * Only locks once the server has said "no plan", never while it's still loading.
+     */
+    loggingLocked: planKnown && !hasPlan,
     markWelcomeSeen: () => update({ welcomeSeen: true }),
     dismissChecklist: () => update({ checklistDismissed: true }),
-    scanWithoutPlan: () => update({ scanWithoutPlanOn: toLocalDate() }),
   };
 }

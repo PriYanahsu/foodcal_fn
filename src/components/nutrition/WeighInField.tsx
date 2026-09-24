@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { CheckCircleIcon, MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { PlanRequired } from '@/features/onboarding/components/PlanRequired';
+import { useOnboarding } from '@/features/onboarding/hooks/useOnboarding';
 
 const longDate = (iso: string) =>
   new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
@@ -23,6 +25,7 @@ export function WeighInField({
 }: WeighInFieldProps) {
   const [typed, setTyped] = useState<string | null>(null);
   const [justSaved, setJustSaved] = useState<number | null>(null);
+  const { loggingLocked } = useOnboarding();
 
   const draft = typed ?? (current !== null ? String(current) : '');
   const parsed = parseFloat(draft);
@@ -46,6 +49,8 @@ export function WeighInField({
     setTyped(null);
     setJustSaved(parsed);
   };
+
+  if (loggingLocked) return <PlanRequired what="your weight" />;
 
   return (
     <div className="flex flex-col gap-3">

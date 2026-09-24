@@ -14,7 +14,7 @@ const STEPS = [
   {
     icon: SparklesIcon,
     title: 'Build your plan',
-    detail: 'Answer a few questions and get daily calorie and macro targets.',
+    detail: 'A few questions set your daily targets and fill in your profile for you.',
     badge: '2 min',
   },
   {
@@ -90,7 +90,7 @@ export default function WelcomeIntro({ firstName, onStart, onSkip }: WelcomeIntr
             Here&apos;s how FoodCal works
           </h1>
           <p className="mt-1.5 text-[15px] text-fg-2 md:text-base">
-            Three steps. Only the first one needs a few minutes.
+            Three steps. Start with your plan: it sets up everything else.
           </p>
         </motion.header>
 

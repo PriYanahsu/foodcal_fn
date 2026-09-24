@@ -110,8 +110,9 @@ export const StepTracker: React.FC = () => {
                     type="number"
                     autoFocus
                     disabled={isSaving}
-                    value={tempGoal}
+                    value={tempGoal || ''}
                     onChange={(e) => setTempGoal(parseInt(e.target.value) || 0)}
+                    onFocus={(e) => e.currentTarget.select()}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') saveStepGoal();
                       if (e.key === 'Escape') {

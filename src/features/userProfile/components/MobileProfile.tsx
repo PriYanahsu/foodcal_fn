@@ -18,6 +18,7 @@ import BodyGoalsFields from './BodyGoalsFields';
 import PlanTargets from './PlanTargets';
 import { ThemeSegmented } from '@/components/ui/ThemeSegmented';
 import { PushCompact } from '@/features/notifications/components/PushToggleRow';
+import { ROUTES } from '@/constants/routes';
 import { ACTIVITY_SHORT } from '../utils/Constants';
 import { getInitials, formatDate } from '../utils/helper';
 import { ProfileViewProps } from '../type';
@@ -90,6 +91,7 @@ export default function MobileProfile({
   fitness,
   goal,
   completion,
+  missingBodyCount,
   nameEditing,
   nameSaving,
   fitnessDirty,
@@ -155,6 +157,14 @@ export default function MobileProfile({
             </span>
             <span className="text-caption font-bold text-brand-ink">{completion}%</span>
           </div>
+          {missingBodyCount > 0 && (
+            <Link
+              href={ROUTES.PLAN_SETUP}
+              className="mt-1 block truncate text-caption font-bold text-brand-ink"
+            >
+              Set up your plan to fill this in →
+            </Link>
+          )}
         </div>
         <button
           type="button"

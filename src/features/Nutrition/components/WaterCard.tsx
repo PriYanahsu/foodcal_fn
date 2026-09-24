@@ -1,6 +1,8 @@
 'use client';
 
 import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { PlanRequired } from '@/features/onboarding/components/PlanRequired';
+import { useOnboarding } from '@/features/onboarding/hooks/useOnboarding';
 import { useWaterIntake } from '../hooks/useWaterIntake';
 import { WATER_GLASS_ML } from '../utils/Constants';
 
@@ -13,8 +15,21 @@ const litres = (ml: number) => `${Number((ml / 1000).toFixed(2))} L`;
 
 export default function WaterCard({ userId, date }: WaterCardProps) {
   const { ml, goalMl, addGlass, removeGlass } = useWaterIntake(userId, date);
+  const { loggingLocked } = useOnboarding();
   const glasses = goalMl / WATER_GLASS_ML;
   const filled = Math.min(Math.round(ml / WATER_GLASS_ML), glasses);
+
+  if (loggingLocked) {
+    return (
+      <section
+        aria-label="Water"
+        className="flex flex-col gap-4 rounded-3xl border border-line bg-surface-1 p-5 md:p-6"
+      >
+        <h2 className="text-lg font-bold text-fg">Water</h2>
+        <PlanRequired what="water" />
+      </section>
+    );
+  }
 
   return (
     <section

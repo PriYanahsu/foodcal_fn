@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { SparklesIcon } from '@heroicons/react/24/outline';
 import { Spinner } from '@/components/ui/fc';
+import { ROUTES } from '@/constants/routes';
 import BodyGoalsFields from './BodyGoalsFields';
 import PlanTargets from './PlanTargets';
 import { BodyGoalsCardProps } from '../type';
@@ -59,6 +60,22 @@ export default function BodyGoalsCard({
           </button>
         </div>
       </div>
+
+      {missingCount > 0 && !dirty && (
+        <div className="flex flex-col gap-3 rounded-2xl border border-brand/30 bg-brand/10 p-4 sm:flex-row sm:items-center">
+          <p className="min-w-0 flex-1 text-sm leading-relaxed text-fg-2">
+            <span className="font-bold text-fg">Skip the typing.</span> Set up your plan and
+            we&apos;ll fill in all of these for you, plus your daily targets. Only your photo is
+            left after that.
+          </p>
+          <Link
+            href={ROUTES.PLAN_SETUP}
+            className="inline-flex h-10 shrink-0 items-center justify-center rounded-xl bg-brand px-4 text-sm font-bold text-on-brand transition-colors hover:bg-brand-hover"
+          >
+            Set up my plan
+          </Link>
+        </div>
+      )}
 
       <BodyGoalsFields fitness={fitness} goal={goal} onChange={onChange} />
 

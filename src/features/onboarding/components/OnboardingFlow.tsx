@@ -139,6 +139,13 @@ export default function OnboardingFlow() {
                 date set how far to move from that. Nothing is shared outside your account.
               </p>
             </div>
+            <div className="rounded-2xl border border-brand/30 bg-brand/10 p-4">
+              <p className="text-sm font-bold text-fg">This is your profile too</p>
+              <p className="mt-1 text-sm leading-relaxed text-muted">
+                Everything you answer here is saved to your profile, so you won&apos;t fill it in
+                twice. Only your photo is left to add in Profile.
+              </p>
+            </div>
           </aside>
           <FitnessSetupWizard
             userId={user.id}
@@ -155,7 +162,7 @@ export default function OnboardingFlow() {
 
       {stage === 'ready' && (
         <div className="flex min-h-0 flex-1 flex-col px-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:justify-center md:px-8 md:pb-16">
-          <PlanReady fitness={fitness} />
+          <PlanReady fitness={fitness} hasPhoto={!!profile.avatar_url} />
         </div>
       )}
     </div>

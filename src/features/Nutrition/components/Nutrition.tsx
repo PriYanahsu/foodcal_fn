@@ -11,6 +11,7 @@ import { useNutrition } from '../hooks/useNutrition';
 import NutritionHeader from './NutritionHeader';
 import WeekStrip from './WeekStrip';
 import CaloriesCard from './CaloriesCard';
+import PlanSetupCard from './PlanSetupCard';
 import MealsCard from './MealsCard';
 import CoachCard from './CoachCard';
 import WaterCard from './WaterCard';
@@ -95,14 +96,19 @@ export default function Nutrition() {
 
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="flex min-w-0 flex-col gap-6">
+            {/* Same as phones: no plan means no empty ring or macro bars, just the next step. */}
             <motion.div variants={REVEAL}>
-              <CaloriesCard
-                stats={stats}
-                goals={goals}
-                hasPlan={hasPlan}
-                refreshing={refreshing}
-                onSetUpPlan={openWizard}
-              />
+              {hasPlan ? (
+                <CaloriesCard
+                  stats={stats}
+                  goals={goals}
+                  hasPlan={hasPlan}
+                  refreshing={refreshing}
+                  onSetUpPlan={openWizard}
+                />
+              ) : (
+                <PlanSetupCard onSetUpPlan={openWizard} />
+              )}
             </motion.div>
             <motion.div variants={REVEAL}>
               <MealsCard

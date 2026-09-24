@@ -15,7 +15,7 @@ import { useFitnessSetup } from '../hooks/useFitnessSetup';
 import { AboutYouStep, ConsultStep, GoalStep, PlanStep, type AiPlan } from './wizard/WizardSteps';
 
 const STEPS = [
-  { title: 'About you', subtitle: 'Your stats set the base for every target.' },
+  { title: 'About you', subtitle: 'Saved to your profile and used for every target.' },
   { title: 'Your goal', subtitle: 'Where you want to be, and by when.' },
   { title: 'Consult your coach', subtitle: 'One tap, and your plan is written.' },
   { title: 'Your plan', subtitle: 'Review it, then make it live.' },
