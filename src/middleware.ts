@@ -16,7 +16,7 @@ export default async function proxy(request: NextRequest) {
   }
 
   const isLoggedIn = Boolean(request.cookies.get('access_token')?.value);
-  const protectedRoutes = ['/', '/scan', '/manualAddData', '/history', '/profile', '/settings'];
+  const protectedRoutes = ['/', '/scan', '/manualAddData', '/history', '/profile', '/settings', '/welcome'];
   const isProtectedRoute = protectedRoutes.some(
     (path) => pathname === path || (path !== '/' && pathname.startsWith(path))
   );

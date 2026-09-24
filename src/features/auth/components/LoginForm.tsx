@@ -10,12 +10,18 @@ import { AuthField, Notice, ServerWakeNotice } from './AuthField';
 interface LoginFormProps {
   /** Pre-fills the email, e.g. right after sign-up. */
   initialEmail?: string;
+  /** Shows a "session expired" notice after the API signed the user out. */
+  sessionExpired?: boolean;
   onCreateAccount: () => void;
 }
 
 type FieldErrors = { email?: string; password?: string };
 
-export const LoginForm: React.FC<LoginFormProps> = ({ initialEmail = '', onCreateAccount }) => {
+export const LoginForm: React.FC<LoginFormProps> = ({
+  initialEmail = '',
+  sessionExpired = false,
+  onCreateAccount,
+}) => {
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -47,7 +53,17 @@ export const LoginForm: React.FC<LoginFormProps> = ({ initialEmail = '', onCreat
   return (
     <div className="flex flex-col gap-6">
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
-        {error && <Notice tone="danger" title={error} />}
+        {error ? (
+          <Notice tone="danger" title={error} />
+        ) : (
+          sessionExpired && (
+            <Notice
+              tone="warn"
+              title="Your session has expired"
+              body="Please sign in again to load your latest data."
+            />
+          )
+        )}
 
         <AuthField
           type="email"

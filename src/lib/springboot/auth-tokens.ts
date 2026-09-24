@@ -5,6 +5,9 @@ const REFRESH_TOKEN_KEY = 'refresh_token';
 const USER_KEY = 'auth_user';
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 
+/** Query param on /login that shows the "session expired" notice. */
+export const SESSION_EXPIRED_PARAM = 'sessionExpired';
+
 const setCookie = (name: string, value: string) => {
   if (typeof document === 'undefined') return;
   document.cookie = `${name}=${encodeURIComponent(value)}; Path=/; SameSite=Lax; Max-Age=${COOKIE_MAX_AGE}`;
@@ -45,8 +48,49 @@ export const getUserId = (): string | null => {
   }
 };
 
+const AUTH_CHANGE_EVENT = 'auth-change';
+
+const notifyAuthChange = () => {
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
+};
+
+/** Calls `onChange` when tokens change in this tab or another one. */
+export const subscribeAuth = (onChange: () => void) => {
+  window.addEventListener(AUTH_CHANGE_EVENT, onChange);
+  window.addEventListener('storage', onChange);
+  return () => {
+    window.removeEventListener(AUTH_CHANGE_EVENT, onChange);
+    window.removeEventListener('storage', onChange);
+  };
+};
+
+let cachedUser: AuthUser | null = null;
+
+/**
+ * Signed-in user for useSyncExternalStore. Returns the same object while the
+ * user is unchanged, so a token refresh does not re-render every consumer.
+ */
+export const getAuthUserSnapshot = (): AuthUser | null => {
+  const stored = getAuthUser();
+  let next: AuthUser | null = null;
+  if (stored?.id) next = stored;
+  else {
+    const id = getUserId();
+    if (id) next = { id, name: '', email: '' };
+  }
+  if (
+    next?.id !== cachedUser?.id ||
+    next?.name !== cachedUser?.name ||
+    next?.email !== cachedUser?.email
+  ) {
+    cachedUser = next;
+  }
+  return cachedUser;
+};
+
 export const setAuthUser = (user: AuthUser) => {
   localStorage.setItem(USER_KEY, JSON.stringify(user));
+  notifyAuthChange();
 };
 
 export const setAccessToken = (accessToken: string, refreshToken?: string, user?: AuthUser) => {
@@ -57,6 +101,7 @@ export const setAccessToken = (accessToken: string, refreshToken?: string, user?
     setCookie(REFRESH_TOKEN_KEY, refreshToken);
   }
   if (user) setAuthUser(user);
+  else notifyAuthChange();
 };
 
 export const clearTokens = () => {
@@ -65,4 +110,5 @@ export const clearTokens = () => {
   localStorage.removeItem(USER_KEY);
   clearCookie(ACCESS_TOKEN_KEY);
   clearCookie(REFRESH_TOKEN_KEY);
+  notifyAuthChange();
 };

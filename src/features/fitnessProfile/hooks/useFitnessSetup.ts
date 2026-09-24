@@ -19,6 +19,7 @@ export const useFitnessSetup = (userId: string, onComplete: () => void) => {
     actionLabel?: string;
     actionHref?: string;
   } | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const prefillApplied = useRef(false);
 
   const clearToast = useCallback(() => setToast(null), []);
@@ -90,6 +91,7 @@ export const useFitnessSetup = (userId: string, onComplete: () => void) => {
   };
 
   const nextStep = () => {
+    setError(null);
     if (step === 1 && stats.weight !== '' && goals.target_weight !== '') {
       const obj =
         stats.weight > goals.target_weight
@@ -101,7 +103,10 @@ export const useFitnessSetup = (userId: string, onComplete: () => void) => {
     }
     setStep((s) => s + 1);
   };
-  const prevStep = () => setStep((s) => s - 1);
+  const prevStep = () => {
+    setError(null);
+    setStep((s) => s - 1);
+  };
 
   const consultMutation = useMutation({
     mutationFn: () => fitnessConsultantApi(stats, goals),
@@ -130,14 +135,17 @@ export const useFitnessSetup = (userId: string, onComplete: () => void) => {
       } as FitnessDetails);
     },
     onSuccess: async ({ data, status }) => {
-      if (status !== 200 || !data) return;
+      if (status !== 200 || !data) {
+        setError('Your plan couldn’t be saved. Please try again.');
+        return;
+      }
       await queryClient.invalidateQueries({ queryKey: queryKeys.fitness(userId) });
       await queryClient.invalidateQueries({ queryKey: queryKeys.history });
       setToast({
-        message: 'Plan saved to Fitness Hub!',
+        message: 'Your plan is live',
         detail:
-          'Your calorie, protein, carbs & fat targets are live. Check Fitness Hub & dashboard to track them.',
-        actionLabel: 'Open Fitness Hub',
+          'Your calorie, protein, carbs and fat targets now show on the dashboard and in My plan.',
+        actionLabel: 'Open My plan',
         actionHref: '/fitness',
       });
       onComplete();
@@ -146,21 +154,24 @@ export const useFitnessSetup = (userId: string, onComplete: () => void) => {
   });
 
   const handleConsultAI = async () => {
+    setError(null);
     try {
       const result = await consultMutation.mutateAsync();
       setAiResult(result.data);
       setStep(4);
-    } catch (error: any) {
-      console.error('AI Consultation failed:', error);
-      alert(`AI Consultation Error: ${error.message}`);
+    } catch (err) {
+      console.error('AI Consultation failed:', err);
+      setError('Your coach couldn’t be reached. Check your connection and try again.');
     }
   };
 
   const handleSavePlan = async () => {
+    setError(null);
     try {
       await saveMutation.mutateAsync();
-    } catch (error) {
-      console.error('Failed to save plan:', error);
+    } catch (err) {
+      console.error('Failed to save plan:', err);
+      setError('Your plan couldn’t be saved. Please try again.');
     }
   };
 
@@ -172,6 +183,7 @@ export const useFitnessSetup = (userId: string, onComplete: () => void) => {
     aiResult,
     toast,
     clearToast,
+    error,
     stats,
     goals,
     setStats,

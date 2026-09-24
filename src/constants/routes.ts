@@ -4,4 +4,5 @@ export const ROUTES = {
   PROFILE: '/profile',
   HISTORY: '/history',
   LOGIN: '/login',
+  WELCOME: '/welcome',
 } as const;
