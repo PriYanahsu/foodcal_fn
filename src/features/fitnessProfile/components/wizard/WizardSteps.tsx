@@ -9,6 +9,8 @@ import {
   SparklesIcon,
 } from '@heroicons/react/24/outline';
 import { CalorieRing, MacroBar } from '@/components/nutrition/macros';
+import { DateField } from '@/components/ui/DateField';
+import { shiftDate, toLocalDate } from '@/features/Nutrition/utils/toLocalDate';
 import { ACTIVITY_LEVELS } from '../../utils/Constant';
 import type { AiPlan, Goals, Stats } from '../../type';
 
@@ -29,6 +31,9 @@ const OBJECTIVES = [
   { value: 'Maintain Weight', icon: MinusSmallIcon },
   { value: 'Gain Muscle', icon: ArrowTrendingUpIcon },
 ] as const;
+
+/** A goal date has to be in the future. */
+const tomorrow = () => shiftDate(toLocalDate(), 1);
 
 /** A tappable option: bordered, brand-tinted when chosen. */
 function Option({
@@ -252,10 +257,12 @@ export function GoalStep({
         </label>
         <label>
           <span className={LABEL}>Target date</span>
-          <input
-            type="date"
-            value={goals.target_date}
-            onChange={(e) => setGoals({ ...goals, target_date: e.target.value })}
+          <DateField
+            value={goals.target_date.slice(0, 10)}
+            onChange={(date) => setGoals({ ...goals, target_date: date })}
+            min={tomorrow()}
+            placeholder="Pick a date"
+            label="Target date"
             className={CONTROL}
           />
         </label>

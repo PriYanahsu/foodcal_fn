@@ -2,6 +2,11 @@
 
 import { ACTIVITY_HINTS, ACTIVITY_LEVELS, GENDERS } from '../utils/Constants';
 import { parseOptionalNumber } from '../utils/helper';
+import { DateField } from '@/components/ui/DateField';
+import { shiftDate, toLocalDate } from '@/features/Nutrition/utils/toLocalDate';
+
+/** A goal date has to be in the future. */
+const tomorrow = () => shiftDate(toLocalDate(), 1);
 import { BodyGoalsFieldsProps } from '../type';
 
 const CONTROL =
@@ -105,10 +110,11 @@ export default function BodyGoalsFields({ fitness, goal, onChange }: BodyGoalsFi
       </Field>
 
       <Field label="Target date">
-        <input
-          type="date"
-          value={fitness.targetDate || ''}
-          onChange={(e) => onChange({ targetDate: e.target.value })}
+        <DateField
+          value={fitness.targetDate?.slice(0, 10) || ''}
+          onChange={(date) => onChange({ targetDate: date })}
+          min={tomorrow()}
+          label="Target date"
           className={CONTROL}
         />
       </Field>

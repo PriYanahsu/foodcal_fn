@@ -100,7 +100,7 @@ export default function OnboardingFlow() {
     <button
       type="button"
       onClick={logOut}
-      className="h-10 shrink-0 rounded-xl px-3 text-sm font-semibold text-muted transition-colors hover:bg-surface-2 hover:text-fg"
+      className="h-10 shrink-0 whitespace-nowrap rounded-xl px-3 text-sm font-semibold text-muted transition-colors hover:bg-surface-2 hover:text-fg"
     >
       Log out
     </button>
@@ -156,7 +156,7 @@ export default function OnboardingFlow() {
               markWelcomeSeen();
               setStage('ready');
             }}
-            headerAction={<span className="md:hidden">{logOutButton}</span>}
+            headerAction={<span className="shrink-0 md:hidden">{logOutButton}</span>}
             className="min-h-0 flex-1 max-md:rounded-none max-md:border-0 max-md:bg-canvas md:max-h-[min(780px,calc(100dvh-9rem))] md:max-w-lg md:flex-none lg:max-w-none"
           />
         </div>
