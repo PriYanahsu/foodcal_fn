@@ -99,7 +99,9 @@ export function useFitnessProfile(options?: { autoFetch?: boolean }) {
     loading: isLoading,
     saving: updateMutation.isPending,
     isEditing,
-    fitness,
+    // The local copy is only for edits; otherwise read the cache directly, so the first
+    // render already has the real data instead of an empty placeholder.
+    fitness: isEditing ? fitness : (data ?? fitness),
     feedback,
     offerConsult,
     setOfferConsult,

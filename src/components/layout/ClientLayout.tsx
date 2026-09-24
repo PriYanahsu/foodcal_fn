@@ -17,6 +17,7 @@ import { isFeatureEnabled } from '@/config/features';
 import { InstallAppPrompt } from './InstallAppPrompt';
 import { WakeUpBanner } from '@/features/backendStatus';
 import { PlanGateProvider, PlanRouteGuard, useOnboarding } from '@/features/onboarding';
+import { useGettingStarted } from '@/features/onboarding/hooks/useGettingStarted';
 
 /** Pages with their own public header/footer — no app sidebar, bell or push prompt. */
 const PUBLIC_PAGES = ['/login', '/signup', '/privacy', '/terms'];
@@ -29,8 +30,13 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const isAuthPage = hidesChrome(pathname);
-  // Ask for notifications only once there's a plan to be reminded about.
-  const { hasPlan } = useOnboarding();
+  const { hasPlan, planJustActivated } = useOnboarding();
+  const { visible: checklistVisible } = useGettingStarted();
+  // Prompts take turns. Nothing interrupts the dashboard while it confirms a brand-new
+  // plan, and the reminders modal waits while the checklist (which has its own
+  // "Turn on meal reminders" task) is showing.
+  const showReminderPrompt = hasPlan && !planJustActivated && !checklistVisible;
+  const showInstallPrompt = !FOCUS_PAGES.includes(pathname) && !planJustActivated;
 
   // Always open sections from the top — shared layout otherwise keeps scroll position
   useEffect(() => {
@@ -72,12 +78,13 @@ function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         )}
 
-        {!isAuthPage && hasPlan && <NotificationPrompt />}
+        {!isAuthPage && showReminderPrompt && <NotificationPrompt />}
 
         {children}
       </main>
 
       {!isAuthPage && <MobileTabBar onOpenMore={() => setIsSidebarOpen(true)} />}
+      {showInstallPrompt && <InstallAppPrompt />}
     </div>
   );
 
@@ -114,7 +121,6 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           {isFeatureEnabled('steps') ? <StepTrackerProvider>{shell}</StepTrackerProvider> : shell}
 
           <WakeUpBanner hasTabBar={!hidesChrome(pathname)} />
-          {!FOCUS_PAGES.includes(pathname) && <InstallAppPrompt />}
         </NotificationProvider>
       </ThemeProvider>
     </QueryClientProvider>

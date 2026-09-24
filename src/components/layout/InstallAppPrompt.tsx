@@ -10,6 +10,18 @@ import { BRAND_ASSETS } from '@/lib/brand-config';
 // If empty, it will try to use the PWA install prompt.
 const APK_DOWNLOAD_URL = '';
 
+/** "Not now" holds for a week, so the prompt doesn't reappear on every visit. */
+const DISMISS_KEY = 'install-prompt-dismissed-at';
+const SNOOZE_MS = 7 * 24 * 60 * 60 * 1000;
+const isSnoozed = () => {
+  try {
+    const at = Number(localStorage.getItem(DISMISS_KEY));
+    return Number.isFinite(at) && Date.now() - at < SNOOZE_MS;
+  } catch {
+    return false;
+  }
+};
+
 export function InstallAppPrompt() {
   const [showPrompt, setShowPrompt] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
@@ -20,7 +32,7 @@ export function InstallAppPrompt() {
     const isStandalone =
       window.matchMedia('(display-mode: standalone)').matches ||
       (window.navigator as any).standalone;
-    if (isStandalone) return;
+    if (isStandalone || isSnoozed()) return;
 
     // 2. Check if mobile (UA)
     const userAgent = window.navigator.userAgent.toLowerCase();
@@ -75,6 +87,11 @@ export function InstallAppPrompt() {
 
   const handleDismiss = () => {
     setShowPrompt(false);
+    try {
+      localStorage.setItem(DISMISS_KEY, String(Date.now()));
+    } catch {
+      // Private mode: it just asks again next visit.
+    }
   };
 
   if (!showPrompt) return null;
@@ -121,7 +138,9 @@ export function InstallAppPrompt() {
               </div>
 
               <div>
-                <h3 className="text-xl font-bold text-[var(--foreground)]">Install {BRAND_ASSETS.name}</h3>
+                <h3 className="text-xl font-bold text-[var(--foreground)]">
+                  Install {BRAND_ASSETS.name}
+                </h3>
                 <p className="text-[var(--text-muted)] text-sm mt-1 leading-relaxed">
                   {isIOS
                     ? "Install our app for the best experience. Tap the share button below and select 'Add to Home Screen'."

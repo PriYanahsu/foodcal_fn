@@ -6,10 +6,8 @@ import { AiPlan, Goals, Stats } from '../type';
 import { EMPTY_GOALS, EMPTY_STATS } from '../utils/Constant';
 import { FitnessDetails } from '@/features/userProfile';
 import { fitnessConsultantApi, getFitness, queryKeys, updateFitness } from '@/app/service';
-import { useRouter } from 'next/navigation';
 
 export const useFitnessSetup = (userId: string, onComplete: () => void) => {
-  const router = useRouter();
   const queryClient = useQueryClient();
   const [step, setStep] = useState(1);
   const [aiResult, setAiResult] = useState<AiPlan | null>(null);
@@ -151,7 +149,6 @@ export const useFitnessSetup = (userId: string, onComplete: () => void) => {
         actionHref: '/fitness',
       });
       onComplete();
-      router.refresh();
     },
   });
 

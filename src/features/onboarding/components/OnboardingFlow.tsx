@@ -80,6 +80,12 @@ export default function OnboardingFlow() {
     searchParams.get(START_PARAM) === 'plan' ? 'plan' : 'intro'
   );
 
+  // Load the dashboard's code while the plan is being built, so "Make it live" lands on
+  // it straight away instead of on a loading screen.
+  useEffect(() => {
+    if (stage === 'plan') router.prefetch(ROUTES.HOME);
+  }, [stage, router]);
+
   // Someone who already has a plan has nothing to learn from the intro.
   useEffect(() => {
     if (planKnown && hasPlan && stage === 'intro') router.replace(ROUTES.HOME);

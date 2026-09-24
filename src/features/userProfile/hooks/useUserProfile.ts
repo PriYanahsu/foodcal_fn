@@ -115,7 +115,9 @@ export function useUserProfile(options?: { autoFetch?: boolean }) {
     loading: isLoading,
     saving: updateMutation.isPending,
     isEditing,
-    profile,
+    // The local copy is only for edits; otherwise read the cache directly, so the first
+    // render already has the real data instead of an empty placeholder.
+    profile: isEditing ? profile : (data ?? profile),
     feedback,
     fetchProfile,
     patchProfile,
