@@ -10,14 +10,12 @@ import { useUserProfile } from '@/features/userProfile';
 import FitnessSetupWizard from '@/features/fitnessProfile/components/FitnessSetupWizard';
 import { useOnboarding } from '../hooks/useOnboarding';
 import WelcomeIntro from './WelcomeIntro';
-import PlanReady from './PlanReady';
 
-type Stage = 'intro' | 'plan' | 'ready';
+type Stage = 'intro' | 'plan';
 
 const STAGES: { id: Stage; label: string }[] = [
   { id: 'intro', label: 'Welcome' },
   { id: 'plan', label: 'Your plan' },
-  { id: 'ready', label: 'Start logging' },
 ];
 
 /** `?start=plan` skips the intro — used by the dashboard's "Set up my plan" buttons. */
@@ -69,7 +67,7 @@ function StageTrack({ stage, vertical = false }: { stage: Stage; vertical?: bool
 }
 
 /**
- * First-run flow at /welcome: intro → plan wizard → "your plan is live".
+ * First-run flow at /welcome: intro → plan wizard → the dashboard.
  * Phones: every stage is exactly one screen (h-dvh), no page scroll.
  */
 export default function OnboardingFlow() {
@@ -77,7 +75,7 @@ export default function OnboardingFlow() {
   const searchParams = useSearchParams();
   const { user, logout } = useAuth();
   const { profile } = useUserProfile();
-  const { planKnown, hasPlan, fitness, markWelcomeSeen } = useOnboarding();
+  const { planKnown, hasPlan, markPlanActivated } = useOnboarding();
   const [stage, setStage] = useState<Stage>(
     searchParams.get(START_PARAM) === 'plan' ? 'plan' : 'intro'
   );
@@ -120,7 +118,7 @@ export default function OnboardingFlow() {
           <div className={stage === 'plan' ? 'lg:hidden' : ''}>
             <StageTrack stage={stage} />
           </div>
-          {stage !== 'ready' && logOutButton}
+          {logOutButton}
         </div>
       </header>
 
@@ -153,18 +151,13 @@ export default function OnboardingFlow() {
             userId={user.id}
             isInline
             onComplete={() => {
-              markWelcomeSeen();
-              setStage('ready');
+              // Straight to the dashboard; it confirms the plan with one toast.
+              markPlanActivated();
+              router.replace(ROUTES.HOME);
             }}
             headerAction={<span className="shrink-0 md:hidden">{logOutButton}</span>}
             className="min-h-0 flex-1 max-md:rounded-none max-md:border-0 max-md:bg-canvas md:max-h-[min(780px,calc(100dvh-9rem))] md:max-w-lg md:flex-none lg:max-w-none"
           />
-        </div>
-      )}
-
-      {stage === 'ready' && (
-        <div className="flex min-h-0 flex-1 flex-col px-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:justify-center md:px-8 md:pb-16">
-          <PlanReady fitness={fitness} hasPhoto={!!profile.avatar_url} />
         </div>
       )}
     </div>

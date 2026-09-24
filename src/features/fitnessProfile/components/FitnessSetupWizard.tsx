@@ -228,16 +228,15 @@ export default function FitnessSetupWizard({
     />
   );
 
+  // Inline is the welcome flow, which leaves for the dashboard on save; the dashboard
+  // confirms the plan there, so no toast here.
   if (isInline) {
     return (
-      <>
-        <section
-          className={`flex w-full flex-col overflow-hidden rounded-3xl border border-line bg-surface-1 font-ui text-fg ${className}`}
-        >
-          {frame}
-        </section>
-        {feedback}
-      </>
+      <section
+        className={`flex w-full flex-col overflow-hidden rounded-3xl border border-line bg-surface-1 font-ui text-fg ${className}`}
+      >
+        {frame}
+      </section>
     );
   }
 

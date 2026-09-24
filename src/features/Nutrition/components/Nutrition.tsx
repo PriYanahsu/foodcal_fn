@@ -6,6 +6,7 @@ import { motion, MotionConfig } from 'framer-motion';
 import { StepTracker } from '@/features/activity/components/StepTracker';
 import { isFeatureEnabled } from '@/config/features';
 import { ROUTES } from '@/constants/routes';
+import { SuccessToast } from '@/components/ui/SuccessToast';
 import {
   GettingStartedCard,
   PlanRequiredDialog,
@@ -49,7 +50,7 @@ export default function Nutrition() {
     isToday,
   } = useNutrition();
   const router = useRouter();
-  const { needsWelcome, loggingLocked } = useOnboarding();
+  const { needsWelcome, loggingLocked, planJustActivated, clearPlanActivated } = useOnboarding();
   const isPhone = useMediaQuery(PHONE_QUERY);
   const { showPlanWarning: showWarning } = usePlanGate();
   // No plan: phones get the warning as soon as the dashboard opens (desktop shows the big
@@ -166,6 +167,14 @@ export default function Nutrition() {
       </motion.div>
 
       <PlanRequiredDialog open={warningOpen} onClose={closeWarning} />
+
+      {/* Straight from the welcome flow: one confirmation instead of a whole extra screen. */}
+      <SuccessToast
+        message={planJustActivated ? 'Your plan is live' : null}
+        detail="Your targets are set and your profile is filled in. Tap the camera to log your first meal."
+        onClose={clearPlanActivated}
+        durationMs={6000}
+      />
     </MotionConfig>
   );
 }

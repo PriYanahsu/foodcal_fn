@@ -10,6 +10,8 @@ import { hasNutritionPlan } from '@/features/Nutrition/utils/deriveNutritionGoal
 interface OnboardingFlags {
   welcomeSeen?: boolean;
   checklistDismissed?: boolean;
+  /** The plan was just activated in the welcome flow: the dashboard confirms it once. */
+  planJustActivated?: boolean;
 }
 
 const onboardingKey = (userId: string) => `onboarding_${userId}`;
@@ -57,7 +59,10 @@ export function useOnboarding() {
      * Only locks once the server has said "no plan", never while it's still loading.
      */
     loggingLocked: planKnown && !hasPlan,
+    planJustActivated: !!flags.planJustActivated,
     markWelcomeSeen: () => update({ welcomeSeen: true }),
+    markPlanActivated: () => update({ welcomeSeen: true, planJustActivated: true }),
+    clearPlanActivated: () => update({ planJustActivated: false }),
     dismissChecklist: () => update({ checklistDismissed: true }),
   };
 }
