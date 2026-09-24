@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { analyzeFoodImage, saveFoodLogAPI, queryKeys } from '@/app/service';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { usePlanGate } from '@/features/onboarding/context/PlanGateContext';
 import { NutritionData } from '../types';
 
 export const useFoodScan = () => {
@@ -27,7 +28,11 @@ export const useFoodScan = () => {
     },
   });
 
+  // Meals are logged against the plan's targets: no plan, no scan (it costs an AI call) or save.
+  const { canLog } = usePlanGate();
+
   const scanImage = async (file: File, additionalPrompt?: string) => {
+    if (!canLog) return;
     scanMutation.reset();
     try {
       await scanMutation.mutateAsync({ file, prompt: additionalPrompt });
@@ -37,7 +42,7 @@ export const useFoodScan = () => {
   };
 
   const saveFoodLog = async (imageFile: File, nutritionData: NutritionData) => {
-    if (!user) return;
+    if (!user || !canLog) return false;
     try {
       const response = await saveMutation.mutateAsync({ file: imageFile, nutritionData });
       return response.success;

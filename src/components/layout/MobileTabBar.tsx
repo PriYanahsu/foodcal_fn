@@ -73,7 +73,7 @@ export function MobileTabBar({ onOpenMore }: { onOpenMore: () => void }) {
   const pathname = usePathname();
   const { unreadCount } = useNotifications();
   const scanActive = isActive(pathname, '/scan');
-  const { canLog, showPlanWarning } = usePlanGate();
+  const { canLog, requirePlan } = usePlanGate();
   const visible = (tabs: Tab[]) => tabs.filter((tab) => isFeatureEnabled(tab.feature));
 
   return (
@@ -92,12 +92,8 @@ export function MobileTabBar({ onOpenMore }: { onOpenMore: () => void }) {
               href="/scan"
               aria-label={canLog ? 'Log a meal' : 'Log a meal (set up your plan first)'}
               aria-current={scanActive ? 'page' : undefined}
-              onClick={(e) => {
-                // No plan: explain instead of opening the scanner.
-                if (canLog) return;
-                e.preventDefault();
-                showPlanWarning();
-              }}
+              // No plan: explain instead of opening the scanner.
+              onClick={requirePlan}
               className={`relative -mt-7 flex h-16 w-16 items-center justify-center rounded-full bg-brand text-on-brand shadow-[0_12px_28px_-8px_rgb(var(--fc-brand-rgb)/0.75)] ring-[6px] ring-canvas transition-transform active:scale-95 ${
                 scanActive ? 'scale-105' : ''
               }`}

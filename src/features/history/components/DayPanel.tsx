@@ -9,6 +9,7 @@ import { MealCard, MealCardSkeleton } from '@/components/nutrition/MealCard';
 import MealDetail from '@/components/nutrition/MealDetail';
 import { MealDrillIn } from '@/components/nutrition/MealDrillIn';
 import { ROUTES } from '@/constants/routes';
+import { usePlanGate } from '@/features/onboarding';
 import type { FoodLog, NutritionGoals } from '@/features/Nutrition/type';
 import { byLogTime } from '@/features/Nutrition/utils/formatLogTime';
 import type { HistoryStats } from '../type';
@@ -75,6 +76,7 @@ function DayOverview({
   goals,
   onSelectMeal,
 }: Omit<DayPanelProps, 'openMeal' | 'mealPending'>) {
+  const { requirePlan } = usePlanGate();
   // The calendar already knows the day's totals, so the header and macros show real
   // numbers at once; only the meal list waits for the network. Once meals are in,
   // their own sums take over (they include anything logged since the calendar loaded).
@@ -127,7 +129,11 @@ function DayOverview({
               : 'Days you log show up here with every meal and macro.'}
           </p>
           {isToday && (
-            <Link href={ROUTES.SCAN} className={buttonClass('primary', 'sm', 'mt-1')}>
+            <Link
+              href={ROUTES.SCAN}
+              onClick={requirePlan}
+              className={buttonClass('primary', 'sm', 'mt-1')}
+            >
               Scan a meal
             </Link>
           )}

@@ -118,41 +118,18 @@ function PlanRequiredBody({
 }
 
 /**
- * Logging is locked until there's a plan. `inline` sits inside a card in place of its
- * controls; `page` takes over a whole screen (scan, My plan).
+ * Takes over a whole screen that can't work without a plan (scan, My plan). Single
+ * controls elsewhere are locked in place with `PlanLock` instead.
  */
 export function PlanRequired({
   what,
-  variant = 'inline',
   title,
 }: {
   /** Finishes "Set up your plan to log …", e.g. "water" or "your weight". */
   what: string;
-  variant?: 'inline' | 'page';
-  /** `page` only: replaces the default "Set up your plan to log …" heading. */
+  /** Replaces the default "Set up your plan to log …" heading. */
   title?: string;
 }) {
-  if (variant === 'inline') {
-    return (
-      <div className="flex flex-col gap-3 rounded-2xl border border-dashed border-line-strong bg-surface-2 p-4 sm:flex-row sm:items-center">
-        <span className="flex min-w-0 flex-1 items-center gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-surface-3 text-muted">
-            <LockClosedIcon className="h-4.5 w-4.5" />
-          </span>
-          <span className="min-w-0">
-            <span className="block text-sm font-bold text-fg">Set up your plan to log {what}</span>
-            <span className="block text-xs text-muted">
-              About 2 minutes, then everything unlocks
-            </span>
-          </span>
-        </span>
-        <Link href={ROUTES.PLAN_SETUP} className={buttonClass('primary', 'sm', 'shrink-0')}>
-          Set up my plan
-        </Link>
-      </div>
-    );
-  }
-
   return (
     // Same one-screen sizing as the scanner it replaces (see FoodScanPage).
     <div className="mx-auto flex h-[calc(100dvh-4rem-68px-2.25rem-env(safe-area-inset-bottom))] min-h-[440px] w-full flex-col bg-canvas px-4 py-3 font-ui text-fg md:h-dvh md:items-center md:justify-center md:px-8 md:py-8">

@@ -38,7 +38,7 @@ export default function MyPlan() {
   // No plan: nothing here (weigh-ins, targets, coach) works yet, so the page is one message.
   if (loggingLocked) {
     if (isPhone) {
-      return <PlanRequired what="your weight" variant="page" title="Your plan starts here" />;
+      return <PlanRequired what="your weight" title="Your plan starts here" />;
     }
     return (
       <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-5 bg-canvas px-8 py-8 font-ui text-fg">

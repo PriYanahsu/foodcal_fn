@@ -42,7 +42,7 @@ const STEP_OF: Record<Stage, number> = { photo: 0, context: 0, analyzing: 1, rev
 export const FoodScanPage: React.FC = () => {
   const { loggingLocked } = useOnboarding();
   const { canLog } = usePlanGate();
-  if (loggingLocked) return <PlanRequired what="meals" variant="page" />;
+  if (loggingLocked) return <PlanRequired what="meals" />;
   // Still checking for a plan: wait, rather than let the scanner work for a moment.
   if (!canLog) return <PageLoader />;
   return <FoodScanner />;

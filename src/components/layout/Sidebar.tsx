@@ -75,7 +75,7 @@ function NavLink({
 }) {
   const active = isActive(pathname, item.path);
   const Icon = item.icon;
-  const { canLog, showPlanWarning } = usePlanGate();
+  const { canLog, requirePlan } = usePlanGate();
   // Scanning needs a plan: explain instead of opening the scanner.
   const locked = item.path === '/scan' && !canLog;
 
@@ -83,10 +83,7 @@ function NavLink({
     <Link
       href={item.path}
       onClick={(e) => {
-        if (locked) {
-          e.preventDefault();
-          showPlanWarning();
-        }
+        if (locked) requirePlan(e);
         onNavigate?.();
       }}
       aria-current={active ? 'page' : undefined}

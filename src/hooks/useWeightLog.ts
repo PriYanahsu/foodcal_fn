@@ -3,6 +3,7 @@
 import { queryKeys } from '@/app/service';
 import { getWeights, logWeight as logWeightApi, type WeightPoint } from '@/app/service/weight.api';
 import { toLocalDate } from '@/features/Nutrition/utils/toLocalDate';
+import { usePlanGate } from '@/features/onboarding/context/PlanGateContext';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export type { WeightPoint };
@@ -19,6 +20,7 @@ export function useWeightLog(
   createdAt?: string | null
 ) {
   const queryClient = useQueryClient();
+  const { canLog } = usePlanGate();
   // A new account's fitness row is zero-filled: 0 kg means "not set", never a reading.
   const profileWeight = rawProfileWeight || null;
   const targetWeight = rawTargetWeight || null;
@@ -58,7 +60,8 @@ export function useWeightLog(
   });
 
   const logWeight = (weight: number) => {
-    if (!Number.isFinite(weight)) return;
+    // Weigh-ins track progress toward the plan's target, so none are saved without one.
+    if (!Number.isFinite(weight) || !canLog) return;
     logWeightMutation.mutate(weight);
   };
 

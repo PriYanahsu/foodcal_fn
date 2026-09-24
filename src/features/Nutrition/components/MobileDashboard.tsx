@@ -6,12 +6,13 @@ import {
   CalendarDaysIcon,
   CameraIcon,
   FireIcon,
+  LockClosedIcon,
   PlusIcon,
   ScaleIcon,
   SparklesIcon,
 } from '@heroicons/react/24/outline';
 import { BottomSheet } from '@/components/ui/BottomSheet';
-import { GettingStartedButton } from '@/features/onboarding';
+import { GettingStartedButton, PlanLock } from '@/features/onboarding';
 import { CalorieRing, MacroBar } from '@/components/nutrition/macros';
 import type { FitnessDetails } from '@/features/userProfile';
 import type { DailyStats, FoodLog, NutritionGoals } from '../type';
@@ -79,6 +80,7 @@ function Tile({
   tone,
   onOpen,
   footer,
+  locked = false,
   hideLabelWhenShort = false,
   className = '',
   children,
@@ -88,6 +90,8 @@ function Tile({
   tone: keyof typeof TONES;
   onOpen: () => void;
   footer?: ReactNode;
+  /** Needs a plan: shows a lock beside the label (the tap itself is handled by `onOpen`). */
+  locked?: boolean;
   /** On short phones, drop the label row to save height (content must still read on its own). */
   hideLabelWhenShort?: boolean;
   className?: string;
@@ -113,6 +117,13 @@ function Tile({
             {icon}
           </span>
           <span className="text-sm font-bold text-fg">{label}</span>
+          {locked && (
+            <LockClosedIcon
+              aria-label="Needs a plan"
+              className="ml-auto h-4 w-4 shrink-0 text-muted"
+              strokeWidth={2.5}
+            />
+          )}
         </span>
         {children}
       </button>
@@ -260,6 +271,7 @@ export default function MobileDashboard({
         <div className="grid min-h-0 flex-1 grid-cols-2 grid-rows-2 gap-3 short:gap-2.5">
           <Tile
             label="Meals"
+            locked={!hasPlan}
             tone="meals"
             icon={<CameraIcon className="h-4 w-4" />}
             onOpen={() => openPanel('meals')}
@@ -283,6 +295,7 @@ export default function MobileDashboard({
 
           <Tile
             label="Coach"
+            locked={!hasPlan}
             tone="coach"
             icon={<SparklesIcon className="h-4 w-4" />}
             onOpen={() => openPanel('coach')}
@@ -296,11 +309,12 @@ export default function MobileDashboard({
 
           <Tile
             label="Water"
+            locked={!hasPlan}
             tone="water"
             icon={<BeakerIcon className="h-4 w-4" />}
             onOpen={() => openPanel('water')}
             footer={
-              water.canLog && (
+              <PlanLock label="Add a glass of water" compact>
                 <button
                   type="button"
                   onClick={water.addGlass}
@@ -310,7 +324,7 @@ export default function MobileDashboard({
                   <PlusIcon className="h-4 w-4" strokeWidth={2.5} />
                   {WATER_GLASS_ML} ml
                 </button>
-              )
+              </PlanLock>
             }
           >
             {/* Centered reading: litres, glasses bar */}
@@ -331,6 +345,7 @@ export default function MobileDashboard({
 
           <Tile
             label="Weight"
+            locked={!hasPlan}
             tone="weight"
             icon={<ScaleIcon className="h-4 w-4" />}
             onOpen={() => openPanel('weight')}
