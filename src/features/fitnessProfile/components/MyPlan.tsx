@@ -12,6 +12,7 @@ import TargetsCard from './plan/TargetsCard';
 import CoachCard from './plan/CoachCard';
 import BodyStatsCard from './plan/BodyStatsCard';
 import { useFitnessHub } from '../hooks/useFitnessHub';
+import { hasNutritionPlan } from '@/features/Nutrition/utils/deriveNutritionGoals';
 import PlanSkeleton from './PlanSkeleton';
 
 export default function MyPlan() {
@@ -103,7 +104,7 @@ export default function MyPlan() {
           className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-on-brand transition-colors hover:bg-brand-hover"
         >
           <SparklesIcon className="h-4 w-4" />
-          {fitnessProfile?.objective ? 'Update plan' : 'Create plan'}
+          {hasNutritionPlan(fitnessProfile) ? 'Update plan' : 'Create plan'}
         </button>
       </header>
 

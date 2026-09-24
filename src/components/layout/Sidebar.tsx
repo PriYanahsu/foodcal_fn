@@ -3,6 +3,7 @@
 import { useEffect, useState, type ComponentType, type SVGProps } from 'react';
 import Link from 'next/link';
 import { usePlanGate } from '@/features/onboarding';
+import { hasNutritionPlan } from '@/features/Nutrition/utils/deriveNutritionGoals';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -144,7 +145,9 @@ function TodaySummary({ onNavigate }: { onNavigate?: () => void }) {
         />
       </div>
       <p className="truncate text-xs text-muted">
-        {fitness.objective ? `Plan: ${fitness.objective.toLowerCase()}` : 'No plan yet'}
+        {hasNutritionPlan(fitness) && fitness.objective
+          ? `Plan: ${fitness.objective.toLowerCase()}`
+          : 'No plan yet'}
       </p>
     </Link>
   );

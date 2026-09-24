@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
+import { hasNutritionPlan } from '@/features/Nutrition/utils/deriveNutritionGoals';
 import { ChevronRightIcon, FireIcon, SparklesIcon, UserIcon } from '@heroicons/react/24/outline';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { WeighInField } from '@/components/nutrition/WeighInField';
@@ -109,7 +110,7 @@ export default function MobilePlan({
           className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-brand px-4 text-sm font-bold text-on-brand transition-transform active:scale-95"
         >
           <SparklesIcon className="h-4 w-4" />
-          {fitness?.objective ? 'Update' : 'Create'}
+          {hasNutritionPlan(fitness) ? 'Update' : 'Create'}
         </button>
       </header>
 

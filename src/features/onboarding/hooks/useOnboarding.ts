@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { getFitness, queryKeys } from '@/app/service';
 import { getLocal, setLocal, useLocalValue } from '@/lib/local-store';
+import { hasNutritionPlan } from '@/features/Nutrition/utils/deriveNutritionGoals';
 
 /** UI-only memory (this device). Whether a user *needs* onboarding comes from the server. */
 interface OnboardingFlags {
@@ -33,7 +34,7 @@ export function useOnboarding() {
   });
 
   const planKnown = fitnessQuery.isSuccess;
-  const hasPlan = !!fitnessQuery.data?.objective;
+  const hasPlan = hasNutritionPlan(fitnessQuery.data);
 
   const update = (patch: OnboardingFlags) => {
     if (!key) return;
