@@ -10,6 +10,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { CalorieRing, MacroBar } from '@/components/nutrition/macros';
 import { DateField } from '@/components/ui/DateField';
+import { AppTour } from './AppTour';
 import { shiftDate, toLocalDate } from '@/features/Nutrition/utils/toLocalDate';
 import { ACTIVITY_LEVELS } from '../../utils/Constant';
 import type { AiPlan, Goals, Stats } from '../../type';
@@ -359,7 +360,14 @@ export function ConsultStep({ stats, goals }: { stats: Stats; goals: Goals }) {
 export type { AiPlan };
 
 /** Step 4 — the plan, drawn with the same ring and bars as the dashboard. */
-export function PlanStep({ aiResult }: { aiResult: AiPlan }) {
+export function PlanStep({
+  aiResult,
+  showTour = false,
+}: {
+  aiResult: AiPlan;
+  /** First-run flow: the advice and a swipeable tour of the app sit under the targets. */
+  showTour?: boolean;
+}) {
   if (aiResult.status !== 'approved') {
     return (
       <div className="flex flex-col gap-4">
@@ -378,6 +386,32 @@ export function PlanStep({ aiResult }: { aiResult: AiPlan }) {
   }
 
   const { calories, protein, carbs, fats } = aiResult.targets;
+
+  const targets = (
+    <div className="flex shrink-0 items-center gap-4 rounded-3xl border border-line bg-surface-2 p-4 short:p-3 sm:p-5">
+      <CalorieRing value={calories} max={calories} size={100} stroke={10}>
+        <span className="font-display text-[26px] font-bold leading-none text-fg">
+          {calories.toLocaleString('en-US')}
+        </span>
+        <span className="mt-0.5 text-caption text-muted">kcal / day</span>
+      </CalorieRing>
+
+      <div className="flex w-full min-w-0 flex-col gap-3">
+        <MacroBar macro="protein" value={protein} max={protein} unit="g" />
+        <MacroBar macro="carbs" value={carbs} max={carbs} unit="g" />
+        <MacroBar macro="fat" value={fats} max={fats} unit="g" />
+      </div>
+    </div>
+  );
+
+  if (showTour) {
+    return (
+      <div className="flex min-h-full flex-col gap-4 short:gap-3">
+        {targets}
+        <AppTour advice={aiResult.advice} reasoning={aiResult.reasoning} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">

@@ -127,7 +127,7 @@ export default function FitnessSetupWizard({
         />
       )}
       {step === 3 && <ConsultStep stats={stats} goals={goals} />}
-      {step === 4 && plan && <PlanStep aiResult={plan} />}
+      {step === 4 && plan && <PlanStep aiResult={plan} showTour={isInline} />}
     </div>
   );
 
