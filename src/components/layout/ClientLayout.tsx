@@ -16,15 +16,21 @@ import { ThemeProvider } from '@/features/theme/context/ThemeContext';
 import { isFeatureEnabled } from '@/config/features';
 import { InstallAppPrompt } from './InstallAppPrompt';
 import { WakeUpBanner } from '@/features/backendStatus';
+import { useOnboarding } from '@/features/onboarding';
 
 /** Pages with their own public header/footer — no app sidebar, bell or push prompt. */
 const PUBLIC_PAGES = ['/login', '/signup', '/privacy', '/terms'];
-
+/** Signed-in, but full-screen and distraction-free: no nav, no permission prompts. */
+const FOCUS_PAGES = ['/welcome'];
+const hidesChrome = (pathname: string) =>
+  PUBLIC_PAGES.includes(pathname) || FOCUS_PAGES.includes(pathname);
 
 function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const isAuthPage = PUBLIC_PAGES.includes(pathname);
+  const isAuthPage = hidesChrome(pathname);
+  // Ask for notifications only once there's a plan to be reminded about.
+  const { hasPlan } = useOnboarding();
 
   // Always open sections from the top — shared layout otherwise keeps scroll position
   useEffect(() => {
@@ -66,7 +72,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         )}
 
-        {!isAuthPage && <NotificationPrompt />}
+        {!isAuthPage && hasPlan && <NotificationPrompt />}
 
         {children}
       </main>
@@ -99,8 +105,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         <NotificationProvider>
           {isFeatureEnabled('steps') ? <StepTrackerProvider>{shell}</StepTrackerProvider> : shell}
 
-          <WakeUpBanner hasTabBar={!PUBLIC_PAGES.includes(pathname)} />
-          <InstallAppPrompt />
+          <WakeUpBanner hasTabBar={!hidesChrome(pathname)} />
+          {!FOCUS_PAGES.includes(pathname) && <InstallAppPrompt />}
         </NotificationProvider>
       </ThemeProvider>
     </QueryClientProvider>

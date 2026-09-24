@@ -13,7 +13,6 @@ export function useNutrition() {
   const { fitness, loading: fitnessLoading } = useFitnessProfile();
 
   const [selectedDate, setSelectedDate] = useState(toLocalDate());
-  const [showWizard, setShowWizard] = useState(false);
 
   const {
     stats,
@@ -38,8 +37,6 @@ export function useNutrition() {
     fitness,
     selectedDate,
     setSelectedDate,
-    showWizard,
-    setShowWizard,
     stats,
     recentLogs,
     loading: statsLoading,

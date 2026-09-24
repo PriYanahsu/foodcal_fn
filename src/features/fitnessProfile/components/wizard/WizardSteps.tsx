@@ -16,11 +16,12 @@ export const CONTROL =
   'h-12 w-full rounded-2xl border border-line bg-surface-2 px-4 text-base text-fg outline-none transition-colors placeholder:text-muted focus:border-brand';
 export const LABEL = 'mb-1.5 block text-caption font-semibold uppercase tracking-wide text-muted';
 
+/** Kept to one line so the 2×2 grid (and the whole step) fits a phone screen. */
 const ACTIVITY_HINTS: Record<string, string> = {
   Sedentary: 'Desk job, little exercise',
-  'Lightly Active': 'Light training 1–3 days a week',
-  'Moderately Active': 'Training 3–5 days a week',
-  'Very Active': 'Hard training 6–7 days a week',
+  'Lightly Active': 'Exercise 1–3 days/week',
+  'Moderately Active': 'Exercise 3–5 days/week',
+  'Very Active': 'Hard training 6–7 days',
 };
 
 const OBJECTIVES = [
@@ -84,7 +85,7 @@ export function AboutYouStep({
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 short:gap-4">
       <div>
         <span className={LABEL}>Gender</span>
         <div className="grid grid-cols-3 gap-2">
@@ -101,7 +102,7 @@ export function AboutYouStep({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-2.5">
         <label>
           <span className={LABEL}>Age</span>
           <input
@@ -128,8 +129,8 @@ export function AboutYouStep({
             className={CONTROL}
           />
         </label>
-        <label className="col-span-2">
-          <span className={LABEL}>Current weight · kg</span>
+        <label>
+          <span className={LABEL}>Weight · kg</span>
           <input
             type="number"
             inputMode="decimal"
@@ -149,31 +150,20 @@ export function AboutYouStep({
 
       <div>
         <span className={LABEL}>How active are you?</span>
-        <div className="flex flex-col gap-2">
-          {ACTIVITY_LEVELS.map((level) => {
-            const selected = stats.activity_level === level;
-            return (
-              <Option
-                key={level}
-                selected={selected}
-                onClick={() => setStats({ ...stats, activity_level: level })}
-                className="flex items-center gap-3"
-              >
-                <span
-                  aria-hidden="true"
-                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
-                    selected ? 'border-brand' : 'border-line-strong'
-                  }`}
-                >
-                  {selected && <span className="h-2.5 w-2.5 rounded-full bg-brand" />}
-                </span>
-                <span className="min-w-0">
-                  <span className="block text-sm font-bold text-fg">{level}</span>
-                  <span className="block text-caption text-muted">{ACTIVITY_HINTS[level]}</span>
-                </span>
-              </Option>
-            );
-          })}
+        <div className="grid grid-cols-2 gap-2">
+          {ACTIVITY_LEVELS.map((level) => (
+            <Option
+              key={level}
+              selected={stats.activity_level === level}
+              onClick={() => setStats({ ...stats, activity_level: level })}
+              className="min-w-0"
+            >
+              <span className="block truncate text-sm font-bold text-fg">{level}</span>
+              <span className="block truncate text-caption text-muted">
+                {ACTIVITY_HINTS[level]}
+              </span>
+            </Option>
+          ))}
         </div>
       </div>
     </div>
@@ -213,7 +203,7 @@ export function GoalStep({
   const fast = perWeek !== null && perWeek > 1;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 short:gap-4">
       <div>
         <span className={LABEL}>Objective</span>
         <div className="grid grid-cols-3 gap-2">
@@ -308,15 +298,15 @@ export function ConsultStep({ stats, goals }: { stats: Stats; goals: Goals }) {
   ].filter(Boolean) as string[];
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex flex-col items-center gap-3 rounded-3xl border border-brand/30 bg-brand/10 p-6 text-center">
-        <span className="relative flex h-16 w-16 items-center justify-center">
+    <div className="flex flex-col gap-5 short:gap-4">
+      <div className="flex items-center gap-4 rounded-3xl border border-brand/30 bg-brand/10 p-4">
+        <span className="relative flex h-14 w-14 shrink-0 items-center justify-center">
           <span className="absolute inset-0 animate-ping rounded-full bg-brand/20" />
           <span className="relative flex h-full w-full items-center justify-center rounded-full border-2 border-brand bg-surface-1">
-            <SparklesIcon className="h-7 w-7 text-brand-ink" />
+            <SparklesIcon className="h-6 w-6 text-brand-ink" />
           </span>
         </span>
-        <div>
+        <div className="min-w-0">
           <h3 className="text-lg font-bold text-fg">Ready when you are</h3>
           <p className="mt-0.5 text-footnote text-fg-2">
             Your coach reads these details and writes your daily targets.
@@ -340,7 +330,7 @@ export function ConsultStep({ stats, goals }: { stats: Stats; goals: Goals }) {
 
       <div>
         <span className={LABEL}>What you get back</span>
-        <ul className="flex flex-col gap-2.5">
+        <ul className="flex flex-col gap-2 short:gap-1.5">
           {[
             ['Daily calorie target', 'how much to eat for this goal'],
             ['Protein, carbs and fat', 'macro targets to hit each day'],
@@ -383,9 +373,9 @@ export function PlanStep({ aiResult }: { aiResult: AiPlan }) {
   const { calories, protein, carbs, fats } = aiResult.targets;
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex flex-col items-center gap-4 rounded-3xl border border-line bg-surface-2 p-5 sm:flex-row">
-        <CalorieRing value={calories} max={calories} size={112} stroke={11}>
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-4 rounded-3xl border border-line bg-surface-2 p-4 short:p-3 sm:p-5">
+        <CalorieRing value={calories} max={calories} size={100} stroke={10}>
           <span className="font-display text-[26px] font-bold leading-none text-fg">
             {calories.toLocaleString('en-US')}
           </span>
@@ -393,9 +383,9 @@ export function PlanStep({ aiResult }: { aiResult: AiPlan }) {
         </CalorieRing>
 
         <div className="flex w-full min-w-0 flex-col gap-3">
-          <MacroBar macro="protein" value={protein} max={protein} unit="g" size="md" />
-          <MacroBar macro="carbs" value={carbs} max={carbs} unit="g" size="md" />
-          <MacroBar macro="fat" value={fats} max={fats} unit="g" size="md" />
+          <MacroBar macro="protein" value={protein} max={protein} unit="g" />
+          <MacroBar macro="carbs" value={carbs} max={carbs} unit="g" />
+          <MacroBar macro="fat" value={fats} max={fats} unit="g" />
         </div>
       </div>
 
@@ -403,10 +393,15 @@ export function PlanStep({ aiResult }: { aiResult: AiPlan }) {
         <h4 className="flex items-center gap-1.5 text-footnote font-bold text-brand-ink">
           <SparklesIcon className="h-4 w-4" /> Coach advice
         </h4>
-        <p className="mt-1.5 text-footnote leading-relaxed text-fg-2">{aiResult.advice}</p>
+        {/* Phones: clamped so the step fits one screen; the full advice lives on the Coach card. */}
+        <p className="mt-1.5 text-footnote leading-relaxed text-fg-2 max-md:line-clamp-5 max-md:short:line-clamp-3">
+          {aiResult.advice}
+        </p>
       </div>
 
-      <p className="text-caption leading-relaxed text-muted">{aiResult.reasoning}</p>
+      <p className="text-caption leading-relaxed text-muted max-md:line-clamp-3 max-md:short:line-clamp-2">
+        {aiResult.reasoning}
+      </p>
     </div>
   );
 }

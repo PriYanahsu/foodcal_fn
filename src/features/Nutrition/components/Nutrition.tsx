@@ -1,9 +1,12 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, MotionConfig } from 'framer-motion';
-import FitnessSetupWizard from '@/features/fitnessProfile/components/FitnessSetupWizard';
 import { StepTracker } from '@/features/activity/components/StepTracker';
 import { isFeatureEnabled } from '@/config/features';
+import { ROUTES } from '@/constants/routes';
+import { GettingStartedCard, START_PARAM, useOnboarding } from '@/features/onboarding';
 import { useNutrition } from '../hooks/useNutrition';
 import NutritionHeader from './NutritionHeader';
 import WeekStrip from './WeekStrip';
@@ -27,8 +30,6 @@ export default function Nutrition() {
     fitness,
     selectedDate,
     setSelectedDate,
-    showWizard,
-    setShowWizard,
     stats,
     recentLogs,
     loading,
@@ -39,12 +40,21 @@ export default function Nutrition() {
     initialReady,
     isToday,
   } = useNutrition();
+  const router = useRouter();
+  const { needsWelcome } = useOnboarding();
 
-  if (!initialReady) {
+  // A first-time user (no plan yet) gets the guided setup instead of an empty dashboard.
+  useEffect(() => {
+    if (needsWelcome) router.replace(ROUTES.WELCOME);
+  }, [needsWelcome, router]);
+
+  if (!initialReady || needsWelcome) {
     return <DashboardSkeleton />;
   }
 
-  const openWizard = () => setShowWizard(true);
+  const openWizard = () => router.push(`${ROUTES.WELCOME}?${START_PARAM}=plan`);
+  const showWeightCard = () =>
+    document.getElementById('weight-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
   return (
     // `hide-page-scrollbar`: this page hides the window scrollbar (still scrolls) — see globals.css.
@@ -106,6 +116,7 @@ export default function Nutrition() {
           </div>
 
           <div className="flex flex-col gap-6">
+            <GettingStartedCard onWeighIn={showWeightCard} />
             <motion.div variants={REVEAL}>
               <CoachCard
                 hasPlan={hasPlan}
@@ -117,7 +128,7 @@ export default function Nutrition() {
             <motion.div variants={REVEAL}>
               <WaterCard userId={user?.id} date={selectedDate} />
             </motion.div>
-            <motion.div variants={REVEAL}>
+            <motion.div variants={REVEAL} id="weight-card" className="scroll-mt-8">
               <WeightCard
                 userId={user?.id}
                 profileWeight={fitness.weight}
@@ -130,17 +141,6 @@ export default function Nutrition() {
           </div>
         </div>
       </motion.div>
-
-      {showWizard && user && (
-        <FitnessSetupWizard
-          userId={user.id}
-          onCancel={() => setShowWizard(false)}
-          onComplete={() => {
-            setShowWizard(false);
-            window.location.reload();
-          }}
-        />
-      )}
     </MotionConfig>
   );
 }

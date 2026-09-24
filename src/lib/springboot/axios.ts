@@ -1,5 +1,11 @@
 import axios from 'axios';
-import { clearTokens, getAccessToken, getRefreshToken, setAccessToken } from './auth-tokens';
+import {
+  clearTokens,
+  getAccessToken,
+  getRefreshToken,
+  setAccessToken,
+  SESSION_EXPIRED_PARAM,
+} from './auth-tokens';
 import { markBackendAlive, waitForBackend } from '@/features/backendStatus/wakeService';
 import { COLD_START_STATUSES } from '@/features/backendStatus/config';
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL?.replace(/\/$/, '');
@@ -32,6 +38,16 @@ axiosInstance.interceptors.request.use(async (config) => {
 
 let refreshing: Promise<string | null> | null = null;
 
+// Login/signup/refresh answer 401 for bad credentials, not an expired session.
+const isAuthEndpoint = (url?: string) => Boolean(url?.includes('/v1/auth/'));
+
+/** Both tokens are dead: drop them and send the user to sign in with a notice. */
+const endSession = () => {
+  clearTokens();
+  if (typeof window === 'undefined' || window.location.pathname === '/login') return;
+  window.location.href = `/login?view=login&${SESSION_EXPIRED_PARAM}=1`;
+};
+
 axiosInstance.interceptors.response.use(
   (res) => {
     markBackendAlive();
@@ -44,7 +60,12 @@ axiosInstance.interceptors.response.use(
     // A real error response (400, 401, 500…) still proves the JVM is serving.
     if (status && !COLD_START_STATUSES.includes(status)) markBackendAlive();
 
-    if (status !== 401 || originalRequest._retry) {
+    if (
+      status !== 401 ||
+      !originalRequest ||
+      originalRequest._retry ||
+      isAuthEndpoint(originalRequest.url)
+    ) {
       return Promise.reject(error);
     }
 
@@ -54,11 +75,17 @@ axiosInstance.interceptors.response.use(
       refreshing = (async () => {
         const refreshToken = getRefreshToken();
         if (!refreshToken) return null;
-        const { data } = await axios.post(`${BACKEND_URL}/api/v1/auth/refresh-token`, {
-          refreshToken,
-        });
-        setAccessToken(data.accessToken, data.refreshToken);
-        return data.accessToken as string;
+        try {
+          const { data } = await axios.post(`${BACKEND_URL}/api/v1/auth/refresh-token`, {
+            refreshToken,
+          });
+          if (!data?.accessToken) return null;
+          setAccessToken(data.accessToken, data.refreshToken);
+          return data.accessToken as string;
+        } catch {
+          // Refresh token expired or was rejected — the session is over.
+          return null;
+        }
       })().finally(() => {
         refreshing = null;
       });
@@ -66,8 +93,7 @@ axiosInstance.interceptors.response.use(
 
     const newToken = await refreshing;
     if (!newToken) {
-      clearTokens();
-      if (typeof window !== 'undefined') window.location.href = '/login';
+      endSession();
       return Promise.reject(error);
     }
     originalRequest.headers.Authorization = `Bearer ${newToken}`;

@@ -29,7 +29,7 @@ export function AccountCreated({ email, onContinue }: AccountCreatedProps) {
         <h2 className="font-display text-[30px] font-bold leading-tight tracking-[-0.02em] text-fg max-md:text-large-title">
           Account created
         </h2>
-        <p className="text-base text-fg-2">Sign in to set up your plan.</p>
+        <p className="text-base text-fg-2">Sign in and we&apos;ll walk you through your plan.</p>
       </div>
 
       {email && (

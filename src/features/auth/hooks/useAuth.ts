@@ -1,26 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { login as loginApi, signup as signupApi, logout as logoutApi } from '@/app/service';
-import { AuthUser, LoginCredentials, SignupCredentials } from '../types';
-import { getAuthUser, getUserId } from '@/lib/springboot/auth-tokens';
+import { LoginCredentials, SignupCredentials } from '../types';
+import { getAuthUserSnapshot, subscribeAuth } from '@/lib/springboot/auth-tokens';
 
 const toError = (err: unknown, fallback: string) => (err instanceof Error ? err.message : fallback);
 
 export const useAuth = () => {
   const queryClient = useQueryClient();
-  const [user, setUser] = useState<AuthUser | null>(null);
-
-  useEffect(() => {
-    const stored = getAuthUser();
-    if (stored?.id) {
-      setUser(stored);
-      return;
-    }
-    const id = getUserId();
-    if (id) setUser({ id, name: '', email: '' });
-  }, []);
+  // Read from localStorage after hydration (null on the server), and kept in
+  // sync whenever tokens are saved or cleared — login, logout, session expiry.
+  const user = useSyncExternalStore(subscribeAuth, getAuthUserSnapshot, () => null);
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
@@ -29,9 +21,6 @@ export const useAuth = () => {
         throw new Error(response.error || 'Login failed');
       }
       return response;
-    },
-    onSuccess: (response) => {
-      setUser(response.user ?? getAuthUser());
     },
   });
 
@@ -43,9 +32,6 @@ export const useAuth = () => {
       }
       return response;
     },
-    onSuccess: (response) => {
-      if (response.token) setUser(response.user ?? getAuthUser());
-    },
   });
 
   const logoutMutation = useMutation({
@@ -55,7 +41,6 @@ export const useAuth = () => {
       return response;
     },
     onSuccess: () => {
-      setUser(null);
       queryClient.clear();
     },
   });

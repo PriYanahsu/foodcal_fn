@@ -13,6 +13,7 @@ import { BottomSheet } from '@/components/ui/BottomSheet';
 import { SuccessToast } from '@/components/ui/SuccessToast';
 import { buttonClass } from '@/components/ui/fc';
 import { ROUTES } from '@/constants/routes';
+import { PlanFirstPrompt } from '@/features/onboarding';
 import { useFoodScan } from '../hooks/useFoodScan';
 import { useScanDraft } from '../hooks/useScanDraft';
 import { AiScanOverlay } from './AiScanOverlay';
@@ -294,6 +295,9 @@ export const FoodScanPage: React.FC = () => {
         actionHref={toast?.actionHref}
         onClose={clearToast}
       />
+
+      {/* No plan yet: suggest one first, since a meal means more against a target. */}
+      <PlanFirstPrompt />
     </MotionConfig>
   );
 };

@@ -18,6 +18,7 @@ const NAV_HEIGHT = 64;
 
 interface AuthPageProps {
   initialView?: LinkableAuthView;
+  sessionExpired?: boolean;
 }
 
 /**
@@ -25,7 +26,10 @@ interface AuthPageProps {
  * the product visual — no separate screen. Each view still gets its own URL
  * (`?view=signup`) so it can be linked to and Back closes it.
  */
-export const AuthPage: React.FC<AuthPageProps> = ({ initialView = 'landing' }) => {
+export const AuthPage: React.FC<AuthPageProps> = ({
+  initialView = 'landing',
+  sessionExpired = false,
+}) => {
   const [view, setView] = useState<AuthView>(initialView);
   const [createdEmail, setCreatedEmail] = useState('');
   const router = useRouter();
@@ -83,7 +87,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialView = 'landing' }) =
   const authPanel =
     view === 'landing' ? null : (
       <AuthPanel view={view} onClose={close} variant={isPhone ? 'screen' : 'card'}>
-        {view === 'login' && <LoginForm initialEmail={createdEmail} onCreateAccount={goToSignup} />}
+        {view === 'login' && (
+          <LoginForm
+            initialEmail={createdEmail}
+            sessionExpired={sessionExpired}
+            onCreateAccount={goToSignup}
+          />
+        )}
         {view === 'signup' && (
           <SignupForm
             onSignIn={goToLogin}

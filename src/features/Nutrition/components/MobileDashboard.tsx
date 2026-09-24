@@ -11,6 +11,8 @@ import {
   SparklesIcon,
 } from '@heroicons/react/24/outline';
 import { BottomSheet } from '@/components/ui/BottomSheet';
+import { buttonClass } from '@/components/ui/fc';
+import { GettingStartedButton } from '@/features/onboarding';
 import { CalorieRing, MacroBar } from '@/components/nutrition/macros';
 import type { FitnessDetails } from '@/features/userProfile';
 import type { DailyStats, FoodLog, NutritionGoals } from '../type';
@@ -117,6 +119,37 @@ function Tile({
   );
 }
 
+/** Stands in for the calories tile until there's a plan: one clear next step, no empty ring. */
+function PlanCta({ onSetUpPlan }: { onSetUpPlan: () => void }) {
+  return (
+    <section
+      aria-label="Set up your plan"
+      className="flex shrink-0 flex-col gap-3 rounded-3xl border border-brand/35 bg-linear-160 from-brand/20 to-surface-1 to-70% p-4 short:gap-2.5 short:p-3"
+    >
+      <span className="flex items-center gap-3">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand text-on-brand">
+          <SparklesIcon className="h-5 w-5" />
+        </span>
+        <span className="min-w-0">
+          <span className="block text-base font-bold leading-tight text-fg">
+            Get your daily targets
+          </span>
+          <span className="block truncate text-xs text-muted">
+            A few questions · about 2 minutes
+          </span>
+        </span>
+      </span>
+      <button
+        type="button"
+        onClick={onSetUpPlan}
+        className={buttonClass('primary', 'md', 'w-full short:h-11')}
+      >
+        Set up my plan
+      </button>
+    </section>
+  );
+}
+
 /** Big number + unit, the same size on every tile. */
 function Figure({ value, unit }: { value: ReactNode; unit: string }) {
   return (
@@ -175,18 +208,21 @@ export default function MobileDashboard({
             {greetingFor()}, {userName.split(' ')[0]}
           </h1>
         </div>
-        <button
-          type="button"
-          onClick={() => setCalendarOpen((open) => !open)}
-          aria-label="Open calendar"
-          aria-expanded={calendarOpen}
-          aria-haspopup="dialog"
-          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-line text-fg-2 transition-colors active:scale-95 ${
-            calendarOpen ? 'bg-surface-2 text-fg' : 'bg-surface-1'
-          }`}
-        >
-          <CalendarDaysIcon className="h-5 w-5" />
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          <GettingStartedButton onWeighIn={() => setPanel('weight')} />
+          <button
+            type="button"
+            onClick={() => setCalendarOpen((open) => !open)}
+            aria-label="Open calendar"
+            aria-expanded={calendarOpen}
+            aria-haspopup="dialog"
+            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-line text-fg-2 transition-colors active:scale-95 ${
+              calendarOpen ? 'bg-surface-2 text-fg' : 'bg-surface-1'
+            }`}
+          >
+            <CalendarDaysIcon className="h-5 w-5" />
+          </button>
+        </div>
         <CalendarPopover
           open={calendarOpen}
           selectedDate={selectedDate}
@@ -205,44 +241,48 @@ export default function MobileDashboard({
           refreshing ? 'opacity-70' : ''
         }`}
       >
-        <Tile
-          label="Calories"
-          tone="neutral"
-          icon={<FireIcon className="h-4 w-4" />}
-          onOpen={() => setPanel('calories')}
-          hideLabelWhenShort
-          className="shrink-0"
-        >
-          <span className="flex w-full items-center gap-4">
-            <span className="short:hidden">
-              <CalorieRing value={eaten} max={goal ?? 0} size={96} stroke={10}>
-                <RingText eaten={eaten} left={left} />
-              </CalorieRing>
+        {hasPlan ? (
+          <Tile
+            label="Calories"
+            tone="neutral"
+            icon={<FireIcon className="h-4 w-4" />}
+            onOpen={() => setPanel('calories')}
+            hideLabelWhenShort
+            className="shrink-0"
+          >
+            <span className="flex w-full items-center gap-4">
+              <span className="short:hidden">
+                <CalorieRing value={eaten} max={goal ?? 0} size={96} stroke={10}>
+                  <RingText eaten={eaten} left={left} />
+                </CalorieRing>
+              </span>
+              <span className="hidden short:block">
+                <CalorieRing value={eaten} max={goal ?? 0} size={78} stroke={8}>
+                  <RingText eaten={eaten} left={left} />
+                </CalorieRing>
+              </span>
+              <span className="flex min-w-0 flex-1 flex-col gap-2 short:gap-1">
+                <MacroBar
+                  macro="protein"
+                  value={Math.round(stats.proteins)}
+                  max={hasPlan ? goals.proteins : null}
+                />
+                <MacroBar
+                  macro="carbs"
+                  value={Math.round(stats.carbohydrates)}
+                  max={hasPlan ? goals.carbohydrates : null}
+                />
+                <MacroBar
+                  macro="fat"
+                  value={Math.round(stats.fats)}
+                  max={hasPlan ? goals.fats : null}
+                />
+              </span>
             </span>
-            <span className="hidden short:block">
-              <CalorieRing value={eaten} max={goal ?? 0} size={78} stroke={8}>
-                <RingText eaten={eaten} left={left} />
-              </CalorieRing>
-            </span>
-            <span className="flex min-w-0 flex-1 flex-col gap-2 short:gap-1">
-              <MacroBar
-                macro="protein"
-                value={Math.round(stats.proteins)}
-                max={hasPlan ? goals.proteins : null}
-              />
-              <MacroBar
-                macro="carbs"
-                value={Math.round(stats.carbohydrates)}
-                max={hasPlan ? goals.carbohydrates : null}
-              />
-              <MacroBar
-                macro="fat"
-                value={Math.round(stats.fats)}
-                max={hasPlan ? goals.fats : null}
-              />
-            </span>
-          </span>
-        </Tile>
+          </Tile>
+        ) : (
+          <PlanCta onSetUpPlan={onSetUpPlan} />
+        )}
 
         <div className="grid min-h-0 flex-1 grid-cols-2 grid-rows-2 gap-3 short:gap-2.5">
           <Tile
@@ -275,7 +315,7 @@ export default function MobileDashboard({
             <span className="mt-auto line-clamp-4 text-[13px] leading-snug text-fg-2 short:line-clamp-3">
               {hasPlan
                 ? fitness.aiCoachAdvice || 'Log a few meals to get tips.'
-                : 'Set up your plan to get daily targets.'}
+                : 'Your coach starts once your plan is set.'}
             </span>
           </Tile>
 

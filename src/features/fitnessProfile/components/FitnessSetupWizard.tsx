@@ -1,8 +1,10 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
+  ExclamationCircleIcon,
   SparklesIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
@@ -29,11 +31,17 @@ export default function FitnessSetupWizard({
   onComplete,
   onCancel,
   isInline = false,
+  headerAction,
+  className = '',
 }: {
   userId: string;
   onComplete: () => void;
   onCancel?: () => void;
   isInline?: boolean;
+  /** Inline only: shown where the close button sits in the modal (e.g. "Skip for now"). */
+  headerAction?: ReactNode;
+  /** Inline only: extra classes for the card, e.g. to fill the screen on phones. */
+  className?: string;
 }) {
   const {
     step,
@@ -43,6 +51,7 @@ export default function FitnessSetupWizard({
     aiResult,
     toast,
     clearToast,
+    error,
     stats,
     goals,
     setStats,
@@ -63,7 +72,7 @@ export default function FitnessSetupWizard({
   const meta = STEPS[Math.min(step, STEPS.length) - 1];
 
   const header = (
-    <header className="shrink-0 border-b border-line px-5 pb-4 pt-5">
+    <header className="shrink-0 border-b border-line px-5 pb-4 pt-5 short:pb-3 short:pt-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-caption font-bold uppercase tracking-wide text-brand-ink">
@@ -72,8 +81,9 @@ export default function FitnessSetupWizard({
           <h2 className="mt-1 font-display text-title font-bold tracking-[-0.02em] text-fg">
             {meta.title}
           </h2>
-          <p className="mt-0.5 text-footnote text-muted">{meta.subtitle}</p>
+          <p className="mt-0.5 text-footnote text-muted short:hidden">{meta.subtitle}</p>
         </div>
+        {isInline && headerAction}
         {onCancel && !isInline && (
           <button
             type="button"
@@ -86,7 +96,7 @@ export default function FitnessSetupWizard({
         )}
       </div>
 
-      <div className="mt-4 flex gap-1.5">
+      <div className="mt-4 flex gap-1.5 short:mt-3">
         {STEPS.map((s, i) => (
           <span
             key={s.title}
@@ -100,7 +110,9 @@ export default function FitnessSetupWizard({
   );
 
   const body = (
-    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5">
+    // Every step is laid out to fit a phone screen without scrolling; overflow stays on
+    // only as a fallback for the on-screen keyboard and very small screens.
+    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 short:py-4">
       {step === 1 && (
         <AboutYouStep stats={stats} setStats={setStats} prefillLoading={prefillLoading} />
       )}
@@ -120,7 +132,16 @@ export default function FitnessSetupWizard({
   );
 
   const footer = (
-    <footer className="shrink-0 border-t border-line px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4">
+    <footer className="shrink-0 border-t border-line px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 short:pb-[max(1rem,env(safe-area-inset-bottom))] short:pt-3">
+      {error && (
+        <p
+          role="alert"
+          className="mb-3 flex items-start gap-2 rounded-xl border border-warn/40 bg-warn/10 px-3 py-2 text-footnote text-fg"
+        >
+          <ExclamationCircleIcon className="mt-px h-4 w-4 shrink-0 text-warn" />
+          {error}
+        </p>
+      )}
       <div className="flex gap-2">
         {step === 1 && (
           <button
@@ -210,7 +231,9 @@ export default function FitnessSetupWizard({
   if (isInline) {
     return (
       <>
-        <section className="flex w-full flex-col overflow-hidden rounded-3xl border border-line bg-surface-1 font-ui text-fg">
+        <section
+          className={`flex w-full flex-col overflow-hidden rounded-3xl border border-line bg-surface-1 font-ui text-fg ${className}`}
+        >
           {frame}
         </section>
         {feedback}
